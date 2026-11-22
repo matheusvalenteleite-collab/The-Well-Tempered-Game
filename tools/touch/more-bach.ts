@@ -113,6 +113,12 @@ interface Spec {
   fixes?: ({ voice: number; bar: number; nth: number; to?: string; tie?: true } | { voice: number; bar: number; at: string; from: string; to?: string; tie?: true; start?: string; length?: string; strike?: true } | { voice: number; bar: number; at: string; add: string; dur: string } | { voice: number; bar: number; at: string; until: string; toVoice?: number; remove?: true; pitch?: string; chord?: true })[];
   /** The voices the player may take (all where unset). */
   playable?: number[];
+  /**
+   * D908: a canon whose second line the edition writes in whichever hand plays it (the 1741 print's keyboard layout):
+   * the layers' four voices [top line, the right hand's second layer, the left hand's upper layer, the bass layer]
+   * folded into the three real parts (`joinCanon`), after the fixes (which keep the four).
+   */
+  canonJoin?: true | { bars: number; steps: number; contrary?: true; strict?: true };
   /** The edition's typesetter and licence, for the credit line. */
   credit: string;
 }
@@ -930,8 +936,25 @@ const GOLDBERG_ORN_FIXES: Record<number, NonNullable<Spec["ornFixes"]>> = {
  * Quodlibet's (30); Variations 23, 28 and 29's few-note second layers. Measured: notes a bar, held notes, bars sounded.
  */
 const GOLDBERG_PLAYABLE: Record<number, number[]> = {
-  0: [0], 6: [0, 1, 2], 10: [0, 2], 12: [0, 2], 13: [0], 15: [0, 2], 16: [0, 2], 21: [0, 1, 2], 22: [0, 1, 2],
-  23: [0, 1], 24: [0, 2], 25: [0], 26: [0, 2], 28: [0, 2], 29: [1, 3], 30: [0, 1, 2],
+  0: [0], 6: [0, 1, 2], 10: [0, 2], 12: [0, 1, 2], 13: [0], 15: [0, 1, 2], 16: [0, 2], 21: [0, 1, 2], 22: [0, 1, 2],
+  23: [0, 1], 24: [0, 1, 2], 25: [0], 26: [0, 2], 28: [0, 2], 29: [1, 3], 30: [0, 1, 2],
+};
+// D908: the five canons folded to three whole parts (6, 12, 15, 21, 24) offer all three: their second canonic line and
+// their bass whole again, neither dull (1.6-4.2 notes a second, at most 6 % repeated pitches).
+/**
+ * D908: the canons whose second line the print writes in either hand (the 1741 print, read for Var. 12): folded to three
+ * parts. Where the left-hand layers do not part as the others' do, the canon itself decides (`GOLDBERG_CANON_BY`: the
+ * second line the top's at `steps` diatonic steps, `bars` before or after it): Vars. 6 (a second below, one bar), 21 (a
+ * seventh below, half a bar) and 24 (an octave below, two bars), their other left-hand notes the bass's; and, their
+ * other notes as the layers part, Vars. 12 and 15 (in contrary motion, one bar).
+ */
+const GOLDBERG_CANON_JOIN = new Set([6, 12, 15, 21, 24]);
+const GOLDBERG_CANON_BY: Record<number, { bars: number; steps: number; contrary?: true; strict?: true }> = {
+  6: { bars: 1, steps: -1, strict: true },
+  12: { bars: 1, steps: 61, contrary: true },
+  15: { bars: 1, steps: 68, contrary: true },
+  21: { bars: 0.5, steps: -6, strict: true },
+  24: { bars: 2, steps: -7, strict: true },
 };
 const voicesNamed = (n: number) => (n === 2 ? TWO_HANDS : n === 3 ? THREE : FOUR);
 const goldbergTitle = (n: number) => (n === 0 ? "Goldberg Variations, Aria" : `Goldberg Variations, Variation ${n}${GOLDBERG_KIND[n] ? `, ${GOLDBERG_KIND[n]}` : ""}`);
@@ -953,7 +976,8 @@ const GOLDBERG: Spec[] = [
     xmlByIndex: true,
     xmlVoices: voices,
     keepOrnaments: true,
-    voiceNames: voicesNamed(voices.length),
+    voiceNames: voicesNamed(GOLDBERG_CANON_JOIN.has(n) ? 3 : voices.length),
+    ...(GOLDBERG_CANON_JOIN.has(n) ? { canonJoin: GOLDBERG_CANON_BY[n] ?? (true as const) } : {}),
     entries: n === 10,
     ...(GOLDBERG_PLAYABLE[n] ? { playable: GOLDBERG_PLAYABLE[n], defaultVoice: GOLDBERG_PLAYABLE[n][0] } : {}),
     ...(GOLDBERG_FIXES[n] ? { fixes: GOLDBERG_FIXES[n] } : {}),
@@ -1646,9 +1670,67 @@ export function applyFixes(r: Pick<Read, "voices" | "bars" | "length" | "spell">
   }
 }
 
+/**
+ * D908: the second canonic line and the bass, each whole again. The left hand's upper layer carries the second line
+ * where the bass layer sounds under it and the bass where the right hand's second layer (the canon then in the right
+ * hand) sounds over it; a note of it with neither (or both) goes with its neighbours in that layer (the one before
+ * if it joins it, else the next), and one standing alone to the part whose nearest note is nearest in pitch. No pitch
+ * or onset is changed; a held note meeting the next at a change of hand ends there: `[top, second line, bass]`.
+ */
+export function joinCanon(voices: Note[][], canon?: { delay: number; steps: number; contrary?: true; strict?: true }): { voices: Note[][]; toLine: number; toBass: number } {
+  const [top, rh2, lhUp, bass] = voices;
+  const sounds = (v: Note[], n: Note) => v.some((o) => o[0] < n[0] + n[1] && n[0] < o[0] + o[1]);
+  // `canon`: the second line the top line's at `steps` diatonic steps (contrary: the two summing to `steps`), `delay`
+  // ticks before or after it: the left hand's note the canon pairs with the top line is the line's; any other the
+  // bass's (`strict`: Vars. 6 and 24), else as the layers part (Var. 12).
+  const at = (t: Note) => (canon!.contrary ? canon!.steps - t[3] : t[3] + canon!.steps);
+  const partner = canon ? new Set(top.flatMap((t) => [`${t[0] + canon.delay}:${at(t)}`, `${t[0] - canon.delay}:${at(t)}`])) : null;
+  const vote = lhUp.map((n) => {
+    // (Not while the line sounds in the right hand: a bass note can meet the canon's step by chance.)
+    if (partner?.has(`${n[0]}:${n[3]}`) && !sounds(rh2, n)) return "line";
+    if (canon?.strict) return "bass";
+    const a = sounds(rh2, n), b = sounds(bass, n);
+    return a === b ? null : b ? "line" : "bass";
+  });
+  // The undecided: with the neighbour it joins in the layer (before, then after), else by pitch.
+  for (let pass = 0; pass < 2; pass++)
+    for (let i = 0; i < lhUp.length; i++) {
+      if (vote[i]) continue;
+      const before = i > 0 && lhUp[i - 1][0] + lhUp[i - 1][1] >= lhUp[i][0] ? vote[i - 1] : null;
+      const after = i + 1 < lhUp.length && lhUp[i][0] + lhUp[i][1] >= lhUp[i + 1][0] ? vote[i + 1] : null;
+      vote[i] = before ?? after ?? (pass ? null : vote[i]);
+    }
+  const nearest = (v: Note[], n: Note) => {
+    const o = [...v].sort((x, y) => Math.abs(x[0] - n[0]) - Math.abs(y[0] - n[0]))[0];
+    return o ? Math.abs(o[2] - n[2]) : 99;
+  };
+  const line = [...rh2], low = [...bass];
+  lhUp.forEach((n, i) => {
+    const v = vote[i] ?? (nearest(rh2, n) <= nearest(bass, n) ? "line" : "bass");
+    (v === "line" ? line : low).push(n);
+  });
+  const sort = (v: Note[]) => v.sort((x, y) => x[0] - y[0] || y[2] - x[2]);
+  sort(line);
+  // A line is one note at a time: of the left hand's notes struck with another of the line's, the lower is the bass's.
+  for (let i = line.length - 1; i > 0; i--)
+    if (line[i][0] === line[i - 1][0] && !rh2.includes(line[i])) low.push(...line.splice(i, 1));
+  // The reading at the junctions: where the line passes from one hand to the other, a note held into the next one
+  // (the hands' layers overlapping there) ends where it begins; its pitch and onset untouched.
+  const fromRh = new Set(rh2);
+  for (let i = 0; i + 1 < line.length; i++) {
+    const [n, m] = [line[i], line[i + 1]];
+    if (fromRh.has(n) !== fromRh.has(m) && n[0] < m[0] && n[0] + n[1] > m[0]) line[i] = [n[0], m[0] - n[0], n[2], n[3]];
+  }
+  return { voices: [top, line, sort(low)], toLine: line.length - rh2.length, toBass: low.length - bass.length };
+}
+
 export function build(s: Spec) {
   const r = s.xml ? readXmlPiece(s) : readPiece(s);
   if (s.fixes) applyFixes(r, s.fixes);
+  if (s.canonJoin) {
+    const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
+    r.voices = joinCanon(r.voices, s.canonJoin === true ? undefined : { ...s.canonJoin, delay: s.canonJoin.bars * barTicks }).voices;
+  }
   if (s.ornFixes) applyOrnFixes(r, s.ornFixes);
   const barTicks = ((Number(r.meter.split("/")[0]) * 4) / Number(r.meter.split("/")[1])) * TPQ;
   const piece = { tpq: TPQ, meter: r.meter, bars: r.bars, length: r.length, voices: r.voices, key: s.key };

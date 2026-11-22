@@ -121,13 +121,14 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   const fug = renderToStaticMarkup(createElement(PlayPop, { id: "wtc1f01", voice: 1, singing: [0, 1, 2, 3], setVoice: () => {}, play: () => {}, close: () => {} }));
   assert.match(fug, /YOUR VOICE/);
   assert.equal(fug.match(/id="voice-\d"/g)?.length, 4);
-  // Every prelude's part is the right hand (voice 0) unless the map names another.
-  assert.deepEqual(PRELUDE_PART, {});
+  // Every prelude's part is the right hand (voice 0) unless the map names another (D950: I/2's left hand).
+  assert.deepEqual(PRELUDE_PART, { wtc1p02: 1 });
   for (let n = 1; n <= 24; n++) {
     const id = `wtc1p${String(n).padStart(2, "0")}`;
-    assert.equal(preludePart(id), 0, id);
+    const part = id === "wtc1p02" ? 1 : 0;
+    assert.equal(preludePart(id), part, id);
     const p = fugueById(id);
-    assert.equal(defaultVoice(p, voicesFrom(p, 0)), 0, id);
+    assert.equal(defaultVoice(p, voicesFrom(p, 0)), part, id);
   }
   // The pick: a prelude's left hand chosen (or kept) before gives its own part; on the bench and on play.html.
   const { APP } = await import("../src/bench/config.ts");

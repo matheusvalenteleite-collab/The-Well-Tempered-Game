@@ -15,7 +15,7 @@ export interface PreludePlan {
 }
 export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p01: { offer: [0], why: "figuration: the right hand's figure (D882: the named exception to the dull-lines rule)" },
-  wtc1p02: { offer: [], held: true, why: "figuration in both hands, over the ceiling in the Presto: held back (D883)" },
+  wtc1p02: { offer: [1], why: "figuration in both hands: the left hand, at the tempo (D950; held back before, D883)" },
   wtc1p03: { offer: [0, 1], why: "two-part: the hands swap the figure and the tune" },
   wtc1p04: { offer: [0, 3], why: "four-part arioso: soprano and bass; the inner voices too sparse (D884, as D864)" },
   wtc1p05: { offer: [0], tempo: "slow", why: "figuration over a staccato bass: the right hand, at the slow tempo (D883)" },
@@ -26,27 +26,29 @@ export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p10: { offer: [0], why: "an ornate melody over broken chords: the melody (D881)" },
   wtc1p11: { offer: [0, 1], why: "two-part, as an invention" },
   wtc1p12: { offer: [0, 1, 2, 3], why: "four voices (D881; voiced after Mutopia, CC BY-SA 4.0)" },
-  // D888-D891: batch 2, Book I 13-24.
+  // D888, D889, D899, D907: batch 2, Book I 13-24 (D899 and D907 were numbered D890 and D891 first, numbers another session held).
   wtc1p13: { offer: [0, 1], why: "two-part: a tune over an accompanying motif" },
-  wtc1p14: { offer: [0, 1], why: "two-part, invention-like (D891: at the ceiling)" },
-  wtc1p15: { offer: [0, 1], why: "two-part figuration, the hands swapping the figure (D891)" },
+  wtc1p14: { offer: [0, 1], why: "two-part, invention-like (D907: at the ceiling)" },
+  wtc1p15: { offer: [0, 1], why: "two-part figuration, the hands swapping the figure (D907)" },
   wtc1p16: { offer: [0, 1, 2], why: "three voices: a trilled soprano, an alto, a bass (D888)" },
-  wtc1p17: { offer: [0, 1], why: "concerto-like: a tune over a broken-chord bass, not dull by any test (D891)" },
+  wtc1p17: { offer: [0, 1], why: "concerto-like: a tune over a broken-chord bass, not dull by any test (D907)" },
   wtc1p18: { offer: [0, 1, 2], why: "three-part, sinfonia-like (D888)" },
   wtc1p19: { offer: [0, 1, 2], why: "three-part, imitative; the middle voice crossing the hands (D888)" },
-  wtc1p20: { offer: [0, 1], why: "two-part, invention-like (D891)" },
+  wtc1p20: { offer: [0, 1], why: "two-part, invention-like (D907)" },
   wtc1p21: { offer: [0], tempo: "slow", why: "toccata: the right hand, at the slow tempo (D889)" },
-  wtc1p22: { offer: [0], why: "a five-part arioso: the melody alone (D890)" },
+  wtc1p22: { offer: [0], why: "a five-part arioso: the melody alone (D899)" },
   wtc1p23: { offer: [0, 1, 2], why: "three-part, imitative (D888)" },
   wtc1p24: { offer: [0, 1, 2], why: "a trio: two upper voices over a walking bass (D888)" },
 };
 /**
- * D882: the one deliberate exception to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
+ * D882: the deliberate exceptions to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
  * are each their own first half twice (91 %, every WTC fugue voice at most 8 %), offered because its harmony changes
- * every bar. No other.
+ * every bar; D950: and I/2's left hand (64 %), on the same ground, so that all of Book I is offered. No other.
  */
 export const DULL_EXCEPTIONS: Readonly<Record<string, { voice: number; why: string }>> = {
   wtc1p01: { voice: 0, why: "the harmony changes every bar" },
+  // D950: and I/2's left hand (its bars 64 % their own first half twice), on the same ground, for the whole of Book I.
+  wtc1p02: { voice: 1, why: "the harmony changes every bar" },
 };
 /** The voices a planned prelude does not offer (none for a piece without a plan). */
 export function preludeExcluded(id: string, voices: number): number[] {

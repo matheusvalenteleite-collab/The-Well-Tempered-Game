@@ -156,7 +156,10 @@ export function herUnlocked(s: Stages = readStages(), feats: { earned: Partial<R
  * game gives"): the part each prelude gives its player, by id. The right hand (voice 0) for every
  * prelude unless named here (room to give one its left hand, or another part, later).
  */
-export const PRELUDE_PART: Readonly<Record<string, number>> = {};
+export const PRELUDE_PART: Readonly<Record<string, number>> = {
+  // D950: I/2's left hand, the one part its plan offers (src/touch/prelude-plan.ts).
+  wtc1p02: 1,
+};
 
 /** D251: the part a prelude gives (the right hand, voice 0, unless `PRELUDE_PART` names another). */
 export const preludePart = (id: string): number => PRELUDE_PART[id] ?? 0;
