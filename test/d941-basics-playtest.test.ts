@@ -76,6 +76,7 @@ test("no count-in (PROVE waits at its first note too); the take ends at its last
       }
   assert.deepEqual(["1.1", "1.2", "2.4", "3.1", "4.2", "5.1", "5.2", "6.6"].map((id) => beatFor(stage(id))), [null, { kind: "click", gain: 0.07 }, { kind: "click", gain: 0.07 }, { kind: "drums", style: "rock" }, { kind: "drums", style: "rock" }, { kind: "click", gain: 0.05 }, null, { kind: "drums", style: "home" }]);
   assert.ok(basicsRun(stage("1.2"), "do", 0).click);
+  assert.equal(basicsRun(stage("6.4"), "do", 0).ornHint, false);
   assert.deepEqual(beatFor(stage("6.7")), { kind: "drums", style: "liebezeit" });
   assert.equal(basicsRun(stage("3.1"), "do", 0).tut?.band, true);
 });
@@ -128,4 +129,16 @@ test("one clip a stage that shows one, its own file (the HOW TO page keeps D690'
     assert.ok(existsSync(new URL(`../src/bench/basics/clips/${st.id.replace(".", "-")}.mp4`, import.meta.url)), st.id);
   }
   for (const c of ["tap", "up", "two", "hold", "shake"]) assert.ok(existsSync(new URL(`../src/bench/basics/clips/${c}.mp4`, import.meta.url)), c);
+});
+
+test("no cadence mark's line through any name (two marks sharing a name's row: the other's a stub too)", async () => {
+  const { cadenceMarks } = await import("../src/touch/box-fx.ts");
+  const rects: [number, number, number, number][] = [];
+  const g = { fillStyle: "", globalAlpha: 1, fillRect: (x: number, y: number, w: number, h: number) => rects.push([x, y, w, h]), font: "", fillText: () => {}, measureText: () => ({ width: 4 }) } as unknown as CanvasRenderingContext2D;
+  const c = { g, w: 300, h: 120, xOf: (t: number) => t, now: 0, tps: 1000, gold: "#f3d78a" } as never;
+  // A name at x 100 (to its right); a later mark at 140, inside that name.
+  cadenceMarks(c, [{ on: 100, text: "IMPERFECT CADENCE · A MINOR" }, { on: 140, text: "FULL CADENCE · D MINOR" }]);
+  const lines = rects.filter(([, , w, h]) => w === 1 && h > 1);
+  const at140 = lines.find(([x]) => x === 140)!;
+  assert.ok(at140 && at140[3] <= 3, `the mark at 140 a stub: ${JSON.stringify(at140)}`);
 });

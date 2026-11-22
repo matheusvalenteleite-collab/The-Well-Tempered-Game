@@ -101,6 +101,8 @@ export function basicsRun(st: Stage, phase: Phase, notches: number, k = 0): Run 
   return {
     ...r,
     fail: false,
+    // D941: the stage's own line is the instruction: not the game's ornament hint beside it (6.4).
+    ornHint: false,
     tut: {
       ...(st.side ? { side: st.side } : {}),
       ...(early ? { widen: 1.5 } : {}),
