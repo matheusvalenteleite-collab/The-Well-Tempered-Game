@@ -84,7 +84,7 @@ export const BASS_PHONE: Readonly<Record<string, { s: string; sig: string; db: n
   wtc2f24: {"s":"analog","sig":"[null,0.336,null,null,null,null]","db":null,"band":{"lu":[-30.5,-30.4,-31.7],"at":[-0.9,0,0],"mix":-26.8},"player":{"lu":[-31.2,-30.4,-30.9],"at":[0,0,-1.2],"mix":-26.7}},
   wtc2p01: {"s":"chorinho","sig":"[\"choroGuitar\",0.19,{\"hz\":500,\"db\":9},null,null,null]","db":null,"band":{"lu":[-29.4,-30.5,-30.5],"at":[-0.5,1,5.9],"mix":-28.2},"player":{"lu":[-29.7,-30.5,-30.3],"at":[0,1,5.6],"mix":-28.3}},
   wtc2p02: {"s":"harpsichordSampled","sig":"[\"harpsichord\",0.36,null,null,null,null]","db":null,"band":{"lu":[-29.9,-31.3],"at":[-0.8,0],"mix":-27.6},"player":{"lu":[-29.8,-31.2],"at":[0,-1],"mix":-27.5}},
-  wtc2p03: {"s":"sid64","sig":"[null,0.45,null,null,null,null]","db":null,"band":{"lu":[-34.1,-34.6,-37],"at":[-1,0,0],"mix":-30.8},"player":{"lu":[-35.3,-34.6,-35.3],"at":[0,0,-1.6],"mix":-30.8}},
+  wtc2p03: {"s":"sid64","sig":"[null,0.45,null,null,null,null]","db":null,"band":{"lu":[-34.7,-34.6,-35.5],"at":[-1.4,0,0],"mix":-30.7},"player":{"lu":[-35.4,-34.6,-34.3],"at":[0.3,0,-1.6],"mix":-30.5}},
   wtc2p04: {"s":"gameboy","sig":"[null,0.35,null,null,null,null]","db":null,"band":{"lu":[-32.7,-36.9,-33.6],"at":[-0.6,1.8,0],"mix":-29.5},"player":{"lu":[-32.9,-36.9,-34.2],"at":[0,1.8,-1.2],"mix":-29.9}},
   wtc2p05: {"s":"bachBrass","sig":"[\"brassBass\",1.3,{\"hz\":600,\"db\":4.5},180,null,null]","db":null,"band":{"lu":[-35.4,-35.4,-35.4],"at":[-0.1,0,0],"mix":-31.5},"player":{"lu":[-35.5,-35.4,-35.3],"at":[0.5,0,-0.6],"mix":-31.6}},
   wtc2p06: {"s":"sid64","sig":"[null,0.45,null,null,null,null]","db":null,"band":{"lu":[-34.2,-36.5],"at":[-1.7,0],"mix":-32.3},"player":{"lu":[-34.9,-35.6],"at":[0,-1.7],"mix":-32.4}},
