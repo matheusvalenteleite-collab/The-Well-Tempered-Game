@@ -51,7 +51,23 @@ export interface FugueMorph {
   s1: number;
   lo: number;
   hi: number;
+  /** D973 (prototype): what is built: a transformed entry (D972), an answer in the exposition, or a stretto's entry. */
+  kind: "form" | "answer" | "stretto";
+  /** D973: an answer's notes that the tonal answer moves differently from the rest (they take a step of their own, last). */
+  adj?: boolean[];
 }
+
+/**
+ * D973 (prototype, the board: "prototype first"): the further kinds, on in the game only with `?fm=answer,stretto`
+ * (play.html's address), for the gallery's live recordings; off by default, nothing changes in play without it.
+ */
+const PROTO: ReadonlySet<string> = (() => {
+  try {
+    return new Set((new URLSearchParams(globalThis.location?.search ?? "").get("fm") ?? "").split(",").filter(Boolean));
+  } catch {
+    return new Set();
+  }
+})();
 
 const formKey = (e: TouchEntry) => `${e.theme ?? 1}:${!!e.inverted}:${e.scale ?? 1}`;
 const plain = (e: TouchEntry) => !e.inverted && (e.scale ?? 1) === 1;
@@ -76,6 +92,52 @@ export function fugueMorphs(f: TouchFugue): FugueMorph[] {
     const seen = new Set<number>();
     return e.notes.filter(([on]) => st.has(on) && !seen.has(on) && (seen.add(on), true)).map(([on, dur]) => ({ on, dur, step: st.get(on)!, voice: e.voice }));
   };
+  const S0of = (theme: number) => notesOf(es.find((e) => (e.theme ?? 1) === theme)!);
+  /** One morph: the entry t from `src` (or the subject's emblem), its flight ending a quarter before t sounds. */
+  const make = (t: TouchEntry, kind: FugueMorph["kind"], pick: (n: { start: number }) => TouchEntry | null, lead?: number): FugueMorph | null => {
+    const theme = t.theme ?? 1;
+    const subject = es.find((e) => (e.theme ?? 1) === theme)!;
+    const T0 = notesOf(t);
+    if (T0.length < 2) return null;
+    const tB0 = T0[0].on;
+    // the timings in quarters, never shorter than they take to read at a fast tempo
+    const flight = lead ?? Math.max(2.5 * q, qs(1.4));
+    const n = { landed: tB0 - q / 4, fly: 0, start: 0 };
+    n.fly = n.landed - flight;
+    n.start = n.fly - q / 4;
+    const e = { landed: n.landed, fly: n.fly, hold: 0, start: 0 };
+    e.hold = e.fly - Math.max(0.5 * q, qs(0.8));
+    e.start = e.hold - Math.max(0.75 * q, qs(0.45));
+    // (a fragment, fewer than four in five of the entry's notes, is no model: the emblem then)
+    const S0 = S0of(theme);
+    const cand = pick(n);
+    const src = cand && notesOf(cand).length >= 0.8 * Math.min(T0.length, S0.length) ? cand : null;
+    const A0 = src ? notesOf(src) : [];
+    const len = Math.min(T0.length, S0.length, src ? A0.length : Infinity);
+    const model = src ?? subject, inv = !!t.inverted !== !!model.inverted, ratio = (t.scale ?? 1) / (model.scale ?? 1);
+    const A = A0.slice(0, len), S = S0.slice(0, len), T = T0.slice(0, len);
+    let c = 0, dS = 0, adj: boolean[] | undefined;
+    if (A.length) {
+      const lo = Math.min(...A.map((x) => x.step)), hi = Math.max(...A.map((x) => x.step));
+      c = (lo + hi) / 2;
+      const mean = (fn: (x: MorphNote, y: MorphNote) => number) => A.reduce((sum, x, j) => sum + fn(x, T[j]), 0) / A.length;
+      dS = inv ? mean((x, y) => y.step + x.step) - 2 * c : mean((x, y) => y.step - x.step);
+      if (kind === "answer" && !inv) {
+        // the transposition: the shift most notes take; the others (the tonal answer's) move on their own at the end
+        const count = new Map<number, number>();
+        for (let j = 0; j < A.length; j++) count.set(T[j].step - A[j].step, (count.get(T[j].step - A[j].step) ?? 0) + 1);
+        dS = [...count.entries()].sort((x, y) => y[1] - x[1])[0][0];
+        adj = A.map((x, j) => T[j].step - x.step !== dS);
+        // more than three notes apart is not a tonal answer's adjustment but a varied line: moved as one, blended
+        if (adj.filter(Boolean).length > 3) (adj = undefined), (dS = mean((x, y) => y.step - x.step));
+      }
+    }
+    return {
+      key: `${t.voice}:${t.on}`, entry: t, src, subject, A, S, T, inv, ratio, tB0, n, e,
+      end: n.landed + 2 * q, kind, adj,
+      c, dS, s0: S[0].on, s1: S[S.length - 1].on + S[S.length - 1].dur, lo: Math.min(...S.map((x) => x.step)), hi: Math.max(...S.map((x) => x.step)),
+    };
+  };
   const seen = new Set<string>();
   let last = -Infinity;
   for (const t of es) {
@@ -86,40 +148,40 @@ export function fugueMorphs(f: TouchFugue): FugueMorph[] {
     const theme = t.theme ?? 1;
     const subject = es.find((e) => (e.theme ?? 1) === theme)!;
     if (subject === t && !subject.inverted && (subject.scale ?? 1) === 1) continue;
-    const T0 = notesOf(t);
-    if (T0.length < 2) continue;
-    const tB0 = T0[0].on;
-    // the timings in quarters, never shorter than they take to read at a fast tempo
-    const flight = Math.max(2.5 * q, qs(1.4));
-    const n = { landed: tB0 - q / 4, fly: 0, start: 0 };
-    n.fly = n.landed - flight;
-    n.start = n.fly - q / 4;
-    const e = { landed: n.landed, fly: n.fly, hold: 0, start: 0 };
-    e.hold = e.fly - Math.max(0.5 * q, qs(0.8));
-    e.start = e.hold - Math.max(0.75 * q, qs(0.45));
     // the neighbour: the latest plain entry of this subject already sounding as the morph lifts off
-    // (a fragment, fewer than four in five of the entry's notes, is no model: the emblem then)
-    const S0 = notesOf(subject);
-    const cand = [...es].reverse().find((x) => x !== t && plain(x) && (x.theme ?? 1) === theme && x.on <= n.start) ?? null;
-    const src = cand && notesOf(cand).length >= 0.8 * Math.min(T0.length, S0.length) ? cand : null;
-    const A0 = src ? notesOf(src) : [];
-    const len = Math.min(T0.length, S0.length, src ? A0.length : Infinity);
-    const inv = !!t.inverted, ratio = t.scale ?? 1;
-    const A = A0.slice(0, len), S = S0.slice(0, len), T = T0.slice(0, len);
-    let c = 0, dS = 0;
-    if (A.length) {
-      const lo = Math.min(...A.map((x) => x.step)), hi = Math.max(...A.map((x) => x.step));
-      c = (lo + hi) / 2;
-      const mean = (fn: (x: MorphNote, y: MorphNote) => number) => A.reduce((sum, x, j) => sum + fn(x, T[j]), 0) / A.length;
-      dS = inv ? mean((x, y) => y.step + x.step) - 2 * c : mean((x, y) => y.step - x.step);
-    }
-    out.push({
-      key: `${t.voice}:${t.on}`, entry: t, src, subject, A, S, T, inv, ratio, tB0, n, e,
-      end: n.landed + 2 * q,
-      c, dS, s0: S[0].on, s1: S[S.length - 1].on + S[S.length - 1].dur, lo: Math.min(...S.map((x) => x.step)), hi: Math.max(...S.map((x) => x.step)),
-    });
+    const m = make(t, "form", (n) => [...es].reverse().find((x) => x !== t && plain(x) && (x.theme ?? 1) === theme && x.on <= n.start) ?? null);
+    if (!m) continue;
+    out.push(m);
     last = t.on;
   }
+  const taken = new Set(out.map((m) => m.entry));
+  if (PROTO.has("answer")) {
+    // D973: the exposition's answers (its first entries, one a voice), each built from the entry before it
+    const expo = es.filter((e) => (e.theme ?? 1) === 1).slice(0, f.voices.length);
+    for (const t of expo) {
+      if (t.form !== "answer" || !plain(t) || taken.has(t)) continue;
+      const m = make(t, "answer", (n) => [...expo].reverse().find((x) => x !== t && x.on <= n.start && plain(x)) ?? null);
+      if (m) (out.push(m), taken.add(t));
+    }
+  }
+  if (PROTO.has("stretto")) {
+    // D973: a stretto's entry, built from the entry it overlaps while both sound (a short flight from the moment the
+    // first comes in); at most one in 8 bars
+    let lastS = -Infinity;
+    const expo = new Set(es.filter((e) => (e.theme ?? 1) === 1).slice(0, f.voices.length));
+    for (const t of es) {
+      if (taken.has(t) || expo.has(t) || t.on < lastS + 8 * f.barTicks) continue;
+      // a stretto: it comes in within the first half of the entry it overlaps
+      const p = [...es].reverse().find((x) => x !== t && (x.theme ?? 1) === (t.theme ?? 1) && x.voice !== t.voice && x.on < t.on && t.on - x.on <= 0.5 * (x.end - x.on));
+      if (!p) continue;
+      // the lift as the first entry sounds: the flight from then to a quarter before the second comes in
+      const lead = t.on - q / 4 - (p.on + q / 4);
+      if (lead < qs(0.45)) continue;
+      const m = make(t, "stretto", () => p, Math.min(lead, Math.max(2.5 * q, qs(1.4))));
+      if (m && m.src) (out.push(m), taken.add(t), (lastS = t.on));
+    }
+  }
+  out.sort((a, b) => a.n.start - b.n.start);
   memo.set(f, out);
   return out;
 }
@@ -142,7 +204,7 @@ export type MorphGeo = EchoGeo & {
 /** From the neighbour if its first note is on screen as the morph lifts off (the box's view runs `now - t0` behind). */
 export const fromNeighbour = (m: FugueMorph, k: { now: number; t0: number }) => !!m.src && m.src.on >= m.n.start - (k.now - k.t0);
 
-interface Rect { x: number; w: number; y: number; h: number; col: string; flip: boolean }
+interface Rect { x: number; w: number; y: number; h: number; col: string; flip: boolean; hot?: number }
 
 /** A note of a morph from the neighbour at tick t: lifted, slid, turned, stretched, its last step to the target. */
 function neighbourAt(m: FugueMorph, i: number, t: number, k: MorphGeo): Rect {
@@ -158,10 +220,15 @@ function neighbourAt(m: FugueMorph, i: number, t: number, k: MorphGeo): Rect {
     return { tt, d, st, cos };
   };
   const B = base(u), E = base(1);
-  const tt = B.tt + (b.on - E.tt) * u, d = B.d + (b.dur - E.d) * u, st = B.st + (b.step - E.st) * u;
+  // D973: an answer's adjusted note keeps the transposition's path, then takes its own step at the end
+  const ru = m.adj?.[i] ? ease((u - 0.6) / 0.4) : u;
+  const tt = B.tt + (b.on - E.tt) * u, d = B.d + (b.dur - E.d) * u, st = B.st + (b.step - E.st) * ru;
   const x = k.xOf(tt);
+  // D973: its own step drawn as a small soft arc, the note lit while it takes it
+  const own = m.adj?.[i] && ru > 0 && ru < 1 ? Math.sin(Math.PI * ru) : 0;
   return {
-    x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * uL * (1 - u),
+    hot: own,
+    x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * uL * (1 - u) - own * k.bh * 1.5,
     h: m.inv ? Math.max(k.bh * 0.4, k.bh * Math.abs(B.cos)) : k.bh,
     col: mix(k.ink(a.voice), k.ink(b.voice), u), flip: m.inv && u >= 0.5,
   };
@@ -251,6 +318,12 @@ export function paintFugueMorphs(g: CanvasRenderingContext2D, f: TouchFugue, k: 
         g.fillRect(r.x - 1.5, r.y - r.h / 2 - 1.5, r.w + 3, r.h + 3);
         g.globalAlpha = 0.95 * al;
         g.fillRect(r.x, r.y - r.h / 2, r.w, r.h);
+        if (r.hot) {
+          // an answer's adjusted note, lit while it takes its own step
+          g.globalAlpha = 0.5 * r.hot * al;
+          g.fillStyle = "#ffffff";
+          g.fillRect(r.x, r.y - r.h / 2, r.w, r.h);
+        }
         g.globalAlpha = 0.7 * al;
         g.fillStyle = "#ffffff";
         g.fillRect(r.x, r.flip ? r.y + r.h / 2 - 1 : r.y - r.h / 2, r.w, 1);
