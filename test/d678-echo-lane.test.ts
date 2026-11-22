@@ -38,7 +38,9 @@ test("Variation 12: the comes answers one bar later a fourth below, in contrary 
 
 test("the box draws the echo lane under the notes for a tagged canon only; drawing only", () => {
   const s = src("src/touch/MusicBox.tsx");
-  assert.match(s, /if \(fr\.piece && CANONS\[fr\.piece\] && !fr\.floor\) paintEcho\(/);
+  assert.match(s, /if \(ECHO_LANE_ON && fr\.piece && CANONS\[fr\.piece\] && !fr\.floor\) paintEcho\(/);
+  // D990: the lane is switched off until the morph replaces it.
+  assert.match(s, /export const ECHO_LANE_ON = false;/);
   const e = src("src/touch/canon-echo.ts");
   assert.match(e, /if \(contrary\) g\.rotate\(Math\.PI \* t\);/);
   assert.ok(!/score|grade|"hit"|"miss"/.test(e.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")));
