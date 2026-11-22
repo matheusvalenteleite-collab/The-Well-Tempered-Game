@@ -36,7 +36,8 @@ test("D430: BAROQUE BAND offered: in the list, an ensemble, named in three langu
   assert.ok(SOUND_GROUPS.find(([g]) => g === "ENSEMBLES")![1].includes("baroqueBand"));
   for (const dict of [PT, ES] as Record<string, string>[]) assert.equal(dict["BAROQUE BAND"], "BANDA BARROCA");
   assert.equal(creditFor("baroqueBand"), BAROQUE_CREDIT);
-  assert.match(BAROQUE_CREDIT, /OBOE.*CC0/);
+  // D1031: the strings and the oboe TinySOL's (CC BY 4.0).
+  assert.match(BAROQUE_CREDIT, /OBOE TINYSOL.*CC BY 4\.0/);
   assert.match(BAROQUE_CREDIT, /HARPSICHORD VCSL/);
   assert.equal(TOUCH_KINDS.baroqueBand, TOUCH_KINDS.stringConsort);
   assert.equal(touchFamily("baroqueBand"), touchFamily("stringConsort"));

@@ -1315,10 +1315,10 @@ export const PATCHES = {
   // D430, BAROQUE BAND: the consort's violins, viola and cello (their recordings, Patch.bow: D427's bow changes and
   // D429's slurs), VSCO's oboe (its tongue: WIND_TONGUE), the continuo harpsichord on the cello's line (Patch.double);
   // one room (REVERBS.band) at one send (BAND_SEND), the player's line the band's (Patch.one).
-  bandViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
-  bandOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: BAND_SEND, level: 0.46, sample: "trialOboe", bow: WIND_TONGUE, one: {} }),
+  bandViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViolinSolo", bow: STRING_BOW, one: {} }),
+  bandOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: BAND_SEND, level: 0.46, sample: "baroqueOboe", bow: WIND_TONGUE, one: {} }),
   bandViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
-  bandCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.59, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: BAND_CELLO_PHONE_LIFT, double: { patch: { ...HARPSI_SAMPLED, send: BAND_SEND }, level: 10 ** (CONTINUO.db / 20), phoneLevel: 10 ** (CONTINUO.phoneDb / 20), pan: CONTINUO.pan, late: CONTINUO.late } }),
+  bandCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.59, sample: "consortCelloSolo", bow: STRING_BOW, one: {}, phoneLift: BAND_CELLO_PHONE_LIFT, double: { patch: { ...HARPSI_SAMPLED, send: BAND_SEND }, level: 10 ** (CONTINUO.db / 20), phoneLevel: 10 ** (CONTINUO.phoneDb / 20), pan: CONTINUO.pan, late: CONTINUO.late } }),
   // D504, ZELENKA TRIO: oboe I (Iowa's: straight, bright, the leader), oboe II (VSCO's: darker, its own vibrato), the
   // bassoon (Iowa's, every semitone Bb1-D5, two dynamics and its own short notes), each tongued (TRIO_TONGUE), each
   // shading its long notes (TRIO_SWELL), within its compass (TRIO_COMPASS); the continuo cello (the consort's) as a
@@ -1866,7 +1866,9 @@ export const PRESETS: Preset[] = [
       5: [["bandViolin", -0.22, 1.11], ["bandViolin", 0.22, 1.11], ["bandOboe", -0.06, 0.85], ["bandViola", 0.12, 1.32], ["bandCello", 0.04]],
     },
     chain: BAND_CHAINS.baroqueBand,
-    slim: BAND_SLIM,
+    // D1031: its TinySOL violin every fourth semitone at least (STRING CONSORT keeps every one): the band within D540's 25 MB over every
+    // playable piece (BWV 1057/1 24.8; every third, 26.1), no note read more than 3 semitones from a recording.
+    slim: { ...BAND_SLIM, strides: { consortViolinSolo: 4 } },
   },
   // D504, ZELENKA TRIO: oboe I left, oboe II right (a pair facing each other across the music, as a trio sonata's
   // two trebles sit), the bassoon between them a little right, the continuo cello in the middle, the harpsichord
@@ -2559,12 +2561,13 @@ export const VOICES_CREDIT = "VOICES: VOCALSET · J. WILKINS, P. SEETHARAMAN, A.
 /** D358, D365: STRING CONSORT's recordings (CC BY asks for credit). (D510: LUTE's credit gone with it.) */
 /** D1011: STRING CONSORT's strings all TinySOL's (violinSolo/, violaSolo/, celloSolo/). */
 export const CONSORT_CREDIT = "STRINGS: VIOLIN, VIOLA, CELLO TINYSOL, IRCAM · CC BY 4.0";
-/** The strings BAROQUE BAND and ORCHESTRA & ORGAN keep (D358's: the VSO2 violin, the Freesound cello, TinySOL's viola). */
+/** The strings ORCHESTRA & ORGAN keeps (D358's: the VSO2 violin, the Freesound cello, TinySOL's viola; D1031: BAROQUE BAND's TinySOL's now). */
 export const BAND_STRINGS_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE · CELLO FREESOUND 12408, FLCELLOGRL · CC BY 3.0 · VIOLA TINYSOL, IRCAM · CC BY 4.0";
 /** TRIALS' recordings (VSCO 2 CE is CC0, credit encouraged; VSO2 CE, the cello and TinySOL ask for it). */
 export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0";
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
-export const BAROQUE_CREDIT = `${BAND_STRINGS_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
+// D1031: BAROQUE BAND's strings and oboe all TinySOL's (violinSolo/, violaSolo/, celloSolo/, oboeSolo/).
+export const BAROQUE_CREDIT = "STRINGS: VIOLIN, VIOLA, CELLO · OBOE TINYSOL, IRCAM · CC BY 4.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0";
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · TENOR SAX (I/6): KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D547 (D521's before it): BOSSA NOVA's (Iowa's alto flute, guitar and bass: free for any use; the tenor sax via tonejs-instruments: CC BY 3.0; the brushes and Big Rusty's kit: CC0). */
