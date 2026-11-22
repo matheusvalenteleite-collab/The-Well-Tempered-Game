@@ -340,6 +340,12 @@ export const TWEAKS: Readonly<Record<string, Tweak>> = {
     why: "I/13's prelude, F#, 12/16, 30 bars, a tune over an accompanying motif on OBOE TRIO: FRAME as its sound's HOME, softer (0.8) so the roll into the last chord and the chord itself stay under the band.",
     styles: { frame: { level: 0.8 } },
   },
+  // D999: II/23's prelude (OBOE TRIO, FRAME its sound's HOME): the roll into the last bar and the final chord hushed (D607's
+  // way), so the tambourine stays D601's 1 dB under the band where it thins before the close.
+  wtc2p23: {
+    why: "II/23's prelude, B, 4/4, a two-part prelude on OBOE TRIO: FRAME as its sound's HOME; the roll into its last bar and the final chord hushed (bar 46), so the tambourine stays under the band where it thins before the close.",
+    hush: [46],
+  },
   wtc2f22: {
     why: "II/22 bb, 3/2 at a minim of 1 s, 101 bars, the subject and its inversion in stretto: the head only, rolls into the acts, the pedals rolled on the tonic and the dominant (bars 95-101).",
     subject: "head",
