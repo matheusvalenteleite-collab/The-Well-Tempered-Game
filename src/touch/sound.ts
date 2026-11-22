@@ -1296,7 +1296,10 @@ export const PATCHES = {
   // send (CONSORT_SEND), one envelope (in 50 ms: the bow biting; out 120 ms), a bow change on a joined note
   // (Patch.bow), nothing added (the recordings' own vibrato), the player's line played as the others (Patch.one).
   consViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViolinSolo", bow: STRING_BOW, one: {} }),
-  consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
+  // D1013 (provisional): the consort's viola a shade brighter than its cello (a 3 dB high shelf from 1.2 kHz: its centroid about 150 Hz up),
+  // the owner's "a tiny tiny tweak" so the viola and cello, both TinySOL's, are told apart; its level 1 dB under (0.5 → 0.444), the
+  // shelf's own loudness taken back, so the voice is as loud as before (the scans: K-weighted -0.2, through a phone +0.3 to +0.5 dB of D1011's).
+  consViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.444, sample: "consortViola", bow: STRING_BOW, one: {}, shelf: { hz: 1200, db: 3 } }),
   consCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: CONSORT_SEND, level: 0.56, sample: "consortCelloSolo", bow: STRING_BOW, one: {}, phoneLift: CONSORT_CELLO_PHONE_LIFT }),
   // D512, the consort's articulation stops (consort-stops.ts): SPICCATO and PIZZICATO, each voice's own recordings
   // (VSCO 2 CE), dying away by themselves (the bow bounced, the string plucked), at the arco's level (sampled.ts
