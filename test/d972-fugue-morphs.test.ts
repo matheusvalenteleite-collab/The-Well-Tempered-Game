@@ -22,7 +22,8 @@ test("every morph builds a transformed entry; the first of each form always; oth
     const f = fugueById(p.id), ms = fugueMorphs(f);
     if (!f.entries.some((e) => e.inverted || (e.scale ?? 1) !== 1)) continue;
     n += ms.length;
-    for (const m of ms) assert.ok(m.entry.inverted || (m.entry.scale ?? 1) !== 1, `${p.id} ${m.key}`);
+    // D973: the other kinds build plain entries (an answer, a stretto's entry); a transformed entry is always "form"
+    for (const m of ms) assert.equal(m.kind === "form", !!m.entry.inverted || (m.entry.scale ?? 1) !== 1, `${p.id} ${m.key}`);
     const firsts = new Map<string, TouchEntry>();
     for (const e of [...f.entries].sort((a, b) => a.on - b.on || a.voice - b.voice)) if ((e.inverted || (e.scale ?? 1) !== 1) && !firsts.has(formKey(e))) firsts.set(formKey(e), e);
     for (const e of firsts.values()) {
@@ -35,8 +36,9 @@ test("every morph builds a transformed entry; the first of each form always; oth
     let last = -Infinity;
     const seen = new Set<string>();
     for (const m of ms) {
-      const first = !seen.has(formKey(m.entry));
-      seen.add(formKey(m.entry));
+      // D973: one cap for every kind (the first of each transformed form excepted)
+      const first = m.kind === "form" && !seen.has(formKey(m.entry));
+      if (m.kind === "form") seen.add(formKey(m.entry));
       assert.ok(first || m.entry.on >= last + 8 * f.barTicks, `${p.id}: bar ${m.entry.bar} within 8 bars of the last`);
       last = m.entry.on;
     }
@@ -57,7 +59,7 @@ test("every note of the entry is carried (no thinning), each landing before its 
 test("the rule: from the plain entry before it while that is on screen, else from the subject's emblem", async () => {
   await loadExtras();
   // WTC I/8, bar 30: the alto's entry from bar 27 is its model
-  const i8 = fugueMorphs(fugueById("wtc1f08"))[0];
+  const i8 = fugueMorphs(fugueById("wtc1f08")).find((m) => m.kind === "form")!;
   assert.equal(i8.entry.bar, 30);
   assert.equal(i8.src?.bar, 27);
   assert.ok(i8.inv);
@@ -66,18 +68,18 @@ test("the rule: from the plain entry before it while that is on screen, else fro
   assert.ok(fromNeighbour(i8, { now: i8.n.start, t0: i8.n.start - 3 * B }));
   assert.ok(!fromNeighbour(i8, { now: i8.n.start, t0: i8.n.start - B }));
   // WTC II/22, bar 42: the last plain entry began nine bars before: never on screen, the emblem
-  const ii22 = fugueMorphs(fugueById("wtc2f22"))[0];
+  const ii22 = fugueMorphs(fugueById("wtc2f22")).find((m) => m.kind === "form")!;
   assert.equal(ii22.entry.bar, 42);
   assert.ok(!fromNeighbour(ii22, { now: ii22.n.start, t0: ii22.n.start - 4 * fugueById("wtc2f22").barTicks }));
   // the augmentation and the diminution
-  assert.equal(fugueMorphs(fugueById("wtc2f02"))[0].ratio, 2);
-  assert.equal(fugueMorphs(fugueById("wtc2f09"))[0].ratio, 0.5);
+  assert.equal(fugueMorphs(fugueById("wtc2f02")).find((m) => m.kind === "form")!.ratio, 2);
+  assert.equal(fugueMorphs(fugueById("wtc2f09")).find((m) => m.kind === "form")!.ratio, 0.5);
 });
 
 test("the morph replaces the subject effect on the entry it builds; in the box's two passes; drawing only, no blur", async () => {
   await loadExtras();
   const keys = morphedKeys(fugueById("wtc1f08"));
-  assert.ok(keys.has(`${fugueMorphs(fugueById("wtc1f08"))[0].key}`));
+  for (const m of fugueMorphs(fugueById("wtc1f08"))) assert.ok(keys.has(m.key));
   const m = src("src/touch/MusicBox.tsx");
   assert.match(m, /const fxSpans = spans && fr\.piece && !fr\.floor \? unmorphed\(spans, morphedKeys\(fugueById\(fr\.piece\)\)\) : spans;/);
   assert.match(m, /subjectFx\(fx, fxSpans, playedVoices, false/);
