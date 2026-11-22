@@ -11,5 +11,5 @@ import type { BassRun } from "./bass-phone.ts";
 
 export const BASS_PHONE_903: Readonly<Record<string, { s: string; sig: string; db: number | null; band: BassRun; player: BassRun }>> = {
   "bwv903-2": {"s":"fluteHarp","sig":"[\"consortCello\",0.3,{\"hz\":700,\"db\":4},null,null,null]","db":null,"band":{"lu":[-30.5,-32.5,-33.4],"at":[-0.2,0,1.6],"mix":-28.1},"player":{"lu":[-31.5,-32.5,-33],"at":[0.3,0,0.4],"mix":-28.5}},
-  bwv951: {"s":"stringConsort","sig":"[\"consortCello\",0.56,{\"hz\":700,\"db\":8},null,null,null]","db":null,"band":{"lu":[-32.4,-32,-30.8],"at":[-0.1,5.2,0],"mix":-27.6},"player":{"lu":[-32.6,-32,-31.2],"at":[2,5.2,-2.3],"mix":-27.8}},
+  bwv951: {"s":"stringConsort","sig":"[\"consortCelloSolo\",0.56,{\"hz\":700,\"db\":8},null,null,null]","db":null,"band":{"lu":[-30.2,-32.1,-30.1],"at":[1,4.7,0],"mix":-26.6},"player":{"lu":[-30.6,-32.1,-29.8],"at":[2.6,4.7,-1.5],"mix":-26.6}},
 };
