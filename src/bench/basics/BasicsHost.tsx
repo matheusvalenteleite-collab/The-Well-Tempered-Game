@@ -35,9 +35,11 @@ export const CLIPS: Readonly<Record<string, string>> = {
 export type HostView =
   | { kind: "card"; act: number; title: string; line: string; go: () => void; skip: () => void }
   /** D991: `sound` starts the clip's sound on its video (and returns its stop); the clip loops until touched. */
-  | { kind: "clip"; stage: string; done: () => void; sound?: (video: HTMLVideoElement) => () => void }
+  | { kind: "clip"; stage: string; done: () => void; sound?: (video: HTMLVideoElement) => () => void; why?: string }
   | { kind: "hint"; text: string; done: () => void }
-  | { kind: "finale"; line: string; done: () => void };
+  | { kind: "finale"; line: string; done: () => void }
+  /** D994: a line of Glenn's before a stage (3.2's ● ○), CONTINUE only. */
+  | { kind: "note"; line: string; done: () => void };
 
 function Card({ act, title, line, children }: { act?: number; title?: string; line: string; children: React.ReactNode }) {
   return (
@@ -85,6 +87,16 @@ export function BasicsHost({ view }: { view: HostView | null }) {
         </Card>
       </div>
     );
+  if (view.kind === "note")
+    return (
+      <div className="basics2-layer">
+        <Card line={view.line}>
+          <button type="button" id="basics2-go" className="basics2-go" onClick={view.done}>
+            ▶ {tr("CONTINUE")}
+          </button>
+        </Card>
+      </div>
+    );
   if (view.kind === "finale")
     return (
       <div className="basics2-layer">
@@ -103,6 +115,12 @@ export function BasicsHost({ view }: { view: HostView | null }) {
       <div className="basics2-layer basics2-cliplayer" id="basics2-cliplayer" onPointerDown={(e) => e.preventDefault()} onClick={view.done}>
         <div className="basics2-clipwrap">
           <video ref={vid} className="basics2-clip" src={CLIPS[view.stage]} autoPlay loop muted playsInline aria-label={tr("Thumbs on the phone")} />
+          {/* D996: what the idea is for, over the clip's empty top (plain, no box); TOUCH TO PLAY below, between the wrists. */}
+          {view.why && (
+            <p className="basics2-why" id="basics2-why">
+              {tr(view.why)}
+            </p>
+          )}
           <p className="basics2-touch" id="basics2-touch">
             {tr("TOUCH TO PLAY")}
           </p>
