@@ -162,6 +162,11 @@ export const PLAY: Chapter[] = [
             "Cada pulgar sigue su propio último toque, nunca el del otro: una nota del pulgar derecho sube desde donde tocó el derecho por última vez.",
           ),
         ],
+        fine: L(
+          "In the tutorials a dot under each note says which thumb: filled, the thumb you start with; hollow, the other. Each bar wears its own dot. The game never checks which thumb you use.",
+          "Nos tutoriais, um ponto embaixo de cada nota diz qual polegar: cheio, o polegar com que você começa; vazio, o outro. Cada barra tem o seu ponto. O jogo nunca confere qual polegar você usa.",
+          "En los tutoriales, un punto bajo cada nota dice qué pulgar: lleno, el pulgar con el que empiezas; vacío, el otro. Cada barra lleva su propio punto. El juego nunca comprueba qué pulgar usas.",
+        ),
         fig: dr("two"),
         videos: ["two"],
         tries: [{ stage: "3.1", label: L("A SCALE", "UMA ESCALA", "UNA ESCALA") }],
@@ -307,6 +312,11 @@ export const PLAY: Chapter[] = [
             "Donde te apoyas elige la onda: el lado suave una cuadrada redonda, el centro un pulso hueco, el lado fuerte un pulso fino y brillante. Una nota mantenida y movida de lado vibra (vibrato); un deslizamiento es el rápido glissando del chip.",
           ),
         ],
+        fine: L(
+          "In BASICS, its station plays the alto of Contrapunctus 1 on a pulse channel, over the console's own drums (CHIP KIT): play it your way.",
+          "No BASICS, a estação dele toca o contralto do Contrapunctus 1 num canal de pulso, sobre a bateria do próprio console (CHIP KIT): toque do seu jeito.",
+          "En BASICS, su estación toca la contralto del Contrapunctus 1 en un canal de pulso, sobre la batería de la propia consola (CHIP KIT): tócala a tu manera.",
+        ),
         fig: dr("gameboy"),
         tries: [{ stage: "6.6", label: L("PLAY IT", "TOCAR", "TOCAR"), toBar: 3 }],
       },
@@ -315,11 +325,16 @@ export const PLAY: Chapter[] = [
         title: L("PSYCH", "PSYCH", "PSYCH"),
         lead: [
           L(
-            "A band: each instrument answers the piano's three zones its own way, the piano by its weight, the guitars and the bass by their pluck. The organ holds steady.",
-            "Uma banda: cada instrumento responde às três zonas do piano à sua maneira, o piano pelo peso, as guitarras e o baixo pelo ataque. O órgão fica estável.",
-            "Una banda: cada instrumento responde a las tres zonas del piano a su manera, el piano por su peso, las guitarras y el bajo por su pulsación. El órgano se mantiene estable.",
+            "A band of the late sixties: Mellotron, synthesizer, clean and fuzz guitars, Moog bass. The piano's three zones set each instrument's strength and colour; a held synthesizer, Mellotron or bass note swells as you move it sideways. The guitars, plucked, just ring.",
+            "Uma banda do fim dos anos sessenta: Mellotron, sintetizador, guitarras limpa e com fuzz, baixo Moog. As três zonas do piano dão a força e a cor de cada instrumento; uma nota segurada no sintetizador, no Mellotron ou no baixo cresce quando você a move para o lado. As guitarras, dedilhadas, só soam.",
+            "Una banda de finales de los sesenta: Mellotron, sintetizador, guitarras limpia y con fuzz, bajo Moog. Las tres zonas del piano dan la fuerza y el color de cada instrumento; una nota mantenida en el sintetizador, el Mellotron o el bajo crece cuando la mueves de lado. Las guitarras, punteadas, solo suenan.",
           ),
         ],
+        fine: L(
+          "In BASICS, its station plays the alto of Contrapunctus 1 on the synthesizer, over LIEBEZEIT's drums: play it your way.",
+          "No BASICS, a estação dele toca o contralto do Contrapunctus 1 no sintetizador, sobre a bateria LIEBEZEIT: toque do seu jeito.",
+          "En BASICS, su estación toca la contralto del Contrapunctus 1 en el sintetizador, sobre la batería LIEBEZEIT: tócala a tu manera.",
+        ),
         fig: dr("psych"),
         tries: [{ stage: "6.7", label: L("PLAY IT", "TOCAR", "TOCAR"), toBar: 3 }],
       },
@@ -386,9 +401,9 @@ export const REF: RefRow[] = [
     title: L("THE FUGUE'S FLAGS", "AS BANDEIRAS DA FUGA", "LAS BANDERAS DE LA FUGA"),
     lines: [
       L(
-        "A flag in the voice's colour marks each entry of the subject: upside down when inverted, wide when augmented, pressed when diminished, numbered where there are several subjects. Overlapping flags are a stretto.",
-        "Uma bandeira na cor da voz marca cada entrada do sujeito: de cabeça para baixo quando invertido, larga quando aumentado, apertada quando diminuído, numerada onde há vários sujeitos. Bandeiras sobrepostas são um stretto.",
-        "Una bandera del color de la voz marca cada entrada del sujeto: boca abajo si está invertido, ancha si está aumentado, apretada si está disminuido, numerada donde hay varios sujetos. Banderas superpuestas son un stretto.",
+        "A flag in the voice's colour marks each entry of the subject: upside down when inverted, wide when augmented, pressed when diminished, numbered where there are several subjects. Overlapping flags are a stretto. With ⚙ CANONS & FUGUES on MORPH, an inverted, augmented or diminished entry is seen being made from the subject (or from the entry before it), and in the canons a ribbon carries the leader's line to its follower.",
+        "Uma bandeira na cor da voz marca cada entrada do sujeito: de cabeça para baixo quando invertido, larga quando aumentado, apertada quando diminuído, numerada onde há vários sujeitos. Bandeiras sobrepostas são um stretto. Com ⚙ CÂNONES E FUGAS em ANIMADOS, uma entrada invertida, aumentada ou diminuída é vista sendo feita a partir do sujeito (ou da entrada anterior), e nos cânones uma faixa leva a linha de quem conduz até quem a segue.",
+        "Una bandera del color de la voz marca cada entrada del sujeto: boca abajo si está invertido, ancha si está aumentado, apretada si está disminuido, numerada donde hay varios sujetos. Banderas superpuestas son un stretto. Con ⚙ CÁNONES Y FUGAS en ANIMADOS, una entrada invertida, aumentada o disminuida se ve hecha a partir del sujeto (o de la entrada anterior), y en los cánones una cinta lleva la línea de quien guía hasta quien la sigue.",
       ),
     ],
     fig: { kind: "flags" },
@@ -410,9 +425,9 @@ export const REF: RefRow[] = [
     title: L("SOUND, TEMPO, DRUMS", "SOM, ANDAMENTO, BATERIA", "SONIDO, TEMPO, BATERÍA"),
     lines: [
       L(
-        "Each fugue has its own sound; SOUND picks another (piano, harpsichord, organ, voices, GAME BOY, PSYCH and more). TEMPO: SLOW, DEFAULT, FAST. DRUMS adds a beat, never points. Choosing another piece puts its sound, tempo and voice back to their defaults.",
-        "Cada fuga tem o seu som; SOM escolhe outro (piano, cravo, órgão, vozes, GAME BOY, PSYCH e mais). ANDAMENTO: LENTO, PADRÃO, RÁPIDO. BATERIA acrescenta uma batida, nunca pontos. Escolher outra peça devolve o som, o andamento e a voz ao padrão.",
-        "Cada fuga tiene su sonido; SONIDO elige otro (piano, clave, órgano, voces, GAME BOY, PSYCH y más). TEMPO: LENTO, NORMAL, RÁPIDO. BATERÍA añade un ritmo, nunca puntos. Elegir otra pieza devuelve el sonido, el tempo y la voz a sus valores por defecto.",
+        "Each fugue has its own sound; SOUND picks another (piano, harpsichord, organ, voices, GAME BOY, PSYCH and more). TEMPO: SLOW, DEFAULT, FAST. DRUMS adds a beat, never points: one knob turns it ON or OFF, the other shows its style (HOME, the sound's own, or another) and opens the grid of every style. Choosing another piece puts its sound, tempo and voice back to their defaults.",
+        "Cada fuga tem o seu som; SOM escolhe outro (piano, cravo, órgão, vozes, GAME BOY, PSYCH e mais). ANDAMENTO: LENTO, PADRÃO, RÁPIDO. BATERIA acrescenta uma batida, nunca pontos: um botão a deixa LIGADA ou DESLIGADA, o outro mostra o estilo (DA CASA, o do próprio som, ou outro) e abre a grade com todos os estilos. Escolher outra peça devolve o som, o andamento e a voz ao padrão.",
+        "Cada fuga tiene su sonido; SONIDO elige otro (piano, clave, órgano, voces, GAME BOY, PSYCH y más). TEMPO: LENTO, NORMAL, RÁPIDO. BATERÍA añade un ritmo, nunca puntos: un botón la deja ACTIVADA o DESACTIVADA, el otro muestra su estilo (DE LA CASA, el del propio sonido, u otro) y abre la cuadrícula con todos los estilos. Elegir otra pieza devuelve el sonido, el tempo y la voz a sus valores por defecto.",
       ),
     ],
   },
@@ -421,9 +436,9 @@ export const REF: RefRow[] = [
     title: L("SETTINGS", "CONFIGURAÇÕES", "AJUSTES"),
     lines: [
       L(
-        "LANGUAGE, VOLUME; BUSONI'S MARKINGS on or off; STAGE (each fugue's world behind the box: FULL, QUIET, OFF) and its WORLD SOUNDS; PISTONS for the organ and the harpsichord; SOUND DELAY: nothing to do on the speaker or wired headphones; with Bluetooth, tap along to the clicks.",
-        "IDIOMA, VOLUME; MARCAÇÕES DE BUSONI ligadas ou não; CENÁRIO (o mundo de cada fuga atrás da caixa: CHEIO, DISCRETO, DESLIGADO) e os SONS DO CENÁRIO; PISTÕES para o órgão e o cravo; ATRASO DO SOM: nada a fazer no alto-falante ou com fone com fio; com Bluetooth, toque junto com os cliques.",
-        "IDIOMA, VOLUMEN; INDICACIONES DE BUSONI sí o no; ESCENARIO (el mundo de cada fuga detrás de la caja: COMPLETO, DISCRETO, APAGADO) y sus SONIDOS; PISTONES para el órgano y el clave; RETARDO DEL SONIDO: nada que hacer con el altavoz o auriculares con cable; con Bluetooth, toca al ritmo de los clics.",
+        "LANGUAGE, VOLUME; BUSONI'S MARKINGS on or off; STAGE (each fugue's world behind the box: FULL, QUIET, OFF) and its WORLD SOUNDS; CANONS & FUGUES (MORPH or OFF: the canons' ribbon and the fugues' morphs); PISTONS for the organ and the harpsichord; SOUND DELAY: nothing to do on the speaker or wired headphones; with Bluetooth, tap along to the clicks.",
+        "IDIOMA, VOLUME; MARCAÇÕES DE BUSONI ligadas ou não; CENÁRIO (o mundo de cada fuga atrás da caixa: CHEIO, DISCRETO, DESLIGADO) e os SONS DO CENÁRIO; CÂNONES E FUGAS (ANIMADOS ou DESLIGADOS: a faixa dos cânones e as transformações das fugas); PISTÕES para o órgão e o cravo; ATRASO DO SOM: nada a fazer no alto-falante ou com fone com fio; com Bluetooth, toque junto com os cliques.",
+        "IDIOMA, VOLUMEN; INDICACIONES DE BUSONI sí o no; ESCENARIO (el mundo de cada fuga detrás de la caja: COMPLETO, DISCRETO, APAGADO) y sus SONIDOS; CÁNONES Y FUGAS (ANIMADOS o APAGADOS: la cinta de los cánones y las transformaciones de las fugas); PISTONES para el órgano y el clave; RETARDO DEL SONIDO: nada que hacer con el altavoz o auriculares con cable; con Bluetooth, toca al ritmo de los clics.",
       ),
     ],
   },
