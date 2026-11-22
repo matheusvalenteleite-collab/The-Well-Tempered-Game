@@ -5356,7 +5356,7 @@ const workOf = (id: string) => WORKS.find((s) => s.test(id)) ?? null;
 
 /** The pieces that have a world. */
 export const STAGE_IDS: readonly string[] = Object.keys(WORLDS);
-// D941 (the owner): a WTC prelude has its fugue's world (prelude-plan.ts `worldOf`).
+// D980 (the owner): a WTC prelude has its fugue's world (prelude-plan.ts `worldOf`).
 export const hasStage = (id: string | undefined) => !!id && (worldOf(id) in WORLDS || !!workOf(id));
 
 const KIT = new Kit();
@@ -5392,7 +5392,7 @@ function piece(f: TouchFugue): Piece {
   memo.set(f.id, m);
   return m;
 }
-/** D941: THE EARLIER HOUR's grade: about 12 % dimmer, the blues lowered most; a faint amber wash over it. */
+/** D980: THE EARLIER HOUR's grade: about 12 % dimmer, the blues lowered most; a faint amber wash over it. */
 export const EARLIER_HOUR = { multiply: [236, 212, 182], wash: [255, 170, 90, 0.05] } as const;
 function earlierHour(g: CanvasRenderingContext2D, w: number, h: number) {
   const [r, gr, b] = EARLIER_HOUR.multiply;
@@ -5419,7 +5419,7 @@ const calm = new Map<string, { calm: number; at: number }>();
 export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f: TouchFugue, clock: StageClock, mode: StageMode = stageMode()): boolean {
   if (mode === "off") return false;
   const work = workOf(f.id);
-  // D941: a prelude drawn in its fugue's world (its script, the fugue's acts, stays the fugue's: a prelude has none).
+  // D980: a prelude drawn in its fugue's world (its script, the fugue's acts, stays the fugue's: a prelude has none).
   const world = work ? work.world : WORLDS[worldOf(f.id)];
   if (!world) return false;
   const m = piece(f);
@@ -5513,7 +5513,7 @@ export function paintStage(g: CanvasRenderingContext2D, w: number, h: number, f:
   world(k);
   g.restore();
   g.globalAlpha = 1;
-  // D941 (the owner, Q3: "yes"): THE EARLIER HOUR. A prelude's world is its fugue's, a little before: the same backdrop graded
+  // D980 (the owner, Q3: "yes"): THE EARLIER HOUR. A prelude's world is its fugue's, a little before: the same backdrop graded
   // dimmer and warmer (a multiply of a warm tone, then a faint amber wash). Constant over the piece: nothing flickers.
   if (f.kind === "prelude" && worldOf(f.id) !== f.id) earlierHour(g, w, h);
   if (look && sc && fa) {

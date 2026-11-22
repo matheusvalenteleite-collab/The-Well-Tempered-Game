@@ -30,7 +30,7 @@ export const STAR_CUTS = [4.0, 5.0, 6.2, 7.4];
 export const PRELUDE_STAR_CUTS = [4.6, 6.2, 8.2, 9.1];
 
 export function difficultyOf(f: TouchFugue): Difficulty {
-  // D941 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
+  // D980 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
   // D861's median, which the player cannot choose.
   const sPerTick = 60 / ((slowOnly(f.id) ? tempoOf(f.id) : standardTempo(f.id)) * f.tpq);
   const beat = beatOf(f).ticks;
@@ -89,7 +89,7 @@ export interface VoiceDifficulty {
   score: number;
 }
 export function voiceDifficulty(f: TouchFugue, v: number): VoiceDifficulty {
-  // D941 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
+  // D980 (the board): a prelude offered at the slow tempo only (I/5, I/21) is measured at the tempo it is played, not
   // D861's median, which the player cannot choose.
   const sPerTick = 60 / ((slowOnly(f.id) ? tempoOf(f.id) : standardTempo(f.id)) * f.tpq);
   const beat = beatOf(f).ticks;

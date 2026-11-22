@@ -252,7 +252,7 @@ export function sfxKindsNow(f: TouchFugue, shown: boolean): readonly SfxKind[] {
   if (lab) return lab.on ? [...(PILOT_SFX[f.id] ?? []), ...(lab.trial ? (SWEEP_TRIAL[f.id] ?? []) : [])] : [];
   // The design studio's rule: only with STAGE FULL (QUIET and OFF silent), a piece with a world, not the tutorial's box.
   if (!sfxOn() || !shown || !hasStage(f.id) || stageMode() !== "full") return [];
-  // D941: a prelude's world sounds as its fugue's (its beds; what rides the entries has none to ride).
+  // D980: a prelude's world sounds as its fugue's (its beds; what rides the entries has none to ride).
   return PILOT_SFX[worldOf(f.id)] ?? [];
 }
 

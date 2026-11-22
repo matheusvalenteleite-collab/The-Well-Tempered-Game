@@ -1,5 +1,5 @@
 /**
- * D941 (the board: "write pt-BR and es for the six prelude notes and the PRELUDE_LOOKS lines … keep the meaning exact and
+ * D980 (the board: "write pt-BR and es for the six prelude notes and the PRELUDE_LOOKS lines … keep the meaning exact and
  * invent nothing"): ABOUT THIS PRELUDE's words in Brazilian Portuguese and Spanish (the game's tú). The English stay where
  * they were (notes.ts NOTES' `prelude`, cards.ts PRELUDE_LOOKS); each line here says the same, its metres, tempo words and
  * comparisons kept. Terms: semiquaver semicolcheia / semicorchea; bar compasso / compás; walking bass baixo caminhante /

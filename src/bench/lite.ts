@@ -100,7 +100,7 @@ export const liteExtra = (id: string): boolean => EXTRA.has(id);
 export const liteTabOf = (id: string): LiteTab => (CHORALE_IDS.includes(id) ? "CHORALES" : AOF_IDS.includes(id) ? "AOF" : INV_IDS.includes(id) ? "INV" : GOLD_IDS.includes(id) ? "GOLD" : EXTRA.has(id) ? "MORE" : id.startsWith("wtc2") ? "II" : "I");
 /** D340: what NEXT follows a piece with: its own tab's list. */
 export function liteNextOrder(id: string, fuguesOnly = false): string[] {
-  // D941: after a prelude, its fugue, in the same world (an offer, not a lock).
+  // D980: after a prelude, its fugue, in the same world (an offer, not a lock).
   if (/^wtc[12]p\d\d$/.test(id)) return [id, id.replace("p", "f")];
   const tab = liteTabOf(id);
   // D343: Book I's last fugue ends the list for the friends (Book II behind the unlock; D382: or once earned).
@@ -278,7 +278,7 @@ export function liteLevel(id: string): { label: string; ink: string } {
     extraLevels.set(id, lv);
     return lv;
   }
-  // D941: a WTC prelude by its own stars (difficulty.ts, PRELUDE_STAR_CUTS; I/5 and I/21 at the slow tempo they are
+  // D980: a WTC prelude by its own stars (difficulty.ts, PRELUDE_STAR_CUTS; I/5 and I/21 at the slow tempo they are
   // played at), no longer its fugue's tier.
   if (/^wtc[12]p\d\d$/.test(id)) {
     const hit = extraLevels.get(id);
@@ -502,7 +502,7 @@ export function saveLastVoice(id: string, voice: number) {
  */
 export function liteVoice(f: TouchFugue, singing: readonly number[], finished: boolean): number {
   const last = lastVoice(f.id);
-  // D941: a prelude's voice chosen too (D251's fixed part withdrawn on play.html: the voice picker offers PRELUDE_PLAN's).
+  // D980: a prelude's voice chosen too (D251's fixed part withdrawn on play.html: the voice picker offers PRELUDE_PLAN's).
   if (last !== undefined && singing.includes(last)) return last;
   return defaultVoice(f, singing, { fresh: !finished });
 }

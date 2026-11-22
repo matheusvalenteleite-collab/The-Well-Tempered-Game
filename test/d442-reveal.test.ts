@@ -48,7 +48,7 @@ test("D442: the plan, bar by bar, from the prelude's own notes", () => {
 
 test("D442: only in the Glenn pilot, on LADDER; a beginner finishes, a random tapper does not", () => {
   assert.equal(arcOf(f)?.reveal, undefined, "play.html keeps D261's Prelude 1");
-  // D941: a ready prelude (I/1's) is on LADDER on play.html too.
+  // D980: a ready prelude (I/1's) is on LADDER on play.html too.
   assert.equal(stageMode(f, "mobile", "ladder"), "ladder");
   APP.glennPilot = true;
   try {

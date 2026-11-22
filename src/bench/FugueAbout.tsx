@@ -58,7 +58,7 @@ export function FugueAbout({ id, close, subject }: { id: string; close: () => vo
   const f = fugueById(id);
   const facts = entryFacts(id);
   const cite = CITATIONS[id];
-  // D941: ABOUT THIS PRELUDE: the same box, the prelude's own words (its character's line, its note, in the language in
+  // D980: ABOUT THIS PRELUDE: the same box, the prelude's own words (its character's line, its note, in the language in
   // force) and the score's facts; no subject (a prelude has no entries).
   const prelude = f.kind === "prelude";
   const note = prelude ? preludeNote(id) : NOTES[`wtc${f.book}.${String(f.number).padStart(2, "0")}`]?.fugue;

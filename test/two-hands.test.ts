@@ -142,7 +142,7 @@ test("D862: both hands played, each thumb its own hand, scores; the right hand a
   }
 });
 
-test("D950: TWO HANDS retired: the flag and the developer view no longer show it; the code dormant", async () => {
+test("D989: TWO HANDS retired: the flag and the developer view no longer show it; the code dormant", async () => {
   const { TWO_HANDS_RETIRED } = await import("../src/touch/two-hands.ts");
   assert.equal(TWO_HANDS_RETIRED, true);
   const app = (await import("node:fs")).readFileSync(new URL("../src/bench/BenchApp.tsx", import.meta.url), "utf8");

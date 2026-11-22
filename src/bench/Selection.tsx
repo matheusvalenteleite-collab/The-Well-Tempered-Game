@@ -89,12 +89,12 @@ export interface SelectionProps {
   bookTwo?: () => void;
   /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
   learn?: (id: string) => void;
-  /** D949 (the owner: "ship book I preludes to main game developer mode"): PRELUDE | FUGUE and the tiles' P, the developer view only for now. */
+  /** D988 (the owner: "ship book I preludes to main game developer mode"): PRELUDE | FUGUE and the tiles' P, the developer view only for now. */
   preludes?: boolean;
   /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
   playPiece?: (id: string) => void;
   /** Design studio (D463): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
-  tempo?: { word: string; beat: string; locked: boolean; cycle: () => void; /** D941: shown, not chosen (I/5's and I/21's preludes, slow only). */ fixed?: boolean };
+  tempo?: { word: string; beat: string; locked: boolean; cycle: () => void; /** D980: shown, not chosen (I/5's and I/21's preludes, slow only). */ fixed?: boolean };
   /** D458: the chosen piece's SAVED PERFORMANCES (how many; opens them), under PLAY. */
   takes?: { n: number; open: () => void };
   /** D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE: the sound's play, and its stop (the box closed). */
@@ -137,7 +137,7 @@ export function Selection(p: SelectionProps) {
   const next = grid ? liteSuggested(ids, won, first) : null;
   const choose = (id: string) => (setChosen(true), p.select(id));
   // D442, the Glenn pilot: a tile is a key (its prelude and fugue); the fugue open once the prelude is finished.
-  // D941: and play.html's key for a WTC prelude, Book II's too (its tile is its fugue's).
+  // D980: and play.html's key for a WTC prelude, Book II's too (its tile is its fugue's).
   const pairKey = p.playPiece ? piece.replace(/^wtc1p/, "wtc1f") : fugueOfPrelude(piece);
   const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
   const learning = !!tutorial && tutorial.done < tutorial.of;
@@ -320,7 +320,7 @@ export function keyWords(key: string): { tonic: string; mode: string } {
 }
 
 /** A tile of the grid: the picture, its number and key, its level; the best grade (or ✓); NEXT. */
-function Tile({ id, on, done, next, grade, old, pick, prelude }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void; /** D941: its prelude finished. */ prelude?: boolean }) {
+function Tile({ id, on, done, next, grade, old, pick, prelude }: { id: string; on: boolean; done: boolean; next: boolean; grade?: string; old?: string; pick: (id: string) => void; /** D980: its prelude finished. */ prelude?: boolean }) {
   const f = fugueById(id);
   const lv = liteLevel(id);
   const n = Number(id.slice(-2));
@@ -350,7 +350,7 @@ function Tile({ id, on, done, next, grade, old, pick, prelude }: { id: string; o
           ) : (
             done && <span className="sel-done">✓</span>
           )}
-          {/* D941: the key's prelude finished: a small P at the picture's foot (the grade at its head is the fugue's). */}
+          {/* D980: the key's prelude finished: a small P at the picture's foot (the grade at its head is the fugue's). */}
           {prelude && (
             <span className="sel-ppip" id={`ppip-${id}`} aria-label={tr("PRELUDE")}>
               P
@@ -404,12 +404,12 @@ export function shortPart(name: string): string {
 
 /** The right column's piece: its picture (? opens ABOUT THIS FUGUE), name, one line of book · number · level ·
  * voices, its best (D463: no secrets for now), the voice to play, TEMPO and SOUND, HEAR THE SUBJECT (design studio, D463). */
-function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound, subject, drums, pair }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>>; /** D941: a WTC key's two pieces, PRELUDE | FUGUE. */ pair?: { fugue: string; prelude: string; choose: (id: string) => void } }) {
+function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, scoresOld, tempo, sound, subject, drums, pair }: SelectionProps & { best: Readonly<Record<string, string>>; scores: Readonly<Record<string, number>>; bestOld: Readonly<Record<string, string>>; scoresOld: Readonly<Record<string, number>>; /** D980: a WTC key's two pieces, PRELUDE | FUGUE. */ pair?: { fugue: string; prelude: string; choose: (id: string) => void } }) {
   const f = fugueById(piece);
   const lv = liteLevel(piece);
   const wtc = /^wtc[12][fp]\d\d$/.test(piece);
   const name = pieceTitle(piece);
-  // D941: a prelude shares its fugue's world: its name and picture.
+  // D980: a prelude shares its fugue's world: its name and picture.
   const nick = fugueName(worldOf(piece), lang());
   const grade = best[piece] ?? bestOld[piece];
   const [about, setAbout] = useState(false);
@@ -418,7 +418,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
   // D455: the sounds' grid open.
   const [soundGrid, setSoundGrid] = useState(false);
   const nowDrum = drums ? (drums.presets.find((d) => d.id === drums.preset) ?? drums.presets[0]) : undefined;
-  // D941: and a ready prelude's ABOUT THIS PRELUDE.
+  // D980: and a ready prelude's ABOUT THIS PRELUDE.
   const aboutable = wtc && (f.kind === "fugue" || preludeReady(piece));
   // D445: the best in the voice chosen (another voice's is its own).
   const mine = bestScore(scores, piece, voice);
@@ -441,7 +441,7 @@ function Chosen({ piece, voice, singing, setVoice, hear, best, scores, bestOld, 
         </p>
       )}
       {pair && (
-        // D941 (the owner: each key PRELUDE and FUGUE, no lock; placed in the right column, the owner's Q1): the switch picks
+        // D980 (the owner: each key PRELUDE and FUGUE, no lock; placed in the right column, the owner's Q1): the switch picks
         // which of the key's two pieces is chosen; the rest of the column (voices, tempo, sound, drums, best) follows it. A
         // new key starts on FUGUE (its tile chooses the fugue). A prelude not ready (held, or not yet planned) says COMING.
         <div className="sel-pair-switch" id="sel-stage" role="group" aria-label={`${tr("PRELUDE")} · ${tr("FUGUE")}`}>

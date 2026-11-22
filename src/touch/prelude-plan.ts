@@ -55,19 +55,19 @@ export function preludeExcluded(id: string, voices: number): number[] {
 }
 
 /**
- * D941: a prelude is offered on play.html only once it is planned and not held (I/2, D883): a prelude with no row
+ * D980: a prelude is offered on play.html only once it is planned and not held (I/2, D883): a prelude with no row
  * (Book I 13-24 until claude/preludes-b2's rows land, all of Book II) shows PRELUDE · COMING. The gate is in the data
  * as well as on the button: `preludeExcluded` gives nothing for an unplanned prelude, so it would offer every voice.
  */
 export const preludeReady = (id: string): boolean => /^wtc[12]p\d\d$/.test(id) && !!PRELUDE_PLAN[id] && !PRELUDE_PLAN[id].held;
-/** D941: a WTC prelude's fugue ("wtc1p09" → "wtc1f09"); any other id as it is. */
+/** D980: a WTC prelude's fugue ("wtc1p09" → "wtc1f09"); any other id as it is. */
 export const fugueOfPrelude = (id: string): string => id.replace(/^(wtc[12])p(\d\d)$/, "$1f$2");
-/** D941: a WTC fugue's prelude ("wtc1f09" → "wtc1p09"); any other id as it is. */
+/** D980: a WTC fugue's prelude ("wtc1f09" → "wtc1p09"); any other id as it is. */
 export const preludeOfFugue = (id: string): string => id.replace(/^(wtc[12])f(\d\d)$/, "$1p$2");
 /**
- * D941 (the owner: the prelude shares its fugue's world): the id a world is looked up by: a WTC prelude's is its
+ * D980 (the owner: the prelude shares its fugue's world): the id a world is looked up by: a WTC prelude's is its
  * fugue's (the stage and its backdrop, the picture, the world's sound effects, its name, its HOME sound and drums).
  */
 export const worldOf = (id: string): string => fugueOfPrelude(id);
-/** D941: a prelude offered at the slow tempo only (I/5, I/21: D883, D887). */
+/** D980: a prelude offered at the slow tempo only (I/5, I/21: D883, D887). */
 export const slowOnly = (id: string): boolean => PRELUDE_PLAN[id]?.tempo === "slow";

@@ -137,7 +137,7 @@ function keep(id: string, grade: string, today: string): boolean {
  */
 export function stageMode(f: TouchFugue, platform: Platform, chosen: ProtoId): ProtoId {
   // D442: the Glenn pilot's preludes on a phone on LADDER, the fugues' screen (THE REVEAL, reveal.ts).
-  // D941 (reverses D229 for the ready preludes): the same game as the fugues, LADDER on a phone.
+  // D980 (reverses D229 for the ready preludes): the same game as the fugues, LADDER on a phone.
   if (f.kind === "prelude") return platform === "computer" ? "keys" : APP.glennPilot || preludeReady(f.id) ? "ladder" : "highway";
   if (platform === "mobile") return "ladder";
   return chosen;

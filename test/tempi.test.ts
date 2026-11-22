@@ -81,7 +81,7 @@ test("D861: the 48 preludes by the fugues' rule, from their own recordings; unkn
     // unless that is slower than every recording.
     assert.ok(t.normal <= t.median && t.normal >= t.range[0], `${f.id}: normal ${t.normal} in ${t.range[0]}..${t.median}`);
     assert.ok(t.busiest <= 5.55 || t.normal === t.range[0], `${f.id}: ${t.busiest} notes a second`);
-    // D941: I/5 and I/21, offered at the slow tempo only, are played at it.
+    // D980: I/5 and I/21, offered at the slow tempo only, are played at it.
     assert.equal(tempoOf(f.id), slowOnly(f.id) ? t.slow : t.normal, f.id);
   }
   // Pinned: II/1 (was 42, D184's audit), and II/2, whose recordings mostly take both repeats (each half
@@ -90,7 +90,7 @@ test("D861: the 48 preludes by the fugues' rule, from their own recordings; unkn
   assert.equal(tempoOf("wtc2p02"), 79);
   assert.equal(tempoOf("wtc1p01"), 61);
   assert.equal(tempoOf("nope"), 46);
-  assert.equal(tempoOf("wtc1p05"), 46, "D941: slow only");
+  assert.equal(tempoOf("wtc1p05"), 46, "D980: slow only");
 });
 
 test("D861: a binary prelude's recordings are read over the halves they play", () => {

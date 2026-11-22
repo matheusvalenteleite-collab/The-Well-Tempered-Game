@@ -214,7 +214,7 @@ const OWN_SOUND: Readonly<Record<string, string>> = {
   ...moreBachSounds(),
 };
 /**
- * D941 (the owner, Q2: "yes"): a ready prelude (prelude-plan.ts `preludeReady`) opens on its fugue's sound, the world's:
+ * D980 (the owner, Q2: "yes"): a ready prelude (prelude-plan.ts `preludeReady`) opens on its fugue's sound, the world's:
  * I/5's prelude on BACH BRASS as THE CORONATION. Its own above is kept for a prelude not yet offered.
  */
 export const PIECE_SOUND: Readonly<Record<string, string>> = Object.fromEntries(

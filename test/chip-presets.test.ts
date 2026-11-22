@@ -16,7 +16,7 @@ test("D292, D294, D297, D302, D304: the players' sounds are the five (ANALOG SYN
   // D340: the MORE BACH and CHORALES tabs' exceptions, asked for: the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT's strings. D348: and the harpsichord concertos on its harpsichord and strings.
   const D340 = /^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/;
   // D355: and the pieces given a sound of their own (tools/touch/colour-plans), on any of the fifteen.
-  // D941: a ready prelude on its fugue's sound, by its fugue's plan.
+  // D980: a ready prelude on its fugue's sound, by its fugue's plan.
   for (const [piece, id] of Object.entries(PIECE_SOUND).filter(([p]) => !D340.test(p) && !COLOURS[p] && !(preludeReady(p) && COLOURS[fugueOfPrelude(p)]))) assert.ok(ids.slice(0, 5).includes(id), `${piece}: ${id} (D297: never a period preset)`);
   // D294: the two sounds replaced (and the withdrawn ones they grew from) open on their successors.
   for (const [old, now] of [["chipRound", "gameboy"], ["chipPocket", "gameboy"], ["chipGold", "gameboy"], ["pianoFm", "analog"], ["carlos", "analog"]]) {

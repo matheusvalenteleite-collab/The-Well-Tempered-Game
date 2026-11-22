@@ -349,7 +349,7 @@ export const ES: Record<string, string> = {
   "TOO SOON": "DEMASIADO PRONTO",
   STAGE: "ESCENARIO",
   "WORLD SOUNDS": "SONIDOS DEL ESCENARIO",
-  // D941: the preludes on play.html.
+  // D980: the preludes on play.html.
   "ABOUT THIS PRELUDE": "SOBRE ESTE PRELUDIO",
   "NOT YET WRITTEN": "AÚN SIN ESCRIBIR",
   COMING: "PRÓXIMAMENTE",
