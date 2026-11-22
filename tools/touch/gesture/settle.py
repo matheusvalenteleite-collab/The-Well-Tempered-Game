@@ -3,7 +3,7 @@
 # 25 ms frame's period by normalised autocorrelation within +-250 cents of the written pitch (parabolic peak; frames with a
 # peak under 0.6 dropped); the note's mean pitch (cents from the written) over its whole length, and the time (ms from its
 # onset, the frame's middle) after which every frame stays within SETTLE_CENTS of the written pitch ("reached"), and that as a
-# share of the note. usage: python3 -I settle.py <render.wav> [more.wav ...]   (each with its render.json beside it)
+# share of the note; and the first time it comes within SETTLE_CENTS (`first_ms`: where the voice's own vibrato moves it on after). usage: python3 -I settle.py <render.wav> [more.wav ...]   (each with its render.json beside it)
 import sys, json, wave
 import numpy as np
 SETTLE_CENTS, WIN, HOP, LEAD = 15, 0.025, 0.002, 0.05
@@ -38,7 +38,8 @@ for path in sys.argv[1:]:
         reach = None
         for k in range(len(fr)):
             if all(abs(c) <= SETTLE_CENTS for _, c in fr[k:]): reach = fr[k][0]; break
-        rows.append({'midi': n['midi'], 'dur_ms': round(n['dur'] * 1000), 'mean_cents': round(float(np.mean([c for _, c in fr])), 1), 'reach_ms': None if reach is None else round(reach * 1000), 'reach_share': None if reach is None else round(reach / n['dur'], 2)})
+        first = next((t for t, c in fr if abs(c) <= SETTLE_CENTS), None)
+        rows.append({'first_ms': None if first is None else round(first * 1000), 'midi': n['midi'], 'dur_ms': round(n['dur'] * 1000), 'mean_cents': round(float(np.mean([c for _, c in fr])), 1), 'reach_ms': None if reach is None else round(reach * 1000), 'reach_share': None if reach is None else round(reach / n['dur'], 2)})
     reached = [r for r in rows if r['reach_ms'] is not None]
     out[path.split('/')[-1][:-4]] = {'slid': len(slid), 'measured': len(rows), 'never_reached': len(rows) - len(reached),
         'mean_cents_abs_median': round(float(np.median([abs(r['mean_cents']) for r in rows])), 1) if rows else None,

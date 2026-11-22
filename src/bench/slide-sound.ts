@@ -209,6 +209,8 @@ const GLIDE_SHARE = 0.25;
  * mean 45 cents off; capped, each written pitch heard (DECISIONS D1018).
  */
 export const SETTLE_CENTS = 15;
+/** D1018, D1030: the sounds whose glides are settled (settleTau). */
+export const SETTLED: ReadonlySet<string> = new Set(["krautrock", "analog", "tomita", "berlinSchool"]);
 export const SETTLE_SHARE = 0.15;
 /** D1018: the longest glide (s) from `from` to `to` (MIDI) that settles on a note `noteMs` long within SETTLE_SHARE of it. */
 export const settleTau = (from: number, to: number, noteMs: number) => (SETTLE_SHARE * noteMs) / 1000 / Math.log(Math.max(SETTLE_CENTS * 1.5, Math.abs(to - from) * 100) / SETTLE_CENTS);
@@ -228,8 +230,9 @@ export function slideGesture(presetId: string, from: number, to: number, noteMs:
     const ms = fam === "chip" ? 20 : GLIDE_MS[fam][ic] * (fam === "bowed" && ic === "leap" && !up ? 85 / 70 : fam === "brass" && ic === "leap" && !up ? 35 / 45 : 1);
     const names = { bowed: "shift", brass: ic === "leap" && up ? "rip" : "lip slur", voice: "portamento", slide8: "pitch slide", fm: "bend", synth: "portamento", chip: "pitch slide", bass: "slide" } as const;
     const tau = Math.max(0.008, Math.min(ms, GLIDE_SHARE * noteMs)) / 1000;
-    // D1018: PSYCH's glides settle within a third of the note (settleTau), however quick the passage.
-    return { kind: "glide", name: names[fam], tau: presetId === "krautrock" ? Math.min(tau, settleTau(from, to, noteMs)) : tau };
+    // D1018: PSYCH's glides settle within a third of the note (settleTau), however quick the passage; D1030: and the
+    // synthesizers' (SWITCHED-ON, TOMITA, BERLIN SCHOOL: measured smearing as PSYCH's did).
+    return { kind: "glide", name: names[fam], tau: SETTLED.has(presetId) ? Math.min(tau, settleTau(from, to, noteMs)) : tau };
   }
   if (fam === "reed") {
     // D504: a reed's slide: into a step a short portamento (the fingers sliding off the hole, the lip easing the

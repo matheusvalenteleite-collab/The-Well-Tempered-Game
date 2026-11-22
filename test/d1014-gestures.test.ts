@@ -15,13 +15,14 @@ import { FakeAudioContext, FakeNode, FakeParam, installFakeAudio } from "./fake-
 import { Chip, voicing, type Play, type Sounding } from "../src/touch/chip.ts";
 import { PATCHES, PRESETS, setPreset, type Patch } from "../src/touch/sound.ts";
 import { SAMPLED } from "../src/touch/sampled.ts";
-import { SETTLE_CENTS, SETTLE_SHARE, settleTau, slideFamily, slideGesture } from "../src/bench/slide-sound.ts";
+import { SETTLE_CENTS, SETTLE_SHARE, SETTLED, settleTau, slideFamily, slideGesture } from "../src/bench/slide-sound.ts";
 import { BOW_DB, BOW_TONE_DB, BOWED_SAMPLES, DUTY_TRIM_DB, dutyGain, dutyWaveAt, fingerVib, GUITAR_SAMPLES, GUITAR_VIB, holdMode, pulseRms, touchKind } from "../src/touch/touch-expr.ts";
 
 const MEASURED: Record<string, { sound: string; gesture: string; gesture_lu: { before: number; after: number }; timbre_db: { before: number; after: number }; pitch: { per_note_mean_max_abs: number } | null; still_max_diff?: number; slides?: { scripted: number; played: number; slid_note_mean_max_abs_cents: number } }> = JSON.parse(
   readFileSync(new URL("./fixtures/d1014-gestures.json", import.meta.url), "utf8"),
 );
 const FAST: Record<string, { semiquavers: number; reach_share_median: number; over_third: number; mean_cents_abs_median: number }> = JSON.parse(readFileSync(new URL("./fixtures/d1018-fast-glide.json", import.meta.url), "utf8"));
+const SYNTHS: Record<string, Record<"uncapped" | "capped", { semiquavers: number; first_ms_median: number; first_over_third: number; mean_cents_abs_median: number }>> = JSON.parse(readFileSync(new URL("./fixtures/d1030-synth-glide.json", import.meta.url), "utf8"));
 const BEFORE: Record<string, string> = JSON.parse(readFileSync(new URL("./fixtures/d1014-families-before.json", import.meta.url), "utf8"));
 
 const ctxOf = installFakeAudio(5, true);
@@ -255,13 +256,27 @@ test("D1018: PSYCH's glides settle on the written pitch within a third of the no
     const g = slideGesture("krautrock", from, to, ms, key, "schleifer", PATCHES.k2Synth);
     assert.ok(g.kind === "glide" && g.tau <= Math.max(0.008, tau) + 1e-12, `${from}->${to} ${ms} ms`);
   }
-  // A long note keeps D486's 40 ms; SWITCHED-ON (the same family) is not capped.
+  // A long note keeps D486's 40 ms; the chips' and GAME BOY's glides are not capped.
   const long = slideGesture("krautrock", 60, 62, 1200, key, "schleifer", PATCHES.k2Synth);
   assert.ok(long.kind === "glide" && Math.abs(long.tau - 0.04) < 1e-9);
-  const sw = slideGesture("analog", 60, 62, 188, key);
-  assert.ok(sw.kind === "glide" && Math.abs(sw.tau - 0.04) < 1e-9);
+  const gb = slideGesture("gameboy", 60, 62, 188, key);
+  assert.ok(gb.kind === "glide" && Math.abs(gb.tau - 0.03) < 1e-9, JSON.stringify(gb));
   // Rendered (BWV 789 b. 16, the synthesizer's semiquavers, every one slid): the uncapped glide smeared every note past a third.
   assert.equal(FAST.uncapped.over_third, FAST.uncapped.semiquavers);
   assert.ok(FAST.after.over_third <= 2 && FAST.after.reach_share_median <= 1 / 3, JSON.stringify(FAST.after));
   assert.ok(FAST.after.mean_cents_abs_median < FAST.uncapped.mean_cents_abs_median / 2);
+});
+
+test("D1030: SWITCHED-ON, TOMITA and BERLIN SCHOOL settle their glides as PSYCH does (they smeared); the rest as they were", () => {
+  const key = new Set([0, 2, 4, 5, 7, 9, 11]);
+  assert.deepEqual([...SETTLED].sort(), ["analog", "berlinSchool", "krautrock", "tomita"]);
+  for (const id of ["analog", "tomita", "berlinSchool"]) {
+    const g = slideGesture(id, 60, 62, 188, key);
+    assert.ok(g.kind === "glide" && g.tau <= settleTau(60, 62, 188) + 1e-12, id);
+    const m = SYNTHS[id];
+    // Rendered (BWV 789 b. 16, the top voice's semiquavers, every one slid): uncapped every note past a third; capped, on its pitch by a third.
+    assert.ok(m.uncapped.first_over_third >= 0.8 * m.uncapped.semiquavers, `${id} uncapped`);
+    assert.ok(m.capped.first_over_third <= 3 && m.capped.first_ms_median <= 188 / 3, `${id} capped ${JSON.stringify(m.capped)}`);
+    assert.ok(m.capped.mean_cents_abs_median < m.uncapped.mean_cents_abs_median / 2, id);
+  }
 });
