@@ -171,8 +171,8 @@ function mix(a: string, b: string, u: number): string {
   return `rgb(${Math.round(A[0] + (B[0] - A[0]) * u)},${Math.round(A[1] + (B[1] - A[1]) * u)},${Math.round(A[2] + (B[2] - A[2]) * u)})`;
 }
 /** A shape's progress at tick t (one for all its notes): the lift, the flight (eased out). */
-interface Phase { uL: number; u: number }
-const phase = (s: Shape, t: number): Phase => ({ uL: ease((t - s.start) / Math.max(1, s.fly - s.start)), u: easeOut((t - s.fly) / Math.max(1, s.landed - s.fly)) });
+export interface Phase { uL: number; u: number }
+export const phase = (s: Shape, t: number): Phase => ({ uL: ease((t - s.start) / Math.max(1, s.fly - s.start)), u: easeOut((t - s.fly) / Math.max(1, s.landed - s.fly)) });
 interface Place { x: number; w: number; y: number; h: number }
 /**
  * Where note i of a shape is at a phase, in the box's pixels: lifted, then flying: the block slid by the delay and the
@@ -192,8 +192,13 @@ function place(s: Shape, i: number, ph: Phase, k: EchoGeo): Place {
   const x = k.xOf(tt);
   return { x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * ph.uL * (1 - u), h };
 }
-/** A shape's colour at a phase: the leader's ink to the follower's (each shape is one leader voice into one follower voice). */
-const colourOf = (s: Shape, ph: Phase, k: EchoGeo) => mix(k.ink(s.A[0].voice), k.ink(s.T[0].voice), ease(ph.u));
+/**
+ * A shape's colour at a phase: the leader's ink to the follower's (each shape is one leader voice into one follower voice),
+ * in step with the motion (the owner on 3.14: "gradually shift from home color to target color, in sync with movement"):
+ * the flight's own eased progress, the same as the position's, so exactly the leader's ink at lift-off and exactly the
+ * follower's at landing. (It was eased a second time, and ran ahead of the shape.) The core, the glow and the trail alike.
+ */
+export const colourOf = (s: Shape, ph: Phase, k: EchoGeo) => mix(k.ink(s.A[0].voice), k.ink(s.T[0].voice), ph.u);
 /** Draws the ribbon: the shapes in flight and the canon named at first under the player's notes; the answers flaring as they land over them. */
 export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo, pass: "under" | "over" | "both" = "both") {
   if (canonsMode() === "off") return;
