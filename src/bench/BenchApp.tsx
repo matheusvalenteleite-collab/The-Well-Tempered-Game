@@ -137,7 +137,7 @@ import { askToKeep, lasting, putTake, starTake, takeCounts, takesOf } from "./ta
 import { backingFor, gains, readMix } from "./takes/myfugue.ts";
 import { Filmer, type FilmStats } from "./takes/film.ts";
 import { onHomeScreen, TakesPanel, takeVoiceWord } from "./TakesPanel.tsx";
-import { handsFlag, handsFugue, handsOf } from "../touch/two-hands.ts";
+import { handsFlag, handsFugue, handsOf, TWO_HANDS_RETIRED } from "../touch/two-hands.ts";
 import { setHandInks } from "../touch/voice-inks.ts";
 import { HandsList } from "./HandsList.tsx";
 import { clearStopChanges, hasStops, voicePatch } from "../touch/registration.ts";
@@ -250,7 +250,8 @@ export function sane(p: Pick): Pick {
   // chosen as any book's fugue: the owner found their tiles "not selectable, and thus unplayable".
   // D941 (reverses D263 for the planned preludes): a ready prelude (prelude-plan.ts `preludeReady`) is played on a phone
   // too, Book II's included; one not ready still gives its fugue.
-  const readyPrelude = preludeReady(known) && (known.startsWith("wtc1") || bookTwoOpen());
+  // D949: the developer view only for now (unlock.ts `unlocked`); the normal view as before.
+  const readyPrelude = unlocked() && preludeReady(known) && (known.startsWith("wtc1") || bookTwoOpen());
   const piece = APP.lite && readyPrelude ? known : APP.lite ? (paired(pair) ? (mob && isPrelude(pair) && !APP.glennPilot ? fugueOf(pair) : pair) : ((unlocked() || liteTabs().some(([t]) => t === liteTabOf(pair))) && liteExtra(pair)) || (/^wtc2f\d\d$/.test(pair) && bookTwoOpen()) ? pair : startHere(mob)) : locked(pair) ? (locked(preludeOf(pair)) ? "wtc1p01" : preludeOf(pair)) : pair;
   const f = fugueById(piece);
   const share = Math.min(0.99, Math.max(0, p.share || 0));
@@ -343,7 +344,8 @@ export function BenchApp() {
       return next;
     });
   // D862, TWO HANDS (the prototype): `?proto=hands` on play.html shows its list; the piece chosen there, while it plays.
-  const [handsProto] = useState(() => APP.lite && handsFlag());
+  // D950: retired (TWO_HANDS_RETIRED): the flag no longer opens it.
+  const [handsProto] = useState(() => !TWO_HANDS_RETIRED && APP.lite && handsFlag());
   const [handsPiece, setHandsPiece] = useState<string | null>(null);
   // D237, the minimal page: its own progress, instruction lines seen and volume (lite.ts).
   const [lite, setLite] = useState(readLite);
@@ -2457,6 +2459,8 @@ export function BenchApp() {
           learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.
           playPiece={APP.glennPilot ? (id: string) => (stopHearing(), begin(id)) : undefined}
+          // D949: PRELUDE | FUGUE in the developer view only, for now.
+          preludes={unlocked()}
           beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined}
           // D449: HEAR THE SUBJECT inside ABOUT THIS FUGUE, silenced when the box closes.
           subject={{ play: playSubject, stop: stopHearing }}
@@ -2482,7 +2486,8 @@ export function BenchApp() {
       )}
       {/* D862, TWO HANDS (the prototype): its list over the selection, only with ?proto=hands. */}
       {/* D866: and in the developer view (the owner: "Add two hands prototype to developer mode in main game"), folded at first. */}
-      {(handsProto || (APP.lite && unlocked())) && phase.kind === "home" && !intro && <HandsList folded={!handsProto} play={(id) => (stopHearing(), setHandsPiece(id), start(true))} />}
+      {/* D950: retired: neither the flag nor the developer view shows it. */}
+      {!TWO_HANDS_RETIRED && (handsProto || (APP.lite && unlocked())) && phase.kind === "home" && !intro && <HandsList folded={!handsProto} play={(id) => (stopHearing(), setHandsPiece(id), start(true))} />}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
       {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} chip={ensureChip} restore={() => (setPreset(presetById(soundNow).id), prepareSound())} close={() => (stopHearing(), setHowTo(false))} />}
       {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}

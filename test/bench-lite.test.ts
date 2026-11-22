@@ -138,16 +138,15 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   assert.equal(sane({ ...was, share: 0.5 }).voice, 0, "from a later bar too");
   APP.lite = true;
   try {
-    // D343: play.html is played on phones only (a computer is shown MOBILE ONLY). D941 (reverses D263): a ready prelude
-    // is played there (I/1 its right hand, the one it offers); one held or not yet planned gives its fugue.
-    assert.equal(sane(was).piece, "wtc1p01");
-    assert.equal(sane(was).voice, 0, "I/1 offers its right hand only");
-    assert.equal(sane({ ...was, piece: "wtc1p02" }).piece, "wtc1f02", "I/2 held (D883)");
-    assert.equal(sane({ ...was, piece: "wtc1p03", voice: 1 }).voice, 1, "D941: a ready prelude's voice is chosen (I/3's left hand)");
+    // D343: play.html is played on phones only (a computer is shown MOBILE ONLY): no preludes there, so a
+    // prelude kept from before gives its fugue (D949: the normal view keeps D263 for now).
+    assert.equal(sane(was).piece, "wtc1f01");
     assert.equal(sane({ ...was, piece: "wtc2f07", voice: -1 }).piece, "wtc2f07", "D489: Book II open to the friends");
     // Unlocked (a computer may then play, as before D343): a prelude's own part, whatever was chosen.
     store.set("tb-unlock-all", "1");
     assert.equal(sane(was).piece, "wtc1p01", "unlocked: the computer's preludes");
+    // D941, D949 (reverses D263 in the developer view): a ready prelude is played on a phone; I/1 offers its right hand.
+    assert.equal(sane({ ...was, piece: "wtc1p03", voice: 1 }).voice, 1, "D944: a ready prelude's voice is chosen (I/3's left hand)");
     assert.equal(sane(was).voice, 0);
     assert.equal(sane({ ...was, voice: -1 }).voice, 0);
     // D275: a Book II fugue is kept on play.html (it fell back to Book I's first).

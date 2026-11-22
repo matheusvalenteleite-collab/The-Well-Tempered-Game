@@ -17,6 +17,11 @@
  */
 import type { TouchFugue, TouchNote } from "./fugue.ts";
 
+/**
+ * D950 (the owner: "Two hands prototype was way too hard to pull off … For now, it's retired"): TWO HANDS retired. The
+ * developer view's TWO HANDS ▲ (D866) and play.html?proto=hands (D862) no longer show it; the code stays, dormant.
+ */
+export const TWO_HANDS_RETIRED = true;
 export type Hand = "left" | "right";
 
 /** The voices that are the two hands (the data's "Right hand" and "Left hand", an invention's two parts). */

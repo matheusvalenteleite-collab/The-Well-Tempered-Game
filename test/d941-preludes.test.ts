@@ -15,7 +15,7 @@ test("D941: the gate: a PRELUDE_PLAN row not held; the voices offered exist and 
   const { DULL_VOICES, voicesFrom } = await import("../src/touch/voice-mode.ts");
   const { fugueById } = await import("../src/touch/fugue.ts");
   assert.ok(preludeReady("wtc1p01") && preludeReady("wtc1p12"));
-  assert.ok(!preludeReady("wtc1p02"), "I/2 held (D883)");
+  // (I/2: held by D883 until Progression's row lands; the loop below holds either way.)
   assert.ok(!preludeReady("wtc2p01"), "Book II: no rows yet");
   assert.ok(!preludeReady("wtc1f01") && !preludeReady("bwv772"));
   for (let n = 1; n <= 24; n++) {
@@ -41,7 +41,7 @@ test("D941: PRELUDE | FUGUE in the right column; COMING for a prelude not ready;
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { Selection } = await import("../src/bench/Selection.tsx");
-  const base = { voice: 0, singing: [0], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, settings: () => {} };
+  const base = { voice: 0, singing: [0], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, settings: () => {}, preludes: true };
   const pre = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc1p05", current: "wtc1p05", beaten: ["wtc1p09"], tempo: { word: "SLOW", beat: "♩ 46", locked: false, fixed: true, cycle: () => {} } }));
   assert.match(pre, /id="sel-stage-prelude" class="on" aria-pressed="true"/);
   assert.match(pre, /id="sel-stage-fugue" class=""/);
@@ -51,9 +51,13 @@ test("D941: PRELUDE | FUGUE in the right column; COMING for a prelude not ready;
   assert.match(pre, /id="tile-wtc1f05"[^>]*aria-pressed="true"/, "the key's tile lit");
   assert.match(pre, /id="ppip-wtc1f09"/, "I/9's prelude finished: its P");
   assert.doesNotMatch(pre, /id="ppip-wtc1f05"/);
-  const held = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc1f02", current: "wtc1f02", beaten: [] }));
+  // A prelude not ready: Book II's (no rows yet).
+  const held = renderToStaticMarkup(createElement(Selection, { ...base, piece: "wtc2f07", current: "wtc2f07", beaten: [] }));
   assert.match(held, /id="sel-stage-prelude" class="soon" disabled="" aria-disabled="true">PRELUDE<i>COMING<\/i>/);
   assert.match(held, /id="sel-stage-fugue" class="on"/);
+  // D949: the normal view as before: no switch, no P.
+  const normal = renderToStaticMarkup(createElement(Selection, { ...base, preludes: false, piece: "wtc1f09", current: "wtc1f09", beaten: ["wtc1p09"] }));
+  assert.doesNotMatch(normal, /sel-stage|ppip-/);
 });
 
 test("D941, D946: the prelude's world and sound are its fugue's; a prelude not ready keeps its own sound", async () => {
@@ -62,7 +66,8 @@ test("D941, D946: the prelude's world and sound are its fugue's; a prelude not r
   const { PRELUDE_PLAN } = await import("../src/touch/prelude-plan.ts");
   for (const [id, plan] of Object.entries(PRELUDE_PLAN)) if (!plan.held) assert.equal(PIECE_SOUND[id], PIECE_SOUND[id.replace("p", "f")], id);
   assert.equal(PIECE_SOUND.wtc1p05, "bachBrass");
-  assert.equal(PIECE_SOUND.wtc1p02, "chip", "I/2 held: its own");
+  // A prelude not ready keeps its own: Book II's (no rows yet).
+  assert.equal(PIECE_SOUND.wtc2p01, "harpsichordSampled");
   assert.ok(hasStage("wtc1p09") && hasStage("wtc2p24"));
 });
 

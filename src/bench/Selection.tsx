@@ -89,6 +89,8 @@ export interface SelectionProps {
   bookTwo?: () => void;
   /** D441, the Glenn pilot: Glenn's film of the chosen piece, where it has one. */
   learn?: (id: string) => void;
+  /** D949 (the owner: "ship book I preludes to main game developer mode"): PRELUDE | FUGUE and the tiles' P, the developer view only for now. */
+  preludes?: boolean;
   /** D442, the Glenn pilot: a key's prelude or fugue played (the fugue only once its prelude is finished). */
   playPiece?: (id: string) => void;
   /** Design studio (D463): the chosen piece's TEMPO, one button cycling SLOW · DEFAULT · FAST; `locked` until an A opens it (D356). */
@@ -258,7 +260,7 @@ export function Selection(p: SelectionProps) {
             </header>
             <ol className={`sel-grid${tab === "AOF" ? " sel-grid-aof" : tab === "INV" ? " sel-grid-inv" : tab === "GOLD" ? " sel-grid-inv" : ""}`} id="sel-grid">
               {ids.map((id) => (
-                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} prelude={!p.playPiece && won.has(preludeOfFugue(id))} />
+                <Tile key={id} id={id} on={chosen && id === pairKey} done={won.has(id)} next={id === next} grade={best[id]} old={bestOld[id]} pick={choose} prelude={!!p.preludes && !p.playPiece && won.has(preludeOfFugue(id))} />
               ))}
             </ol>
           </>
@@ -272,7 +274,7 @@ export function Selection(p: SelectionProps) {
       </section>
       <aside className="sel-col sel-right" id="sel-right">
         {chosen ? (
-          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} pair={!p.playPiece && /^wtc[12]f\d\d$/.test(pairKey) ? { fugue: pairKey, prelude: preludeOfFugue(pairKey), choose: p.select } : undefined} />
+          <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} pair={p.preludes && !p.playPiece && /^wtc[12]f\d\d$/.test(pairKey) ? { fugue: pairKey, prelude: preludeOfFugue(pairKey), choose: p.select } : undefined} />
         ) : (
           <p className="sel-hint" id="sel-hint">
             {p.basics ? tr("Pick a fugue in the middle, or learn first with BASICS on the left.") : tutorial ? tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.") : tr("Pick a piece in the middle.")}

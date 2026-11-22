@@ -19,7 +19,8 @@ test("D805: BERLIN SCHOOL is CLEAR, in place: pulse lead, plucked sequencer, gla
     assert.notEqual(presetById(id).id, id);
   }
   for (const k of Object.keys(PATCHES)) assert.ok(!/^b[wmcx][A-Z]/.test(k), k);
-  const six = Object.entries(PIECE_SOUND).filter(([, s]) => s === "berlinSchool").map(([id]) => id).sort();
+  // D941: a ready prelude on its fugue's sound (I/15's with its fugue) is not counted here.
+  const six = Object.entries(PIECE_SOUND).filter(([id, s]) => s === "berlinSchool" && !/^wtc[12]p\d\d$/.test(id)).map(([id]) => id).sort();
   // D893: and Contrapunctus 12, rectus and inversus (MEGA FM withdrawn).
   assert.deepEqual(six, ["bwv1080-01", "bwv1080-12i", "bwv1080-12r", "bwv1080-c17", "bwv773", "bwv780", "bwv802", "bwv988-01", "bwv988-14", "bwv988-23", "wtc1f02", "wtc1f15"]); // D910: and I/15; D901: and the Goldberg's Variations 1, 14, 23
   for (let n = 1; n <= 5; n++) for (const [, pan] of p.by![n]!) assert.ok(Math.abs(pan) <= 0.3);

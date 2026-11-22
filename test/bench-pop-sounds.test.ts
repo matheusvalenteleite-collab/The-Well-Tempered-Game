@@ -53,6 +53,6 @@ test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   const harp = popSounds("wtc1p01");
   assert.equal(harp.length, 25);
   assert.deepEqual(harp.filter(([, , own]) => own).map(([id]) => id), [PIECE_SOUND.wtc1f01]);
-  // A prelude not yet offered keeps its own (I/2, held: CLASSIC CHIP).
-  assert.deepEqual(popSounds("wtc1p02").filter(([, , own]) => own).map(([id]) => id), ["chip"]);
+  // A prelude not yet offered keeps its own (Book II's, no rows yet: II/1 on the harpsichord).
+  assert.deepEqual(popSounds("wtc2p01").filter(([, , own]) => own).map(([id]) => id), ["harpsichordSampled"]);
 });
