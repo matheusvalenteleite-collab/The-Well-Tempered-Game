@@ -1,8 +1,8 @@
 /**
  * D970 (canons session; the owner's pick, the third prototype): THE ROLLING RIBBON on the nine Goldberg canons and
  * Inventions 2 and 8, replacing the echo lane. Every answered leader note carried in exactly one shape; segments of about a
- * bar's breath, never fewer than three notes; a big morph at the first entry and at each change of leader; adaptive
- * density; each shape landing before its follower's first note sounds; drawing only, no canvas blur; ⚙ CANONS.
+ * bar's breath, never fewer than three notes; a big morph at the first entry and at each change of leader;
+ * no thinning (D971: every segment flies); each shape landing before its follower's first note sounds; drawing only, no canvas blur; ⚙ CANONS.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -50,14 +50,15 @@ test("a big morph at the first entry and at each change of leader, and only ther
   assert.deepEqual(bigs("bwv773"), [0, 1, 2]);
 });
 
-test("adaptive density: every segment for 8 bars after a big morph, then every second one", async () => {
+test("D971: no thinning: every shape is drawn, and every answered leader note flies in one (none skipped by density)", async () => {
   await loadExtras();
-  const f = fugueById("bwv988-12"), S = ribbonShapes(f), B = f.barTicks;
-  const leg0 = S.filter((s) => s.leg === 0 && !s.big), from = S.find((s) => s.big)!.tA0;
-  for (const s of leg0) if (s.tA0 < from + 8 * B) assert.ok(s.shown);
-  const late = leg0.filter((s) => s.tA0 >= from + 8 * B);
-  assert.ok(late.length >= 2);
-  late.forEach((s, i) => assert.equal(s.shown, i % 2 === 0));
+  const src = readFileSync(new URL("../src/touch/canon-ribbon.ts", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  assert.ok(!/shown|% 2/.test(src));
+  for (const id of Object.keys(CANONS)) {
+    const f = fugueById(id), S = ribbonShapes(f);
+    const flown = new Set(S.flatMap((s) => s.A.map((a) => `${a.voice}:${a.on}`)));
+    for (const p of echoPairs(f)) assert.ok(flown.has(`${p.a.voice}:${p.a.on}`), `${id}: ${p.a.voice} at ${p.a.on}`);
+  }
 });
 
 test("each shape lands a quarter before its follower's first note sounds, its flight never under a quarter, never before the start", async () => {

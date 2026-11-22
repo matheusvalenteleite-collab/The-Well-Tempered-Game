@@ -1004,6 +1004,11 @@ export interface Play {
   accentDb?: number;
   /** D385: a trill's note: the other pitch of its alternation; where both would sound one recording, this one takes the other neighbouring recording (no shared hammer). */
   altSample?: number;
+  /**
+   * D935: read the note from this recording of its set (MIDI), not the nearest, where it is one and within the set's
+   * guard (maxShift): the intro's piano kept off recordings that die away quickly (C4's soft layer drops 30 dB in 1.6 s).
+   */
+  fromSample?: number;
   /** TRIAL (sound.ts registerAll): the printed level here (dB): the harpsichord's or the organ's registration terraced by it (registration.ts terraceStops). */
   terrace?: number;
   /** TRIAL: the hairpins' and the palette's dB here: a small brightness (sound.ts swellToneDb). */
@@ -2202,6 +2207,7 @@ export class Chip {
       // D631: the written pitch, read from the nearest recording (D405's and D505's octave folds withdrawn: sampled.ts reachOf).
       midi = soundingPitch(v.patch, midi);
       let near = nearestSample(main, midi);
+      if (p.fromSample !== undefined && nearestSample(main, p.fromSample) === p.fromSample && Math.abs(p.fromSample - midi) <= (inst.maxShift ?? MAX_SHIFT_ANY)) near = p.fromSample;
       // D385: a piano trill's two pitches never from one recording: the one not recorded itself takes the other
       // neighbouring recording (G#4 from F#4 up where A4 sounds A4), where that recording is loaded.
       if (p.altSample !== undefined && near !== null && near !== midi && nearestSample(main, p.altSample) === near && !(near !== p.altSample && midi < p.altSample)) {
