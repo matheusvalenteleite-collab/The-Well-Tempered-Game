@@ -122,7 +122,7 @@ test("D251: a prelude's pop-up offers no hand to choose; the game starts on the 
   assert.match(fug, /YOUR VOICE/);
   assert.equal(fug.match(/id="voice-\d"/g)?.length, 4);
   // Every prelude's part is the right hand (voice 0) unless the map names another (D950: I/2's left hand).
-  assert.deepEqual(PRELUDE_PART, { wtc1p02: 1 });
+  assert.deepEqual(PRELUDE_PART, { wtc1p02: 1, wtc2p23: 1 });
   for (let n = 1; n <= 24; n++) {
     const id = `wtc1p${String(n).padStart(2, "0")}`;
     const part = id === "wtc1p02" ? 1 : 0;
