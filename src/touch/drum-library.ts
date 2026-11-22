@@ -218,6 +218,9 @@ export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[sound]?.[0]
  * change here.
  */
 export const FUGUE_STYLES: Readonly<Record<string, string>> = {
+  // D999: II/20's prelude on ANALOG: ARCADE (II/24's own on the same sound), not the sound's 808, whose last-chord accent
+  // (held at chip.ts ACCENT_MAX, a grid style: no TWEAKS) sits right on D601's 1 dB margin under the band (0.0 dB inside).
+  wtc2p20: "arcade",
   wtc1f01: "lofi",
   wtc1f02: "scoreSynth",
   wtc1f05: "march",

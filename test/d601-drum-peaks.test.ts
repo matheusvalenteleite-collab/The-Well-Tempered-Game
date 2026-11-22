@@ -85,9 +85,9 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
 test("D984: every ready prelude's drums (HOME and its picks) under the band at every stroke, on the phone model", async () => {
   const bad: string[] = [];
   let n = 0;
-  // D997: Book II's rows pending (Instruments' follow-up): scoped to the preludes measured; remove the scope with the rows.
-  const ids = Object.keys(PIECE_SOUND).filter((id) => preludeReady(id) && !/^wtc2p/.test(id));
-  assert.ok(ids.length >= 24, `${ids.length} preludes`);
+  // D999: both books measured (D997's scope removed).
+  const ids = Object.keys(PIECE_SOUND).filter(preludeReady);
+  assert.ok(ids.length >= 48, `${ids.length} preludes`);
   for (const id of ids) {
     const sound = PIECE_SOUND[id];
     for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
