@@ -8,8 +8,8 @@
  * follower's, leaving a short fading trail; it lands on the follower's real notes a moment before the first of them
  * sounds, and they flare in their own colour. The segments go back to back, so the line seems to peel off the leader and
  * pour into the follower. At the first entry and at each change of leader the first shape is bigger (two segments: the
- * "big morph", named by the leg's label). Adaptive density (the board): every segment for 8 bars after a big morph, then
- * every second one, until the next big morph.
+ * "big morph", named by the leg's label). Every segment flies, everywhere (D971: the owner, "every second segment is a bad
+ * idea. It carves the voices arbitrarily"; D970's adaptive density removed).
  *
  * Drawing only, over the world and the other voices (which dim a little while a shape flies) and under the player's notes
  * (they never move and stay on top), but for the landing flare, an outline drawn over them; nothing judged reads it. No canvas blur (the glow is two larger, fainter rectangles),
@@ -47,8 +47,6 @@ export interface Shape {
   leg: number;
   /** The big morph at a structural point (the first entry, a change of leader). */
   big: boolean;
-  /** Drawn (adaptive density: every segment for 8 bars after a big morph, then every second one). */
-  shown: boolean;
   A: EchoNote[];
   T: EchoNote[];
   contrary: boolean;
@@ -123,15 +121,8 @@ export function ribbonShapes(f: TouchFugue): Shape[] {
       segs.length = 0;
     }
     for (const s of segs) parts.push({ list: s, big: false });
-    // adaptive density
-    const from = structural ? run[0].a.on : -Infinity;
-    let n = 0;
-    for (const part of parts) {
-      const sh = shape(f, li, part.list, part.big, L.contrary, part.big ? 2.5 * q : flight);
-      if (part.big) sh.shown = true;
-      else sh.shown = sh.tA0 < from + 8 * f.barTicks || n++ % 2 === 0;
-      shapes.push(sh);
-    }
+    // every segment flies (D971: no thinning)
+    for (const part of parts) shapes.push(shape(f, li, part.list, part.big, L.contrary, part.big ? 2.5 * q : flight));
   });
   shapes.sort((a, b) => a.start - b.start);
   memo.set(f, shapes);
@@ -150,7 +141,7 @@ function shape(f: TouchFugue, leg: number, list: EchoPair[], big: boolean, contr
   const ax1 = c + dS;
   const rT = A.map((a, i) => T[i].on - (a.on + (tB0 - tA0)));
   const rS = A.map((a, i) => T[i].step - (contrary ? 2 * ax1 - (a.step + dS) : a.step + dS));
-  return { leg, big, shown: true, A, T, contrary, dS, c, tA0, tB0, rT, rS, start, fly, landed, end: landed + 2 * q };
+  return { leg, big, A, T, contrary, dS, c, tA0, tB0, rT, rS, start, fly, landed, end: landed + 2 * q };
 }
 
 /* ---------- the drawing ---------- */
@@ -213,7 +204,7 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
   // (they are drawn already; the player's notes come after, so they stay bright), so the copy reads as in the prototype.
   let veil = 0;
   for (const s of shapes) {
-    if (!s.shown || k.now < s.start || k.now >= s.landed + q) continue;
+    if (k.now < s.start || k.now >= s.landed + q) continue;
     const inn = Math.min(1, (k.now - s.start) / (q * 0.75)), outv = Math.min(1, Math.max(0, (s.landed + q - k.now) / q));
     veil = Math.max(veil, Math.min(inn, outv) * (s.big ? 1 : 0.75));
   }
@@ -223,7 +214,7 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
     g.fillRect(0, 0, k.w, k.h);
   }
   for (const s of shapes) {
-    if (!s.shown || k.now < s.start || k.now >= s.end) continue;
+    if (k.now < s.start || k.now >= s.end) continue;
     if (k.now < s.landed) {
       if (!under) continue;
       // the trail: the same notes a moment before, fainter, gone within half a beat

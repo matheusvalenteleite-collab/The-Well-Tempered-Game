@@ -26,6 +26,7 @@ const TAKES = [
   ['v12-double-bar', 'bwv988-12', 'GOLD', 14.2, 80, 3, 11],
   ['v12-bars-1-4', 'bwv988-12', 'GOLD', 1, 80, 3, 9],
   ['v12-bars-1-4-half', 'bwv988-12', 'GOLD', 1, 80, 3, 18, 0.5],
+  ['v12-bars-9-16', 'bwv988-12', 'GOLD', 9, 80, 3, 18],
   ['v12-bars-17-20', 'bwv988-12', 'GOLD', 17, 80, 3, 9],
   ['v24-leader-change', 'bwv988-24', 'GOLD', 6.6, 75, 4.5, 11],
   ['v27-hand-swap', 'bwv988-27', 'GOLD', 13.8, 83, 3, 11],

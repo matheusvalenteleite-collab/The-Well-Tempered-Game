@@ -17,7 +17,7 @@ const rgb = (c: string) => (c.startsWith("#") ? [1, 3, 5].map((i) => parseInt(c.
 test("Var. 12: the colour moves with the shape, leader's ink at lift-off, follower's at landing", async () => {
   await loadExtras();
   const f = fugueById("bwv988-12");
-  const s = ribbonShapes(f).find((x) => x.shown && x.A[0].voice !== x.T[0].voice)!;
+  const s = ribbonShapes(f).find((x) => x.A[0].voice !== x.T[0].voice)!;
   const from = rgb(INK[s.A[0].voice]), to = rgb(INK[s.T[0].voice]);
   assert.deepEqual(rgb(colourOf(s, phase(s, s.start), k)), from);
   assert.deepEqual(rgb(colourOf(s, phase(s, s.fly), k)), from);
