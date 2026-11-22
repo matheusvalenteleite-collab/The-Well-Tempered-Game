@@ -52,6 +52,10 @@ export interface Options {
   wait?: boolean;
   /** D686 (BASICS v2): the music waits only at the first note (the start of each new idea), then flows. */
   waitFirst?: boolean;
+  /** D941 (BASICS, the owner: "the exercise concluding immediately"): the run ends once the player's last note is judged and no thumb holds. */
+  endAtLast?: boolean;
+  /** D941 (BASICS): the band's drums play though the run is solo (the other voices off). */
+  band?: boolean;
   solo?: boolean;
   /** D223, D299: BLUETOOTH MODE: the whole piece, the player's notes too, on the schedule at the written times; the touches score, silently. */
   bt?: boolean;

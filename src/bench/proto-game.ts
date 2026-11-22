@@ -1186,7 +1186,8 @@ export class ProtoGame {
       const accent = inBarBeat === 0;
       // D177: past the count-in, a band's rhythm section plays the beat instead of the click.
       const compound = this.beat !== this.f.tpq * (4 / Number(this.f.meter.split("/")[1]));
-      if (this.o.wait || (this.o.waitFirst && this.now < this.entry)) {
+      // D941: and no beat while BASICS waits at its first note: the player's first touch is beat one, the beat after it.
+      if (this.o.wait || (this.o.waitFirst && (this.now < this.entry || this.notes[0]?.state === "pending"))) {
         this.nextBeat += this.beat;
         continue;
       }
@@ -1202,7 +1203,7 @@ export class ProtoGame {
       const counting = this.nextBeat < this.entry || (this.resumeAt !== null && this.nextBeat < this.resumeAt);
       // D503: and what the rhythm section may follow: the tick and the beat (JAZZ QUARTET's scripted fills), the piece, Busoni's level here;
       // D521: the piece itself (BOSSA NOVA's drums read its form). D520/D522: SALSA's and CHORINHO's plan (latin-drums.ts: the pulse, the entries, the moments).
-      const band = !counting && !this.o.solo && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f, ...(LATIN_SOUNDS[preset().id] ? { latin: latinPlan(this.f, this.beat, this.perBar) } : {}) });
+      const band = !counting && (!this.o.solo || !!this.o.band) && !kimiko && ch.groove?.(this.timeAt(this.nextBeat), beatS, inBarBeat, Math.floor(n / this.perBar), this.perBar, compound, { tick: this.nextBeat, beat: this.beat, fills: fillsFor(this.f, this.beat, this.perBar), end: this.f.length, dynDb: this.bandDynAt(this.nextBeat), piece: this.f, ...(LATIN_SOUNDS[preset().id] ? { latin: latinPlan(this.f, this.beat, this.perBar) } : {}) });
       // D342: a drill's click (THE MANUAL), fading out where it asks.
       const ck = this.o.click;
       // D346: past the count-in, no click at all (the owner: "this metronome beating in every piece"); only a drill asks for one.
@@ -1354,6 +1355,11 @@ export class ProtoGame {
     // D198: the crowd lost: the run ends here (not in the lessons, nor with NO FAIL).
     if (this.o.fail && this.crowd <= 0 && this.failedAt === null) {
       this.failedAt = this.now;
+      this.stopAll();
+      return true;
+    }
+    // D941 (BASICS): the take over the moment its last note is judged and no thumb holds one (no tail of silence).
+    if (this.o.endAtLast && this.notes.length && this.notes.every((n) => n.ride || n.state !== "pending") && ![...this.held.values()].some((h) => h.open)) {
       this.stopAll();
       return true;
     }

@@ -26,13 +26,13 @@ import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
 import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt, tutorialDone } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { tempoOf } from "../touch/tempi.ts";
-import { presetById, setPreset } from "../touch/sound.ts";
+import { presetById, setBacking, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
 import { builds } from "./journey.ts";
-import { floorOf, ladderGeometry, MusicBox, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
+import { floorOf, ladderGeometry, MusicBox, rollFoot, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
@@ -86,7 +86,7 @@ import { SheetCard } from "./SheetCard.tsx";
 import type { Sheet } from "./score-sheet.ts";
 import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, forgetDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
-import { curatedFor, drumMenuFor, homeFor } from "../touch/drum-library.ts";
+import { curatedFor, drumMenuFor, forgetDrumStyle, homeFor, setDrumStyle } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
 import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { TutorialSelect } from "./manual/ManualMap.tsx";
@@ -96,9 +96,9 @@ import type { DressId, DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { ACTS, ACTS_READY, FINALE, stagePassed as basicsPassed } from "./basics/plan.ts";
-import { basicsRun, nextAt, stageOf, type BasicsAt } from "./basics/runner.ts";
-import { paintBasics2, paintCue, type MissShown } from "./basics/aids2.ts";
+import { ACTS, ACTS_READY, FINALE, beatFor, stagePassed as basicsPassed } from "./basics/plan.ts";
+import { basicsRun, nextAt, stageOf, versionAt, type BasicsAt } from "./basics/runner.ts";
+import { paintBasics2, paintCue, paintInstruction, type MissShown } from "./basics/aids2.ts";
 import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
 import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
@@ -282,6 +282,10 @@ const ZOOM_ROWS = 10;
 const ZOOM_NOTES = 16;
 /** D375: the share of the box's height under the tutorial's speech bubble. */
 const TUT_FLOOR = 0.3;
+/** D941: BASICS's strip at the box's foot (a share of its height), the stage's line in it, the legend under it. */
+const BASICS_STRIP = 0.2;
+/** D941: and, in a piece with cadences, the room their names take at the strip's foot (box-fx cadenceMarks). */
+const CADENCE_ROOM = 18;
 
 export function BenchApp() {
   // D233: the game opens on HOME.
@@ -460,8 +464,10 @@ export function BenchApp() {
   const basMiss = useRef<MissShown | null>(null);
   const basJoin = useRef<{ at: number; y: number } | null>(null);
   const basMisses = useRef(0);
+  // D941: the pieces BASICS set a drum style for (forgotten at the next start).
+  const basDrums = useRef<string[]>([]);
   const bStage = bas ? stageOf(bas) : undefined;
-  const bRun = useMemo(() => (bas && bStage ? basicsRun(bStage, bas.phase, bas.notches) : undefined), [bas?.act, bas?.stage, bas?.phase, bas?.notches]);
+  const bRun = useMemo(() => (bas && bStage ? basicsRun(bStage, bas.phase, bas.notches, bas.v ?? 0) : undefined), [bas?.act, bas?.stage, bas?.phase, bas?.notches, bas?.v]);
   const run = lesson?.run ?? manRun ?? bRun;
   // D862, TWO HANDS (the prototype, play.html?proto=hands only): its piece played apart from the pick (a prelude
   // stays off the phone's selection, D263): LADDER, the left thumb the left hand, the right thumb the right.
@@ -637,7 +643,8 @@ export function BenchApp() {
   }, [f, proto.id, zoom]);
   // D375: Herr Bach's words cover the box's foot through a tutorial step: the notes stay above them.
   // D402: once the hint card carries his words (3.6 on), nothing covers the box's foot.
-  const boxFloor = !bStage && run?.tut && !dressNow?.includes("hint") ? TUT_FLOOR : 0;
+  // D941: BASICS keeps a strip at the box's foot clear for the stage's line (no note drawn there).
+  const boxFloor = bStage ? BASICS_STRIP : run?.tut && !dressNow?.includes("hint") ? TUT_FLOOR : 0;
   // D377: the box's zoom everywhere (box-zoom.ts), in CLASSIC's box (the interfaces and the engraving keep
   // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
   // narrowed rarely and eased (not in a lesson: its range is its passage's already).
@@ -803,6 +810,18 @@ export function BenchApp() {
     setPaused(false);
     // D344: the friends' backing drums on a piece only (never in a lesson, a drill's click or TOOLS practice).
     if (APP.lite && !full) applyLiteDrums(liteDrums() && !run && !prac);
+    // D941: BASICS's beat (plan.ts beatFor): a stage's drums the library's own (ROCK; Act VI the station's sound's, as the
+    // game plays them for the piece), set for this take and forgotten after (the player's own choice for the piece kept).
+    const bBeat = bStage ? beatFor(bStage) : null;
+    for (const id of basDrums.current) if (id !== f.id || bBeat?.kind !== "drums") forgetDrumStyle(id);
+    basDrums.current = [];
+    if (bStage) {
+      setBacking(bBeat?.kind === "drums");
+      if (bBeat?.kind === "drums") {
+        setDrumStyle(f.id, bBeat.style === "home" ? homeFor(f.id, sound) : bBeat.style);
+        basDrums.current = [f.id];
+      }
+    }
     // D369: the voice played kept for the piece (offered again once it is finished).
     if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
     // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
@@ -945,10 +964,11 @@ export function BenchApp() {
         const tour = man?.mode === "tour" ? tourRef.current : null;
         // D687: BASICS's aids, on in DO, fading over PROVE's first notes.
         if (bs) paintBasics2(ctx, w, h, g, { aids: bs.st.aids, alpha: bs.at.phase === "do" ? 1 : Math.max(0, 1 - g.tracks[0].notes.filter((n) => n.state !== "pending").length / 3), ...(bs.st.side ? { side: bs.st.side } : {}), miss: basMiss.current, join: basJoin.current, beat: beatOf(f).ticks });
-        if (bs?.st.cue) {
-          const on = f.bars[bs.st.cue.bar - 1]?.on ?? 0;
-          paintCue(ctx, w, h, g, { text: tr(bs.st.cue.text), on, off: on + 3 * f.barTicks });
-        }
+        // D941: the cue at its version's bar (a later take, a later entry); the stage's line kept on at the foot meanwhile.
+        const cueOn = bs?.st.cue ? (f.bars[(versionAt(bs.st, bs.at.v ?? 0).cueBar ?? bs.st.cue.bar) - 1]?.on ?? 0) : null;
+        const cueing = cueOn !== null && g.now >= cueOn && g.now <= cueOn + 3 * f.barTicks;
+        if (bs?.st.cue && cueOn !== null) paintCue(ctx, w, h, g, { text: tr(bs.st.cue.text), on: cueOn, off: cueOn + 3 * f.barTicks });
+        if (bs && !cueing) paintInstruction(ctx, w, h, tr(bs.st.hint), { top: h * (1 - BASICS_STRIP), bottom: h - rollFoot() - (f.cadences?.length ? CADENCE_ROOM : 0) });
         if (lens && (aids.length || tour)) paintAids(ctx, w, h, g, lens, { aids, firstTake, ...(ask ? { ask } : {}), ...(stepKind ? { step: stepKind as "watch", box: boxRect() } : {}), ...(tour ? { tour: { focus: TOUR[tour.k]?.focus ?? "all", left: tour.left, right: tour.right } } : {}) });
       });
     const b = beatOf(f);
@@ -1612,7 +1632,7 @@ export function BenchApp() {
   function basicsIdea(at: { act: number; stage: number }) {
     const st = stageOf(at);
     const go = () => basicsTake({ ...at, phase: "do", misses: 0, notches: 0 });
-    if (st.clip) setHostView({ kind: "clip", clip: st.clip, done: go });
+    if (st.clip) setHostView({ kind: "clip", stage: st.id, done: go });
     else go();
   }
   function basicsTake(at: BasicsAt) {
@@ -1637,7 +1657,8 @@ export function BenchApp() {
     const takes = (at.takes ?? 0) + 1;
     // Act VI's stations: the idea tried a few times is enough (heard once, or three takes), and no PROVE.
     if (basicsPassed(st, r) || (st.light && takes >= 3)) {
-      if (at.phase === "do" && !st.light) return basicsTake({ ...at, phase: "prove", misses, takes: 0 });
+      // D941: PROVE plays another version (never the same notes twice running).
+      if (at.phase === "do" && !st.light) return basicsTake({ ...at, phase: "prove", misses, takes: 0, v: (at.v ?? 0) + 1 });
       const nx = nextAt(at, ACTS_READY);
       if (!nx) return basicsFinale();
       if (nx.act !== at.act) return basicsAct(nx.act);
@@ -1645,9 +1666,10 @@ export function BenchApp() {
     }
     // The help the misses of this take have earned (the highest step crossed), then the same take again.
     const crossed = (k: number) => at.misses < k && misses >= k;
-    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, ...o });
+    // D941: each take after another version (the help's clip still shows the first).
+    const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, v: (at.v ?? 0) + 1, ...o });
     if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
-    if (crossed(3) && st.clip) return setHostView({ kind: "clip", clip: st.clip, done: () => again() });
+    if (crossed(3) && st.clip) return setHostView({ kind: "clip", stage: st.id, done: () => again() });
     if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });
     again();
   }
@@ -1777,9 +1799,10 @@ export function BenchApp() {
   const [drumsOn, setDrumsOn] = useState(liteDrums);
   const [, setDrumTick] = useState(0);
   // D450: the chosen piece's drum preset given to the backing.
+  // D941: not under BASICS (its own beat, set as each take starts).
   useEffect(() => {
-    if (APP.lite) applyDrumPreset(f.id);
-  }, [f.id]);
+    if (APP.lite && !bStage) applyDrumPreset(f.id);
+  }, [f.id, !!bStage]);
   /** D441: Glenn's film open (the Glenn pilot). */
   const [film, setFilm] = useState<string | null>(null);
   // D301: what HEAR THE SUBJECT has scheduled, stopped by anything that starts or changes the sound (the owner:

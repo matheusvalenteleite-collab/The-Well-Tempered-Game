@@ -25,12 +25,14 @@ test("D881-D885: a planned prelude offers only its plan's voices; I/2 none; I/1'
     for (const v of p.offer) assert.ok(v < f.voices.length, `${id}: voice ${v}`);
     assert.deepEqual(voicesFrom(f, 0), [...p.offer].sort(), id);
   }
-  assert.deepEqual(voicesFrom(fugueById("wtc1p02"), 0), []);
+  // D950: I/2 offered after all, its left hand.
+  assert.deepEqual(voicesFrom(fugueById("wtc1p02"), 0), [1]);
+  assert.ok(!PRELUDE_PLAN.wtc1p02.held && !PRELUDE_PLAN.wtc1p02.tempo);
   assert.deepEqual(voicesFrom(fugueById("wtc1p04"), 0), [0, 3]);
   assert.equal(PRELUDE_PLAN.wtc1p05.tempo, "slow");
   assert.equal(PRELUDE_PLAN.wtc1p21.tempo, "slow");
   assert.equal(Object.keys(PRELUDE_PLAN).filter((id) => /^wtc1p/.test(id)).length, 24, "Book I planned");
-  assert.deepEqual(Object.keys(DULL_EXCEPTIONS), ["wtc1p01"]);
+  assert.deepEqual(Object.keys(DULL_EXCEPTIONS), ["wtc1p01", "wtc1p02"]);
 });
 
 test("D886: I/9 bar 16, the B3 a dotted minim to the bar's end, as the Bach-Gesellschaft prints it", () => {

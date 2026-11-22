@@ -64,7 +64,8 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
   // the alto and tenor; the soprano answers a fifth above, turned over.
   "bwv988-15": {
     legs: [
-      leg(1, 2, [0], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
+      // D951: the leader's first bar in the second line now (voice 1), as the rest of it.
+      leg(1, 2, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
       leg(2, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
     ],
   },

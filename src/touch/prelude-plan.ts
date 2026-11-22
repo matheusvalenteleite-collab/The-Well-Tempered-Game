@@ -15,7 +15,7 @@ export interface PreludePlan {
 }
 export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p01: { offer: [0], why: "figuration: the right hand's figure (D882: the named exception to the dull-lines rule)" },
-  wtc1p02: { offer: [], held: true, why: "figuration in both hands, over the ceiling in the Presto: held back (D883)" },
+  wtc1p02: { offer: [1], why: "figuration in both hands: the left hand, at the tempo (D950; held back before, D883)" },
   wtc1p03: { offer: [0, 1], why: "two-part: the hands swap the figure and the tune" },
   wtc1p04: { offer: [0, 3], why: "four-part arioso: soprano and bass; the inner voices too sparse (D884, as D864)" },
   wtc1p05: { offer: [0], tempo: "slow", why: "figuration over a staccato bass: the right hand, at the slow tempo (D883)" },
@@ -41,12 +41,14 @@ export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p24: { offer: [0, 1, 2], why: "a trio: two upper voices over a walking bass (D888)" },
 };
 /**
- * D882: the one deliberate exception to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
+ * D882: the deliberate exceptions to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
  * are each their own first half twice (91 %, every WTC fugue voice at most 8 %), offered because its harmony changes
- * every bar. No other.
+ * every bar; D950: and I/2's left hand (64 %), on the same ground, so that all of Book I is offered. No other.
  */
 export const DULL_EXCEPTIONS: Readonly<Record<string, { voice: number; why: string }>> = {
   wtc1p01: { voice: 0, why: "the harmony changes every bar" },
+  // D950: and I/2's left hand (its bars 64 % their own first half twice), on the same ground, for the whole of Book I.
+  wtc1p02: { voice: 1, why: "the harmony changes every bar" },
 };
 /** The voices a planned prelude does not offer (none for a piece without a plan). */
 export function preludeExcluded(id: string, voices: number): number[] {

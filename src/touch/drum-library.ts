@@ -437,6 +437,10 @@ export function setDrumStyle(pieceId: string, style: string) {
   chosen.set(pieceId, readChoice(pieceId, style));
   currentPiece = pieceId;
 }
+/** D941: a choice made for this visit forgotten (BASICS's own beat: the piece's stored choice, or HOME, again). */
+export function forgetDrumStyle(pieceId: string) {
+  chosen.delete(pieceId);
+}
 /** The style chosen for a piece (this visit, else stored), null where HOME plays. */
 export function chosenStyle(pieceId: string): StyleId | null {
   if (chosen.has(pieceId)) return chosen.get(pieceId)!;

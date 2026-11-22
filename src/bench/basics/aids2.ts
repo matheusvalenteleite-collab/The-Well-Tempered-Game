@@ -214,3 +214,43 @@ export function paintCue(c: CanvasRenderingContext2D, w: number, h: number, g: P
   lines.forEach((l, i) => c.fillText(l, w / 2, y0 + i * lh));
   c.restore();
 }
+
+/**
+ * D941 (design studio; the owner's playtest: "Glenn's message could remain visible on the screen somewhere, so that player
+ * is able to remember what they need to do" and "needs not have a background box when it is displayed during exercise"):
+ * the stage's line in a strip kept clear at the box's foot (BenchApp's floor: no note is drawn there), above the legend,
+ * centred between the bars: plain text with a soft shadow, no box. It gives way while a cue speaks (5.2).
+ */
+export function paintInstruction(c: CanvasRenderingContext2D, w: number, h: number, text: string, strip: { top: number; bottom: number }) {
+  const bw = w * BAR;
+  const max = w - 2 * bw - 24;
+  const room = strip.bottom - strip.top;
+  if (room < 10 || max < 60) return;
+  let size = Math.round(Math.max(11, Math.min(15, h * 0.034)));
+  c.save();
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  const fit = () => {
+    c.font = `500 ${size}px system-ui, sans-serif`;
+    const words = text.split(" ");
+    const lines: string[] = [];
+    let line = "";
+    for (const wd of words) {
+      const t = line ? `${line} ${wd}` : wd;
+      if (c.measureText(t).width > max && line) (lines.push(line), (line = wd));
+      else line = t;
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+  let lines = fit();
+  while (lines.length * size * 1.2 > room && size > 10) (size -= 1), (lines = fit());
+  const lh = size * 1.2;
+  const y0 = (strip.top + strip.bottom) / 2 - ((lines.length - 1) * lh) / 2;
+  c.shadowColor = "rgba(0,0,0,0.85)";
+  c.shadowBlur = 4;
+  c.shadowOffsetY = 1;
+  c.fillStyle = "rgba(236,230,214,0.92)";
+  lines.forEach((l, i) => c.fillText(l, w / 2, y0 + i * lh));
+  c.restore();
+}
