@@ -14,7 +14,7 @@ const store = new Map<string, string>();
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 register("./tsx-hooks.mjs", import.meta.url);
 
-test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read from the game's data (the tenor, bar 193), about eleven seconds", async () => {
+test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read from the game's data (the tenor, bar 193), about thirteen seconds", async () => {
   const { introNotes, BACH_SOURCE, BACH_PITCHES, INTRO_S, INTRO_ONSETS_S, INTRO_OCTAVE } = await import("../src/bench/intro-sound.ts");
   const { fugueById } = await import("../src/touch/fugue.ts");
   const f = fugueById(BACH_SOURCE.piece);
@@ -32,7 +32,7 @@ test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read
   assert.equal(INTRO_OCTAVE, 0);
   assert.deepEqual(notes.slice(0, 4).map((n) => n.midi), BACH_PITCHES.map((m) => m + INTRO_OCTAVE));
   assert.deepEqual(notes.slice(0, 4).map((n) => n.at), [...INTRO_ONSETS_S]);
-  assert.ok(INTRO_S >= 10 && INTRO_S <= 12.5, "about eleven seconds to the selection (D935: the tenor's bars 193-197 at ♩ = 96)");
+  assert.ok(INTRO_S >= 12 && INTRO_S <= 14, "about thirteen seconds to the selection (D935: the tenor's bars 193-197 at ♩ = 80)");
   // Through the game's own sound (BenchApp's chip), every touch after the first skipping.
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /const introBegin = async/);
