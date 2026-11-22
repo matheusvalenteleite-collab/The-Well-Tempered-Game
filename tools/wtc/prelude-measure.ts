@@ -3,7 +3,7 @@
  * line (one note at a time), and both hands as one line; notes a second at the D861 tempo and in the busiest 4 s, the
  * share of repeated pitches, of leaps (over a major third), of bars repeating the bar before and of bars made of their
  * first half twice. `fugues` prints the same over the 166 WTC fugue voices, the yardstick.
- *   node tools/wtc/prelude-measure.ts [fugues]
+ *   node tools/wtc/prelude-measure.ts [fugues | <id regex, e.g. "wtc1p(1[3-9]|2[0-4])">]
  */
 import { readFileSync } from "node:fs";
 import { parsePitch } from "../../src/music/pitch.ts";
@@ -57,7 +57,9 @@ if (only) {
   for (const k of ["nps", "busy", "rep", "leap", "barRep", "halfRep"] as const) { const xs = rows.map((r: any) => r[k]).sort((a: number, b: number) => a - b); console.log(k, "min", xs[0], "p10", xs[Math.floor(xs.length * 0.1)], "median", xs[xs.length >> 1], "p90", xs[Math.floor(xs.length * 0.9)], "max", xs.at(-1)); }
   process.exit(0);
 }
-for (const p of P.filter((x: any) => /^wtc1p(0[1-9]|1[0-2])$/.test(x.id))) {
+// D887: the preludes chosen by a pattern (Book I 1-12 by default).
+const pick = new RegExp(`^(?:${process.argv[2] ?? "wtc1p(0[1-9]|1[0-2])"})$`);
+for (const p of P.filter((x: any) => pick.test(x.id))) {
   const bpm = T[p.id].normal, bt = barTicks(p.meter);
   const hands = p.voices.map((v: any[]) => v.map((n) => [n[0], n[1], midi(n[2])] as N));
   const rows: Record<string, unknown> = {};
