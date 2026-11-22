@@ -32,8 +32,10 @@ type Slot = readonly [PatchId, number, number?];
  * D933: a seat's level where its substitute sounds far louder than the instrument it replaces (by voice): BAROQUE BAND's
  * oboe on I/9's top line (the violin's seat, 1.11) measured 7.9 dB over the violin and 5.9 over the cello on the phone
  * model, the band's trims lifting the others 5.5 dB to it (the whole -20.8 LUFS, into the limiter); 0.79 (-3 dB: still the top, the balance kept; sound.ts levels the rest).
+ * D1000: II/1's prelude on CHORINHO, the 7-string's bass 1.41 (+3 dB: its held pedal no longer lost on a phone, its trim at
+ * the cap); II/16's prelude on BAROQUE BAND, the tenor's cello 1.07 (1.32 before, -1.8 dB), so the alto is heard beside it.
  */
-export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 0.79 } } };
+export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 0.79 }, wtc2p16: { 2: 1.07 } }, chorinho: { wtc2p01: { 2: 1.41 } } };
 /** Semitones past the reach a near substitute may miss by and still take the seat (its set extended that far: II/10's C3 on the trumpet, E3's recording read 4 down). */
 export const NEAR_TOL = 1;
 /** Semitones past the reach the own instrument may miss by before a far substitute is weighed. */
@@ -211,7 +213,8 @@ export function seatsFor(sound: string) {
       const lv = SEAT_LEVELS[sound]?.[f.id]?.[v] ?? seat[2];
       slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
-    if (changed) out[f.id] = { [count]: slots };
+    // D1000: a piece SEAT_LEVELS names keeps its row even where no seat moved (its level the only change).
+    if (changed || SEAT_LEVELS[sound]?.[f.id]) out[f.id] = { [count]: slots };
   }
   setPieceLayout(null);
   return { seats: out, log };
@@ -339,7 +342,8 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
       const lv = SEAT_LEVELS[sound]?.[f.id]?.[v] ?? seat[2];
       slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
-    if (changed) out[f.id] = { [count]: slots };
+    // D1000: a piece SEAT_LEVELS names keeps its row even where no seat moved (its level the only change).
+    if (changed || SEAT_LEVELS[sound]?.[f.id]) out[f.id] = { [count]: slots };
   }
   setPieceLayout(null);
   return { seats: out, log };
