@@ -1,7 +1,7 @@
 /**
  * D881-D885: THE WTC PRELUDES IN THE MAIN GAME, the per-piece plan (docs/audits/PRELUDES-PLAN.md; the board's rulings for
  * the owner): which voices a prelude offers (the others still sound, by the game: voice-mode.ts `voicesFrom`), at which
- * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). Book I and Book II 1-12.
+ * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). All 48.
  */
 export interface PreludePlan {
   /** The voices the player may take. */
@@ -52,6 +52,19 @@ export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc2p10: { offer: [0, 1], tempo: "slow", why: "two-part, at the slow tempo (D955)" },
   wtc2p11: { offer: [0, 1, 2, 3], why: "four voices, imitative (D953)" },
   wtc2p12: { offer: [0, 1], why: "two-part; the bass's octave figures at the yardstick's edge, not beyond (D956)" },
+  // D957-D960: batch 4, Book II 13-24: all 48 planned.
+  wtc2p13: { offer: [0, 1], why: "two-part, binary" },
+  wtc2p14: { offer: [0, 1, 2], why: "three-part: a soprano over the left hand's two voices (D957)" },
+  wtc2p15: { offer: [0, 1], tempo: "slow", why: "two-part semiquavers, at the slow tempo (D959)" },
+  wtc2p16: { offer: [0, 1, 2], why: "a four-part largo; its bass too sparse, 0.4 notes a second (D958, as D884)" },
+  wtc2p17: { offer: [0, 2], why: "concerto-like: the melody and the bass, the inner notes the game's (D957)" },
+  wtc2p18: { offer: [0, 1], why: "two-part, at the ceiling" },
+  wtc2p19: { offer: [0, 1, 2], why: "three-part (D957)" },
+  wtc2p20: { offer: [0, 1], why: "two-part, chromatic" },
+  wtc2p21: { offer: [0, 1], why: "the two hands" },
+  wtc2p22: { offer: [0, 1, 2], why: "three-part (D957)" },
+  wtc2p23: { offer: [1], why: "two-part figuration: the left hand, at the tempo (D959: the right hand's halves repeated)" },
+  wtc2p24: { offer: [0, 1], tempo: "slow", why: "two-part, at the slow tempo (D959)" },
 };
 /**
  * D882: the deliberate exceptions to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
