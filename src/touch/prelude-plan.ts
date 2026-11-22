@@ -88,7 +88,7 @@ export function preludeExcluded(id: string, voices: number): number[] {
  * as well as on the button: `preludeExcluded` gives nothing for an unplanned prelude, so it would offer every voice.
  */
 // D988 (the board): Book I only for now; Book II's rows (D953-D956) stay COMING until the board opens them (this book flag).
-export const PRELUDE_BOOKS: readonly number[] = [1];
+export const PRELUDE_BOOKS: readonly number[] = [1, 2];
 export const preludeReady = (id: string): boolean => /^wtc[12]p\d\d$/.test(id) && PRELUDE_BOOKS.includes(Number(id[3])) && !!PRELUDE_PLAN[id] && !PRELUDE_PLAN[id].held;
 /** D980: a WTC prelude's fugue ("wtc1p09" → "wtc1f09"); any other id as it is. */
 export const fugueOfPrelude = (id: string): string => id.replace(/^(wtc[12])p(\d\d)$/, "$1f$2");
