@@ -138,6 +138,24 @@ export const FINALE = "That's it. You've played your first fugue, well, its begi
 /** The acts open (all six). */
 export const ACTS_READY = 6;
 
+/**
+ * D941 (design studio; the owner's playtest: "We need a beat during exercises to help player out. Maybe a simple metronome
+ * in the beginning. Then it might become drums as the tutorial goes along"): the beat under a stage. Acts I-II a soft click
+ * on every beat (the downbeat accented), none where the music waits at every note (1.1: no beat to keep); Acts III-IV the
+ * library's plain ROCK kit; Act V a lighter click while the alto is alone (5.1), nothing once it is answered (5.2: the
+ * voices keep the time); Act VI each station's sound's own drums, as the game plays them for that piece (drum-library
+ * homeFor). Never louder for a right or a wrong note; it follows the tempo (a notch slower, the beat slower).
+ */
+export type Beat = { kind: "click"; gain: number } | { kind: "drums"; style: string } | null;
+export function beatFor(st: Stage): Beat {
+  const act = Number(st.id.split(".")[0]);
+  if (st.wait === "all") return null;
+  if (act <= 2) return { kind: "click", gain: 0.07 };
+  if (act <= 4) return { kind: "drums", style: "rock" };
+  if (act === 5) return st.solo ? { kind: "click", gain: 0.05 } : null;
+  return { kind: "drums", style: "home" };
+}
+
 /** The help a miss brings, by how many misses the stage has had (1st nothing, 2nd the hint, 3rd the clip, 4th slower). */
 export function helpFor(misses: number): "none" | "hint" | "clip" | "slower" {
   if (misses <= 1) return "none";

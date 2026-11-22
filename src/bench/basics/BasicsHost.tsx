@@ -7,27 +7,34 @@
 import { useEffect, useRef } from "react";
 import { tr } from "../../i18n/index.ts";
 import { GlennFace } from "../GlennFace.tsx";
-import type { ClipId } from "./plan.ts";
 
-const CLIPS: Record<ClipId, string> = {
-  tap: new URL("./clips/tap.mp4", import.meta.url).href,
-  up: new URL("./clips/up.mp4", import.meta.url).href,
-  down: new URL("./clips/down.mp4", import.meta.url).href,
-  same: new URL("./clips/same.mp4", import.meta.url).href,
-  leap: new URL("./clips/leap.mp4", import.meta.url).href,
-  two: new URL("./clips/two.mp4", import.meta.url).href,
-  hold: new URL("./clips/hold.mp4", import.meta.url).href,
-  lift: new URL("./clips/lift.mp4", import.meta.url).href,
-  strong: new URL("./clips/strong.mp4", import.meta.url).href,
-  legato: new URL("./clips/legato.mp4", import.meta.url).href,
-  short: new URL("./clips/short.mp4", import.meta.url).href,
-  shake: new URL("./clips/shake.mp4", import.meta.url).href,
-  slide: new URL("./clips/slide.mp4", import.meta.url).href,
+/**
+ * D941 (the owner's playtest: "We should have them quickly playing through the exact same exercise player will soon be
+ * offered"): one clip a stage, its own first version played by the thumbs the game plans, in order, at 1.75x its tempo,
+ * back at rest at the end (D699).
+ */
+export const CLIPS: Readonly<Record<string, string>> = {
+  "1.1": new URL("./clips/1-1.mp4", import.meta.url).href,
+  "1.2": new URL("./clips/1-2.mp4", import.meta.url).href,
+  "2.1": new URL("./clips/2-1.mp4", import.meta.url).href,
+  "2.2": new URL("./clips/2-2.mp4", import.meta.url).href,
+  "2.3": new URL("./clips/2-3.mp4", import.meta.url).href,
+  "2.4": new URL("./clips/2-4.mp4", import.meta.url).href,
+  "2.5": new URL("./clips/2-5.mp4", import.meta.url).href,
+  "3.1": new URL("./clips/3-1.mp4", import.meta.url).href,
+  "3.2": new URL("./clips/3-2.mp4", import.meta.url).href,
+  "4.1": new URL("./clips/4-1.mp4", import.meta.url).href,
+  "4.2": new URL("./clips/4-2.mp4", import.meta.url).href,
+  "6.1": new URL("./clips/6-1.mp4", import.meta.url).href,
+  "6.2": new URL("./clips/6-2.mp4", import.meta.url).href,
+  "6.3": new URL("./clips/6-3.mp4", import.meta.url).href,
+  "6.4": new URL("./clips/6-4.mp4", import.meta.url).href,
+  "6.5": new URL("./clips/6-5.mp4", import.meta.url).href,
 };
 
 export type HostView =
   | { kind: "card"; act: number; title: string; line: string; go: () => void; skip: () => void }
-  | { kind: "clip"; clip: ClipId; done: () => void }
+  | { kind: "clip"; stage: string; done: () => void }
   | { kind: "hint"; text: string; done: () => void }
   | { kind: "finale"; line: string; done: () => void };
 
@@ -85,7 +92,7 @@ export function BasicsHost({ view }: { view: HostView | null }) {
   if (view.kind === "clip")
     return (
       <div className="basics2-layer basics2-cliplayer" onClick={view.done}>
-        <video ref={vid} className="basics2-clip" src={CLIPS[view.clip]} autoPlay muted playsInline onEnded={view.done} onError={view.done} aria-label={tr("Thumbs on the phone")} />
+        <video ref={vid} className="basics2-clip" src={CLIPS[view.stage]} autoPlay muted playsInline onEnded={view.done} onError={view.done} aria-label={tr("Thumbs on the phone")} />
       </div>
     );
   return (
