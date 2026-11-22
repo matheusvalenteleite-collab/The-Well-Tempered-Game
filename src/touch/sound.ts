@@ -1845,7 +1845,8 @@ export const PRESETS: Preset[] = [
   {
     id: "baroqueBand",
     // D703: the fugue's own level re-matched to the base after the balance was rebuilt (renders, both paths).
-    levels: { wtc2f16: { gain: 1.12, phoneGain: 0.89 }, wtc2f21: { gain: 1.17, phoneGain: 0.85 } },
+    // D933: I/9 3.9 dB under (and its oboe's seat 3 dB lower, octave-seats.ts; its rows rebuilt): about -28 LUFS on the phone model.
+    levels: { wtc1f09: { gain: 0.64 }, wtc2f16: { gain: 1.12, phoneGain: 0.89 }, wtc2f21: { gain: 1.17, phoneGain: 0.85 } },
     name: "BAROQUE BAND",
     // D436: -1.8 dB, and on a phone -1.4 dB more (+3.2 over the median there, +1.8 on a computer); D550: matched to it again through the chain.
     gain: 0.83,
