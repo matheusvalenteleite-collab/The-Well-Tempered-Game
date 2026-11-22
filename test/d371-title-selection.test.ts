@@ -15,7 +15,7 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 register("./tsx-hooks.mjs", import.meta.url);
 
 test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read from the game's data (the tenor, bar 193), about nine seconds", async () => {
-  const { bachNotes, BACH_SOURCE, BACH_PITCHES, INTRO_S, INTRO_HALF_S, INTRO_OCTAVE } = await import("../src/bench/intro-sound.ts");
+  const { introNotes, BACH_SOURCE, BACH_PITCHES, INTRO_S, INTRO_ONSETS_S, INTRO_OCTAVE } = await import("../src/bench/intro-sound.ts");
   const { fugueById } = await import("../src/touch/fugue.ts");
   const f = fugueById(BACH_SOURCE.piece);
   assert.equal(f.id, "bwv1080-14");
@@ -26,12 +26,13 @@ test("D371: the intro's subject is Contrapunctus XIV's B♭–A–C–B♮, read
   assert.ok(line[k][0] < bar.on + f.barTicks, "in bar 193");
   assert.deepEqual(line.slice(k, k + 4).map(([, , m]) => m), [58, 57, 60, 59]);
   assert.deepEqual(line.slice(k, k + 3).map(([, d]) => d), [f.tpq * 2, f.tpq * 2, f.tpq * 2], "half notes");
-  // D406, D500, D507: the first four notes still B♭ A C B♮ (D507: an octave over the tenor, on the piano; updated deliberately), on their half notes.
-  const notes = bachNotes();
-  assert.equal(INTRO_OCTAVE, 12);
+  // D406, D500, D507, D935: the first four notes still B♭ A C B♮ (D935: at the tenor's own pitch, played with rubato, so
+  // the four images fade in on the notes as heard: INTRO_ONSETS_S; updated deliberately).
+  const notes = introNotes();
+  assert.equal(INTRO_OCTAVE, 0);
   assert.deepEqual(notes.slice(0, 4).map((n) => n.midi), BACH_PITCHES.map((m) => m + INTRO_OCTAVE));
-  assert.deepEqual(notes.slice(0, 4).map((n) => n.at), [0, INTRO_HALF_S, 2 * INTRO_HALF_S, 3 * INTRO_HALF_S]);
-  assert.ok(INTRO_S >= 8 && INTRO_S <= 10, "about nine seconds to the selection");
+  assert.deepEqual(notes.slice(0, 4).map((n) => n.at), [...INTRO_ONSETS_S]);
+  assert.ok(INTRO_S >= 8.5 && INTRO_S <= 10, "about nine seconds to the selection (D935: the tenor's six notes at ♩ = 80)");
   // Through the game's own sound (BenchApp's chip), every touch after the first skipping.
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /const introBegin = async/);
