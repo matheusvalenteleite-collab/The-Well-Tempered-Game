@@ -84,7 +84,8 @@ test("D512: what each stop makes of a consort note: its own patch (spiccato, piz
       assert.deepEqual(v.one, pt.one);
       assert.equal(holdMode("singers", v, true), "none");
     }
-    assert.equal(holdMode("singers", pt, false), "messa");
+    // D1016: the arco held and swayed is the bow's contact point (no longer the messa's level).
+    assert.equal(holdMode("singers", pt, false), "bow");
   }
   // A mute is softer and darker, never louder.
   assert.ok(SORDINO.gain < 1 && SORDINO.gain > 0.5 && SORDINO.lp >= 2000 && SORDINO.lp <= 3500);
