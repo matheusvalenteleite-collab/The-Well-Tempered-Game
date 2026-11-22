@@ -13,6 +13,7 @@
  *        node tools/touch/bass-phone/fit.ts <measure.json> --903 > src/touch/bass-phone-903.ts   (D775: the Chromatic Fugue)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --906 > src/touch/bass-phone-906.ts   (D785: BWV 906 and 998)
  *        node tools/touch/bass-phone/fit.ts <measure.json> --988 > src/touch/bass-phone-988.ts   (D904: the Goldberg Variations)
+ *        (D984: and the ready preludes, wtc1pNN, into bass-phone-data.ts beside their fugues)
  *        ONLY=<id,...> node tools/touch/bass-phone/fit.ts <measure.json> [--aof|--inv|...]   (D893: those pieces' rows alone, to splice)
  */
 import { readFileSync } from "node:fs";
@@ -21,6 +22,7 @@ import { PIECE_SOUND } from "../../../src/touch/piece-sound.ts";
 import { bandTrimDb, liftDb } from "../../../src/touch/player-lift.ts";
 import { bassSig, bassPatchOf } from "../../../src/touch/bass-phone.ts";
 import { playerSound } from "../../../src/touch/sound.ts";
+import { preludeReady } from "../../../src/touch/prelude-plan.ts";
 
 type M = { piece: string; player: number; solo: number | "mix"; x: string | null; ph: number; full: number };
 const ms: M[] = JSON.parse(readFileSync(process.argv[2], "utf8"));
@@ -41,7 +43,7 @@ const F906 = process.argv.includes("--906");
 const F988 = process.argv.includes("--988");
 if (AOF || INV || DUET || F903 || F906 || F988) await loadExtras();
 const isInv = (k: string) => /^bwv(7[789]\d|80[01])$/.test(k) && +k.slice(3) >= 772 && +k.slice(3) <= 801;
-const ids = Object.keys(PIECE_SOUND).filter((k) => (F988 ? /^bwv988-\d\d$/.test(k) : F906 ? /^bwv(906|998)-\d$/.test(k) : F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k))).sort();
+const ids = Object.keys(PIECE_SOUND).filter((k) => (F988 ? /^bwv988-\d\d$/.test(k) : F906 ? /^bwv(906|998)-\d$/.test(k) : F903 ? k === "bwv903-2" || k === "bwv951" : DUET ? /^bwv80[2-5]$/.test(k) : INV ? isInv(k) : AOF ? /^bwv1080-/.test(k) : /^wtc\df\d\d$/.test(k) || preludeReady(k))).sort();
 const out: Record<string, unknown> = {};
 const errs: string[] = [];
 // D893: ONLY=<id,...> fits those pieces alone (their rows spliced into the group's file, the others' rows kept as measured).
