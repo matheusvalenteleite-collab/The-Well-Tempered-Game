@@ -33,7 +33,7 @@ import { BREAKS_OFF, tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
 import { CURVE_SOUND, SFX_SOUND, flowEnv, isFlow, modsAt, sfxKindsNow, sfxPlan, shotEnv, shotLen, swellEnv, swellSurge, tpsOf, type SfxKind } from "./world-sfx.ts";
-import { buildChain, type BandChain } from "./band-fx.ts";
+import { buildChain, TOP_Q, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -129,12 +129,8 @@ export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
  * `least` s; at most `max` of them a note.
  */
 export const CHAIN = { xf: 0.3, points: 10, tries: 6, spread: 0.8, least: 1.2, max: 16 };
-/**
- * D1010: the Q of a sound's own top (Preset.top), as the Web Audio API reads a lowpass's Q (in dB: the resonance 10^(Q/20)):
- * a Butterworth's (a resonance of 1/sqrt 2), flat under the corner and no peak (0.6 there, D931's, is 1.07: about +1.4 dB at
- * 7-9 kHz).
- */
-export const TOP_Q = 20 * Math.log10(Math.SQRT1_2);
+/** D1010: the Q of a sound's own top (Preset.top): band-fx.ts TOP_Q, a Butterworth's. */
+export { TOP_Q };
 /**
  * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
  * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.

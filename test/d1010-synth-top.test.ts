@@ -8,6 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PATCHES, PRESETS, presetById } from "../src/touch/sound.ts";
 import { TOP_Q } from "../src/touch/chip.ts";
+import { ABBEY2_TOP, KRAUT2_TOP } from "../src/touch/band-fx.ts";
 
 test("D1010: the three brightest synth sounds roll their top from 9 kHz; the rest do not", () => {
   for (const id of ["analog", "chip", "gameboy"]) assert.equal(presetById(id).top, 9000, id);
@@ -22,4 +23,12 @@ test("D1010: the top is a Butterworth (no peak under the corner, the Web Audio A
 test("D1010: GAME BOY's lead keeps its 25% duty and level", () => {
   assert.equal(PATCHES.gbLead.osc[0].wave, "pulse25");
   assert.equal(PATCHES.gbLead.level, 0.63);
+});
+
+test("D1012: ABBEY ROAD's and PSYCH's 9 kHz tops (D931) are the same Butterworth", () => {
+  for (const bands of [ABBEY2_TOP, KRAUT2_TOP]) {
+    const lp = bands.find((b) => b.type === "lowpass")!;
+    assert.equal(lp.hz, 9000);
+    assert.equal(lp.q, TOP_Q);
+  }
 });
