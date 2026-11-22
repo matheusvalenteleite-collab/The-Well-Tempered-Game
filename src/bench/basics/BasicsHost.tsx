@@ -34,7 +34,8 @@ export const CLIPS: Readonly<Record<string, string>> = {
 
 export type HostView =
   | { kind: "card"; act: number; title: string; line: string; go: () => void; skip: () => void }
-  | { kind: "clip"; stage: string; done: () => void }
+  /** D991: `sound` starts the clip's sound on its video (and returns its stop); the clip loops until touched. */
+  | { kind: "clip"; stage: string; done: () => void; sound?: (video: HTMLVideoElement) => () => void }
   | { kind: "hint"; text: string; done: () => void }
   | { kind: "finale"; line: string; done: () => void };
 
@@ -65,6 +66,11 @@ export function BasicsHost({ view }: { view: HostView | null }) {
     const t = window.setTimeout(view.done, 2200);
     return () => window.clearTimeout(t);
   }, [view]);
+  // D991: the clip's sound, on its video's loop, until the clip is left.
+  useEffect(() => {
+    if (view?.kind !== "clip" || !view.sound || !vid.current) return;
+    return view.sound(vid.current);
+  }, [view]);
   if (!view) return null;
   if (view.kind === "card")
     return (
@@ -91,8 +97,16 @@ export function BasicsHost({ view }: { view: HostView | null }) {
     );
   if (view.kind === "clip")
     return (
-      <div className="basics2-layer basics2-cliplayer" onClick={view.done}>
-        <video ref={vid} className="basics2-clip" src={CLIPS[view.stage]} autoPlay muted playsInline onEnded={view.done} onError={view.done} aria-label={tr("Thumbs on the phone")} />
+      // D991 (the owner: "Hands animation doesn't end by itself, but upon touch (which should be signalled)"): the clip
+      // loops, heard, until a touch, taken as it lifts (its press is the layer's, never a note's); TOUCH TO PLAY over
+      // the clip's empty top, breathing slowly (no faster than once a second).
+      <div className="basics2-layer basics2-cliplayer" id="basics2-cliplayer" onPointerDown={(e) => e.preventDefault()} onClick={view.done}>
+        <div className="basics2-clipwrap">
+          <video ref={vid} className="basics2-clip" src={CLIPS[view.stage]} autoPlay loop muted playsInline aria-label={tr("Thumbs on the phone")} />
+          <p className="basics2-touch" id="basics2-touch">
+            {tr("TOUCH TO PLAY")}
+          </p>
+        </div>
       </div>
     );
   return (
