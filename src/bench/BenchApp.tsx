@@ -2397,7 +2397,7 @@ export function BenchApp() {
           {/* D462 (design studio): each fugue's world behind its box. */}
           <Choice id="stage" label="STAGE" options={STAGE_SWITCH[lang()] ?? STAGE_SWITCH.en} value={stageBg} set={(v) => (saveStageMode(v), setStageBg(v))} />
           {/* D970 (canons session): the canons' rolling ribbon (canon-ribbon.ts): the leader's line morphing into the follower. */}
-          <Choice id="canons" label="CANONS" options={CANONS_SWITCH[lang()] ?? CANONS_SWITCH.en} value={canons} set={(v) => (saveCanonsMode(v), setCanons(v))} />
+          <Choice id="canons" label="CANONS & FUGUES" options={CANONS_SWITCH[lang()] ?? CANONS_SWITCH.en} value={canons} set={(v) => (saveCanonsMode(v), setCanons(v))} />
           {/* D623 (instruments): the pilot worlds' sound effects (world-sfx.ts), heard only with STAGE FULL; their own off switch. */}
           <Choice id="world-sounds" label="WORLD SOUNDS" options={SFX_SWITCH[lang()] ?? SFX_SWITCH.en} value={sfx ? "on" : "off"} set={(v) => (setSfxOn(v === "on"), setSfx(v === "on"))} />
           {/* D265: one look (CLASSIC): the other interfaces withdrawn on play.html. */}
@@ -2741,7 +2741,7 @@ const STAGE_SWITCH: Record<string, ["full" | "quiet" | "off", string][]> = {
   pt: [["full", "CHEIO"], ["quiet", "DISCRETO"], ["off", "DESLIGADO"]],
   es: [["full", "COMPLETO"], ["quiet", "DISCRETO"], ["off", "APAGADO"]],
 };
-/** D970: the words of Settings' CANONS switch (the canons, masculine plural in Portuguese and Spanish). */
+/** D970, D972: the words of Settings' CANONS & FUGUES switch (canons and fugues: masculine plural in Portuguese and Spanish, the mixed pair). */
 const CANONS_SWITCH: Record<string, ["morph" | "off", string][]> = {
   en: [["morph", "MORPH"], ["off", "OFF"]],
   pt: [["morph", "ANIMADOS"], ["off", "DESLIGADOS"]],

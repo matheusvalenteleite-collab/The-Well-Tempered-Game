@@ -78,7 +78,7 @@ test("drawing only, under the notes, no canvas blur; ⚙ CANONS: MORPH by defaul
   assert.ok(!/score|grade|"hit"|"miss"/.test(e));
   assert.equal(canonsMode(), "morph");
   const b = src("src/bench/BenchApp.tsx");
-  assert.match(b, /<Choice id="canons" label="CANONS"/);
+  assert.match(b, /<Choice id="canons" label="CANONS & FUGUES"/);
   for (const l of ["pt", "es"]) assert.match(src(`src/i18n/${l}.ts`), /CANONS: "/);
 });
 
@@ -86,7 +86,7 @@ test("the layers (the board, #450): the copies over the other voices and under t
   const m = src("src/touch/MusicBox.tsx");
   const under = m.indexOf('paintCanon(g, fugueById(fr.piece), canonGeo!, "under")');
   const players = m.indexOf("// The voice played (or two): full, outlined.");
-  const over = m.indexOf('paintCanon(g, fugueById(fr.piece), canonGeo, "over")');
+  const over = m.indexOf('morphs("over")', players);
   assert.ok(under > 0 && players > under && over > players, `${under} ${players} ${over}`);
   const e = src("src/touch/canon-ribbon.ts");
   assert.match(e, /if \(veil > 0 && under\)/);

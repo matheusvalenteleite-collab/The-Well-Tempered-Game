@@ -217,6 +217,8 @@ interface Ctx {
   miss: string;
   fg: string;
   ink: (voice: number) => string;
+  /** D972: where the entry tabs were drawn this frame (filled by entryMarks), so the fugues' morphs keep clear of them. */
+  tabs?: { x: number; y: number; w: number; h: number }[];
 }
 
 /**
@@ -365,6 +367,7 @@ export function entryMarks(
         const ty = 1 + Math.max(0, lane[order[oi]]) * (TAB_H + 4);
         g.fillStyle = ink;
         g.fillRect(tx, ty, fw, TAB_H);
+        c.tabs?.push({ x: tx, y: ty, w: fw, h: TAB_H + 2 });
         formText(g, word, tx + 1, ty + 1, DARK, s);
         const left = Math.max(0, Math.min(1, (s.end - c.now) / Math.max(1, s.end - s.on)));
         g.fillStyle = DARK;
@@ -417,6 +420,7 @@ export function entryMarks(
       }
       g.fillStyle = ink;
       g.fillRect(tx, ty, tw, th);
+      c.tabs?.push({ x: tx, y: ty, w: tw, h: th });
       if (tw === fw) formText(g, word, tx + 1, ty + 1, DARK, s);
       continue;
     }
