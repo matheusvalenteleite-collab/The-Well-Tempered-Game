@@ -62,9 +62,8 @@ function encode(frames, file, secs) {
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'), '-t', String(secs), '-vf', `fps=${FPS},scale=${W}:${H}`, '-c:v', 'libvpx-vp9', '-b:v', '1500k', '-an', file]);
   fs.rmSync(dir, { recursive: true, force: true });
 }
-module.exports = { cast, encode, W, H, FPS };
 
-async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1]) {
+async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out) {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   await ctx.addInitScript((rate) => {
@@ -96,10 +95,11 @@ async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1]) {
   await p.evaluate((tg) => { window.__skip = tg - ((performance.now() - window.__t0) / 1000) * window.__rate; }, target);
   const frames = await cast(p, cdp, secs + 0.3);
   await b.close();
-  const dst = path.join(out, `${file}-${W}x${H}.webm`);
+  const dst = path.join(dir, `${file}-${W}x${H}.webm`);
   encode(frames, dst, secs);
   console.log(dst, `${frames.length} frames (${(frames.length / secs).toFixed(0)} a second captured), ${FPS} fps`);
 }
+module.exports = { cast, encode, take, W, H, FPS };
 if (require.main === module)
   (async () => {
     fs.mkdirSync(out, { recursive: true });

@@ -1,11 +1,11 @@
 /**
- * D930 (canons session): live stills of the echo lane on the built game, each canon reached at its bar, at 932 x 430 and
+ * D930, D972 (canons session): live stills of the canons' ribbon and the fugues' morphs on the built game, each canon reached at its bar, at 932 x 430 and
  * 667 x 375, and a live hit-test at each (both halves of the box, every visible button answers a touch at its centre).
  * The bar is reached by moving the audio clock on (the page's AudioContext reads `currentTime + __skip`): the game itself
  * is not changed. LEAD_S is the start's lead-in, measured (the box's bar counter against the target).
  *
  *   npx vite build && npx vite preview --port 5310 &
- *   node tools/touch/canon-stills.cjs OUT_DIR [http://localhost:5310/play.html]
+ *   node tools/touch/canon-stills.cjs OUT_DIR [http://localhost:5310/play.html] [the shots whose names start so]
  */
 const { chromium } = require('playwright');
 const fs = require('node:fs');
@@ -28,6 +28,12 @@ const SHOTS = [
   ['inv2-open', 'bwv773', 'INV', 1.0, 66, 4],
   ['inv2-bar11', 'bwv773', 'INV', 11.6, 66, 4],
   ['inv8', 'bwv779', 'INV', 2.6, 84, 3],
+  // D972: the fugues' transformed entries (fugue-morph.ts): the subject's emblem held, then flying; the neighbour's copy
+  ['ii22-emblem', 'wtc2f22', 'II', 40.3, 164, 6],
+  ['ii22-emblem-flying', 'wtc2f22', 'II', 40.8, 164, 6],
+  ['i08-inversion', 'wtc1f08', 'I', 29.63, 59, 4],
+  ['ii02-augmentation', 'wtc2f02', 'II', 13.6, 46, 4],
+  ['ii09-diminution', 'wtc2f09', 'II', 26.56, 100, 8],
 ];
 fs.mkdirSync(out, { recursive: true });
 let failed = 0;
@@ -66,7 +72,7 @@ async function shot([file, id, tab, bar, bpm, qpb], W, H) {
   await b.close();
 }
 (async () => {
-  for (const [W, H] of [[932, 430], [667, 375]]) for (const s of SHOTS) await shot(s, W, H);
+  for (const [W, H] of [[932, 430], [667, 375]]) for (const s of SHOTS) if (!process.argv[4] || s[0].startsWith(process.argv[4])) await shot(s, W, H);
   console.log(failed ? `canon-stills: ${failed} FAILED` : 'canon-stills: ok');
   process.exit(failed ? 1 : 0);
 })();

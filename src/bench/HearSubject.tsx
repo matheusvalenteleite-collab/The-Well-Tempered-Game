@@ -22,6 +22,7 @@ import { characterOf } from "../touch/character.ts";
 import { preset } from "../touch/sound.ts";
 import { firstEntry, subjectSounds, type Performed } from "./hear-sound.ts";
 import { formLabel, subjectForms } from "./subject-forms.ts";
+import { canonsMode, ease, easeOut, mix } from "../touch/canon-ribbon.ts";
 
 export type { Performed };
 export { firstEntry };
@@ -49,6 +50,9 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
   const shown = fi > 0 ? null : reading;
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
+  // D972 (the owner's step 1): a form chosen is first shown being made from the subject (it turns, stretches,
+  // squeezes or moves to its pitch), then heard; the ⚙ CANONS & FUGUES setting OFF shows it at once, as before.
+  const morph = useRef<FormMorph | null>(null);
   // D309: the notes the reading leaves unmarked as the others play them on the sound chosen.
   const perf = e ? performSubject(shown, e.notes, f.tpq, tempoOf(id), { kind: kindsOf(preset().id, f.voices.length)[e.voice] ?? "organ", character: characterOf(id) }) : [];
   // D492: the playback stopped on every close, and when the view goes (unmounted) by any other route.
@@ -75,6 +79,13 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
   const shownOnce = useRef(false);
   useEffect(() => {
     // D449: embedded, the first showing waits for ▶ (the box opens in silence); a reading chosen is heard at once.
+    // D972: a form's morph first, then the form heard.
+    const m = morph.current;
+    if (m && (!embedded || shownOnce.current)) {
+      const id2 = setTimeout(hear, FORM_MORPH_S * 1000);
+      shownOnce.current = true;
+      return () => clearTimeout(id2);
+    }
     if (!embedded || shownOnce.current) hear();
     shownOnce.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,13 +94,24 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
     let raf = 0;
     const draw = () => {
       const c = canvas.current;
-      if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), shown, started.current);
+      const m = morph.current;
+      if (m && performance.now() / 1000 - m.t0 >= FORM_MORPH_S) morph.current = null;
+      if (c && e && morph.current) paintFormMorph(c, morph.current, (performance.now() / 1000 - morph.current.t0) / FORM_MORPH_S);
+      else if (c && e) paintSubject(c, perf, e.notes.map((n) => n[2]), inkOf(e.voice, f.voices.length), shown, started.current);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
   });
   if (!e) return null;
+  // D972: to a transformed form (not back to the subject), made from the subject before the eyes
+  const choose = (i: number) => {
+    const to = forms[i], from = forms[0];
+    morph.current = i > 0 && canonsMode() !== "off" && to.entry !== from.entry ? { from: from.entry.notes, to: to.entry.notes, fromInk: inkOf(from.entry.voice, f.voices.length), toInk: inkOf(to.entry.voice, f.voices.length), inv: to.inverted !== from.inverted, t0: performance.now() / 1000 } : null;
+    stopRef.current();
+    started.current = null;
+    setFi(i);
+  };
   const pick = (r: Reading | null) => {
     chooseReading(id, r?.id ?? NO_READING);
     setReading(r);
@@ -136,7 +158,7 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
         {form && (
           <div className="tb-hear-forms" id="hear-forms" role="radiogroup" aria-label={tr("ITS FORMS")}>
             {forms.map((x, i) => (
-              <button key={i} type="button" id={`hear-form-${i}`} role="radio" aria-checked={i === fi} className={`tb-hear-form${i === fi ? " on" : ""}`} onClick={() => (i === fi ? hear() : setFi(i))}>
+              <button key={i} type="button" id={`hear-form-${i}`} role="radio" aria-checked={i === fi} className={`tb-hear-form${i === fi ? " on" : ""}`} onClick={() => (i === fi ? hear() : choose(i))}>
                 <span className="tb-hear-form-play" aria-hidden="true">▶</span>
                 <FormContour notes={x.entry.notes} />
                 <span className="tb-hear-form-name">{formLabel(id, x, forms)}</span>
@@ -334,4 +356,90 @@ function FormContour({ notes }: { notes: readonly (readonly [number, number, num
       <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
+}
+
+/** D972: the card's morph, from the subject's notes to a form's ([onset, length, MIDI, …]), and how long it takes. */
+interface FormMorph { from: readonly (readonly [number, number, number, ...unknown[]])[]; to: readonly (readonly [number, number, number, ...unknown[]])[]; fromInk: string; toInk: string; inv: boolean; t0: number }
+const FORM_MORPH_S = 2.2;
+
+/**
+ * D972: the subject becoming one of its forms, on the card's own stage (paintSubject's box, strips and pitch lines):
+ * note for note it slides to the form's time and pitch, turns over (an inversion: its height folding through the
+ * half-turn), stretches or squeezes, its colour going from the subject's voice to the form's in step with the motion;
+ * both laid out at one scale (the longer's: so an augmentation is seen to double), the subject first easing out of its
+ * own layout into it, and at the end the form into its own, where paintSubject takes over. Notes the form has beyond the subject's fade in; the subject's beyond the form's fade out.
+ */
+function paintFormMorph(c: HTMLCanvasElement, m: FormMorph, p: number) {
+  const cssW = c.clientWidth || 300;
+  const cssH = c.clientHeight || 160;
+  const dpr = Math.min(3, devicePixelRatio || 1);
+  if (c.width !== Math.round(cssW * dpr) || c.height !== Math.round(cssH * dpr)) (c.width = Math.round(cssW * dpr)), (c.height = Math.round(cssH * dpr));
+  const g = c.getContext("2d")!;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const bar = Math.max(52, cssW * 0.15);
+  g.fillStyle = STRIP;
+  g.fillRect(0, 0, cssW, cssH);
+  g.fillStyle = BOX;
+  g.fillRect(bar, 0, cssW - 2 * bar, cssH);
+  g.fillStyle = EDGE;
+  g.fillRect(bar - 2, 0, 2, cssH);
+  g.fillRect(cssW - bar, 0, 2, cssH);
+  const pad = bar + 14, span = cssW - 2 * pad;
+  const lay = (ns: FormMorph["from"]) => {
+    const on0 = ns[0][0], end = Math.max(...ns.map((n) => n[0] + n[1])) - on0;
+    const ms = ns.map((n) => n[2]);
+    return { on0, end, lo: Math.min(...ms) - 1, hi: Math.max(...ms) + 1 };
+  };
+  const A = lay(m.from), B = lay(m.to);
+  const end = Math.max(A.end, B.end), lo = Math.min(A.lo, B.lo), hi = Math.max(A.hi, B.hi);
+  // the subject into the shared scale (to 0.2), the move (0.2 to 0.8), the form into its own layout (0.8 to 1)
+  const zA = 1 - ease(p / 0.2), u = easeOut(Math.min(1, (p - 0.2) / 0.6)), z = ease((p - 0.8) / 0.2);
+  const rowOf = (l: number, h: number) => Math.max(4, Math.min(14, (cssH - 46) / (h - l + 1)));
+  const topOf = (l: number, h: number, r: number) => Math.max(22, (cssH - (h - l + 1) * r) / 2);
+  const rC = rowOf(lo, hi), tC = topOf(lo, hi, rC), rB = rowOf(B.lo, B.hi), tB = topOf(B.lo, B.hi, rB), rA = rowOf(A.lo, A.hi), tA = topOf(A.lo, A.hi, rA);
+  const xC = (t: number) => pad + (t / end) * span, xB = (t: number) => pad + (t / B.end) * span, xA = (t: number) => pad + (t / A.end) * span;
+  const yC = (mi: number) => tC + (hi - mi) * rC, yB = (mi: number) => tB + (B.hi - mi) * rB, yA = (mi: number) => tA + (A.hi - mi) * rA;
+  const X = (t: number) => xC(t) + (xA(t) - xC(t)) * zA + (xB(t) - xC(t)) * z;
+  const Y = (mi: number) => yC(mi) + (yA(mi) - yC(mi)) * zA + (yB(mi) - yC(mi)) * z;
+  const rowH = rC + (rA - rC) * zA + (rB - rC) * z;
+  g.strokeStyle = LINE;
+  g.lineWidth = 1;
+  for (let mi = lo; mi <= hi; mi++) {
+    g.beginPath();
+    g.moveTo(bar, Y(mi) + rowH / 2);
+    g.lineTo(cssW - bar, Y(mi) + rowH / 2);
+    g.stroke();
+  }
+  const n = Math.min(m.from.length, m.to.length), bh = Math.max(4, rowH - 2);
+  const am = m.from.map((x) => x[2]), cA = (Math.min(...am) + Math.max(...am)) / 2;
+  const col = mix(m.fromInk, m.toInk, u);
+  const block = (x: number, w: number, y: number, h: number, ink: string, alpha: number) => {
+    g.globalAlpha = alpha;
+    g.fillStyle = ink;
+    g.fillRect(x, y - h / 2, Math.max(3, w), h);
+    g.strokeStyle = paleOf(ink);
+    g.lineWidth = 1.25;
+    g.strokeRect(x + 0.5, y - h / 2 + 0.5, Math.max(3, w) - 1, h - 1);
+  };
+  for (let i = 0; i < Math.max(m.from.length, m.to.length); i++) {
+    if (i >= n) {
+      // a note one has and the other has not
+      const extraTo = i < m.to.length, nt = extraTo ? m.to[i] : m.from[i], L = extraTo ? B : A;
+      const t = nt[0] - L.on0, al = extraTo ? z : 1 - u;
+      if (al > 0) block(X(t), X(t + nt[1]) - X(t) - 2, Y(nt[2]) + rowH / 2, bh, extraTo ? m.toInk : m.fromInk, al);
+      continue;
+    }
+    const a = m.from[i], b = m.to[i];
+    const ta = a[0] - A.on0, tb = b[0] - B.on0;
+    const t = ta + (tb - ta) * u, d = a[1] + (b[1] - a[1]) * u;
+    // the pitch: an inversion turns about the subject's centre line on its way; the rest moves straight
+    let mi: number, h = bh;
+    if (m.inv) {
+      const cos = Math.cos(Math.PI * u), turned = cA + (a[2] - cA) * cos;
+      mi = turned + (b[2] - (cA - (a[2] - cA))) * u;
+      h = Math.max(bh * 0.4, bh * Math.abs(cos));
+    } else mi = a[2] + (b[2] - a[2]) * u;
+    block(X(t), X(t + d) - X(t) - 2, Y(mi) + rowH / 2, h, col, 1);
+  }
+  g.globalAlpha = 1;
 }

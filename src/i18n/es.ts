@@ -348,6 +348,7 @@ export const ES: Record<string, string> = {
   HELD: "SOSTENIDA",
   "TOO SOON": "DEMASIADO PRONTO",
   CANONS: "CÁNONES",
+  "CANONS & FUGUES": "CÁNONES Y FUGAS",
   STAGE: "ESCENARIO",
   "WORLD SOUNDS": "SONIDOS DEL ESCENARIO",
   // D980: the preludes on play.html.
