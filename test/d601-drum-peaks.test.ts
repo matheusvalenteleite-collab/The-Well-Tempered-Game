@@ -26,6 +26,7 @@ import { formOf } from "../src/touch/form-points.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
 import { sfxShare, textureGain } from "../src/touch/chip.ts";
 import { saveStageMode } from "../src/touch/stage-bg.ts";
+import { preludeReady } from "../src/touch/prelude-plan.ts";
 
 const WTC = Array.from({ length: 48 }, (_, i) => `wtc${i < 24 ? 1 : 2}f${String((i % 24) + 1).padStart(2, "0")}`);
 /** The window (s) a stroke's loudness is read over (render.cjs: 19 steps of 512 samples at 24 kHz). */
@@ -77,6 +78,20 @@ test("D601: every fugue's drums (HOME and its picks) under the band at every str
     for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
   }
   assert.ok(n > 30000, `${n} strokes`);
+  assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
+});
+
+// D984: and every ready prelude (prelude-plan.ts `preludeReady`), on its fugue's sound, with its HOME and picks.
+test("D984: every ready prelude's drums (HOME and its picks) under the band at every stroke, on the phone model", async () => {
+  const bad: string[] = [];
+  let n = 0;
+  const ids = Object.keys(PIECE_SOUND).filter(preludeReady);
+  assert.ok(ids.length >= 24, `${ids.length} preludes`);
+  for (const id of ids) {
+    const sound = PIECE_SOUND[id];
+    for (const style of new Set([homeFor(id, sound), ...(FUGUE_PICKS[id] ?? [])])) n += await overBand(id, sound, style, id, bad);
+  }
+  assert.ok(n > 5000, `${n} strokes`);
   assert.deepEqual(bad.slice(0, 20), [], `${bad.length} strokes not ${MARGIN_DB} dB under the band`);
 });
 

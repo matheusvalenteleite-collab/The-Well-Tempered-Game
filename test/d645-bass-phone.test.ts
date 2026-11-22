@@ -10,6 +10,7 @@ import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
+import { preludeReady } from "../src/touch/prelude-plan.ts";
 import { bandTrimDb, liftDb } from "../src/touch/player-lift.ts";
 import { playerSound } from "../src/touch/sound.ts";
 import { BASS_GAP_DB, bassPatchOf, bassSig, type BassRun } from "../src/touch/bass-phone.ts";
@@ -65,6 +66,29 @@ test(`D645: on a phone every fugue's bass within ${BASS_GAP_DB} LU of its loudes
   for (const id of WTC) {
     const m = BASS_PHONE[id];
     const f = fugueById(id);
+    const b = f.voices.length - 1;
+    const dbNow = bassPatchOf(m.s, f)?.phoneExcite?.db ?? null;
+    for (const [k, pv] of [["band", 0], ["player", b]] as const) {
+      const g = gapOf(id, m.s, m[k], pv, m.db, dbNow);
+      if (g > BASS_GAP_DB) bad.push(`${id} ${k} ${g.toFixed(1)}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+// D984: and every ready prelude, on its fugue's sound (a two-voice prelude's gap: the other voice over the bass).
+test(`D984: every ready prelude measured on its own sound, its bass within ${BASS_GAP_DB} LU of its loudest voice on a phone, in the band and as the player's`, () => {
+  const bad: string[] = [];
+  const ids = Object.keys(PIECE_SOUND).filter(preludeReady);
+  assert.ok(ids.length >= 24, `${ids.length} preludes`);
+  for (const id of ids) {
+    const m = BASS_PHONE[id];
+    assert.ok(m, `${id}: measured`);
+    const f = fugueById(id);
+    const s = playerSound(PIECE_SOUND[id]);
+    assert.equal(m.s, s, `${id}: measured on ${m.s}, its sound now ${s}: re-measure`);
+    assert.equal(m.sig, bassSig(bassPatchOf(s, f)), `${id}: its bass's patch changed since measured: re-measure`);
+    assert.equal(m.band.lu.length, f.voices.length);
     const b = f.voices.length - 1;
     const dbNow = bassPatchOf(m.s, f)?.phoneExcite?.db ?? null;
     for (const [k, pv] of [["band", 0], ["player", b]] as const) {
