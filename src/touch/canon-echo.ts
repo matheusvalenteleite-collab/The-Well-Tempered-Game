@@ -39,20 +39,22 @@ export interface CanonSpec {
 
 const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label });
 
+// D908: Variations 6, 12, 15, 21 and 24 hold their second canonic line whole in voice 1 (more-bach.ts joinCanon), its
+// bass in voice 2: the legs that read it across voices 1 and 2 read voice 1.
 /** Bar lengths in ticks (tpq 1920): 12/8 11520, 3/8 2880, 4/4 7680, 3/4 5760, 2/4 3840, 2/2 7680, 9/8 8640, 6/8 5760. */
 export const CANONS: Readonly<Record<string, CanonSpec>> = {
   // Canone all'Unisono: the soprano led, the alto one bar later at the same pitch.
   "bwv988-03": { legs: [leg(1, 17, [0], [1], 11520, false, 0, "CANON AT THE UNISON · ONE BAR LATER")] },
   // Canone alla Seconda: the leader in the alto (the edition hands it to the tenor at times), the soprano a second above.
-  "bwv988-06": { legs: [leg(1, 33, [1, 2], [0], 2880, false, 1, "CANON AT THE SECOND · ONE BAR LATER")] },
+  "bwv988-06": { legs: [leg(1, 33, [1], [0], 2880, false, 1, "CANON AT THE SECOND · ONE BAR LATER")] },
   // Canone alla Terza: the soprano led, the alto a third below.
   "bwv988-09": { legs: [leg(1, 17, [0], [1], 7680, false, -2, "CANON AT THE THIRD · ONE BAR LATER")] },
   // Canone alla Quarta, in contrary motion (steps summing to 61: the soprano's G answered by the D a fourth below); after
   // the double bar the leader is below (alto, tenor) and the soprano answers.
   "bwv988-12": {
     legs: [
-      leg(1, 17, [0], [1, 2], 5760, true, 61, "CANON AT THE FOURTH · IN CONTRARY MOTION"),
-      leg(17, 33, [1, 2], [0], 5760, true, 61, "NOW THE LOWER VOICE LEADS"),
+      leg(1, 17, [0], [1], 5760, true, 61, "CANON AT THE FOURTH · IN CONTRARY MOTION"),
+      leg(17, 33, [1], [0], 5760, true, 61, "NOW THE LOWER VOICE LEADS"),
     ],
   },
   // Canone alla Quinta, in contrary motion (steps summing to 68): the leader's first bar written in the soprano, then in
@@ -60,19 +62,19 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
   "bwv988-15": {
     legs: [
       leg(1, 2, [0], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
-      leg(2, 33, [1, 2], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
+      leg(2, 33, [1], [0], 3840, true, 68, "CANON AT THE FIFTH · IN CONTRARY MOTION"),
     ],
   },
   // Canone alla Sesta: the alto led, the soprano a sixth above, half a bar (a minim) later.
   "bwv988-18": { legs: [leg(1, 33, [1], [0], 3840, false, 5, "CANON AT THE SIXTH · HALF A BAR LATER")] },
   // Canone alla Settima: the leader in the tenor and alto, the soprano a seventh above, half a bar later.
-  "bwv988-21": { legs: [leg(1, 17, [1, 2], [0], 3840, false, 6, "CANON AT THE SEVENTH · HALF A BAR LATER")] },
+  "bwv988-21": { legs: [leg(1, 17, [1], [0], 3840, false, 6, "CANON AT THE SEVENTH · HALF A BAR LATER")] },
   // Canone all'Ottava, two bars later: the soprano leads, then the lower voices (bars 9-24), then the soprano again.
   "bwv988-24": {
     legs: [
-      leg(1, 9, [0], [1, 2], 17280, false, -7, "CANON AT THE OCTAVE · TWO BARS LATER"),
-      leg(9, 25, [1, 2], [0], 17280, false, 7, "NOW THE LOWER VOICE LEADS"),
-      leg(25, 33, [0], [1, 2], 17280, false, -7, "THE TOP VOICE LEADS AGAIN"),
+      leg(1, 9, [0], [1], 17280, false, -7, "CANON AT THE OCTAVE · TWO BARS LATER"),
+      leg(9, 25, [1], [0], 17280, false, 7, "NOW THE LOWER VOICE LEADS"),
+      leg(25, 33, [0], [1], 17280, false, -7, "THE TOP VOICE LEADS AGAIN"),
     ],
   },
   // Canone alla Nona, two voices: the left hand leads, the right a ninth above; after the double bar the hands change places.
