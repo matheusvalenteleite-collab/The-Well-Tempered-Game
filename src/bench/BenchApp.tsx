@@ -1673,8 +1673,10 @@ export function BenchApp() {
   function basicsIdea(at: { act: number; stage: number }) {
     const st = stageOf(at);
     const go = () => basicsTake({ ...at, phase: "do", misses: 0, notches: 0 });
-    if (st.clip) setHostView({ kind: "clip", stage: st.id, done: go, sound: clipSoundFor(st) });
-    else go();
+    const show = () => (st.clip ? setHostView({ kind: "clip", stage: st.id, done: go, sound: clipSoundFor(st), ...(st.why ? { why: st.why } : {}) }) : go());
+    // D994: a stage's own line from Glenn first (3.2: the thumbs' ● ○ introduced).
+    if (st.intro) setHostView({ kind: "note", line: st.intro, done: show });
+    else show();
   }
   function basicsTake(at: BasicsAt) {
     if (!basOn.current) return;
@@ -1699,7 +1701,7 @@ export function BenchApp() {
     // Act VI's stations: the idea tried a few times is enough (heard once, or three takes), and no PROVE.
     if (basicsPassed(st, r) || (st.light && takes >= 3)) {
       // D941: PROVE plays another version (never the same notes twice running).
-      if (at.phase === "do" && !st.light) return basicsTake({ ...at, phase: "prove", misses, takes: 0, v: (at.v ?? 0) + 1 });
+      if (at.phase === "do" && !st.light && !st.noProve) return basicsTake({ ...at, phase: "prove", misses, takes: 0, v: (at.v ?? 0) + 1 });
       const nx = nextAt(at, ACTS_READY);
       if (!nx) return basicsFinale();
       if (nx.act !== at.act) return basicsAct(nx.act);
@@ -1710,7 +1712,7 @@ export function BenchApp() {
     // D941: each take after another version (the help's clip still shows the first).
     const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, v: (at.v ?? 0) + 1, ...o });
     if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
-    if (crossed(3) && st.clip) return setHostView({ kind: "clip", stage: st.id, done: () => again(), sound: clipSoundFor(st) });
+    if (crossed(3) && st.clip) return setHostView({ kind: "clip", stage: st.id, done: () => again(), sound: clipSoundFor(st), ...(st.why ? { why: st.why } : {}) });
     if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });
     again();
   }

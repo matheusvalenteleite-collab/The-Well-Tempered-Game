@@ -6,7 +6,7 @@
  * Recorded from Chromium's own screencast (CDP Page.startScreencast, ~60 frames a second, each with its timestamp), the
  * device metrics set explicitly to the phone's (a mobile context's video otherwise shows the page at about 60% in a
  * corner of the frame), the frames laid on a constant 30 fps by their timestamps (ffmpeg concat). The bar is reached by
- * moving the audio clock on (the page's AudioContext reads `currentTime + __skip`); nobody plays, so for the recording
+ * moving the audio clock on (the page's AudioContext reads `currentTime * __rate + __skip`; a rate of 0.5 for the ½x takes); nobody plays, so for the recording
  * only the run's fail is switched off (the crowd, proto-game.ts `this.crowd`, held above empty from the page: its field
  * defined as an accessor). The game's code is not changed; the crowd meter and the MISS marks still show.
  *
@@ -21,10 +21,12 @@ const out = path.resolve(process.argv[2] || 'canon-motion');
 const URL = process.argv[3] || 'http://localhost:5310/play.html';
 const LEAD_S = 4.5;
 const W = 932, H = 430, FPS = 30;
-// [file, id, tab, start bar, the tempo in quarters a minute, quarters a bar, seconds]
+// [file, id, tab, start bar, the tempo in quarters a minute, quarters a bar, seconds, the rate (1 unless given)]
 const TAKES = [
   ['v12-double-bar', 'bwv988-12', 'GOLD', 14.2, 80, 3, 11],
   ['v12-bars-1-4', 'bwv988-12', 'GOLD', 1, 80, 3, 9],
+  ['v12-bars-1-4-half', 'bwv988-12', 'GOLD', 1, 80, 3, 18, 0.5],
+  ['v12-bars-9-16', 'bwv988-12', 'GOLD', 9, 80, 3, 18],
   ['v12-bars-17-20', 'bwv988-12', 'GOLD', 17, 80, 3, 9],
   ['v24-leader-change', 'bwv988-24', 'GOLD', 6.6, 75, 4.5, 11],
   ['v27-hand-swap', 'bwv988-27', 'GOLD', 13.8, 83, 3, 11],
@@ -62,13 +64,14 @@ function encode(frames, file, secs) {
 }
 module.exports = { cast, encode, W, H, FPS };
 
-async function take([file, id, tab, bar, bpm, qpb, secs]) {
+async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1]) {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
-  await ctx.addInitScript(() => {
+  await ctx.addInitScript((rate) => {
     window.__skip = 0;
+    window.__rate = rate;
     const d = Object.getOwnPropertyDescriptor(BaseAudioContext.prototype, 'currentTime');
-    Object.defineProperty(BaseAudioContext.prototype, 'currentTime', { get() { return d.get.call(this) + window.__skip; } });
+    Object.defineProperty(BaseAudioContext.prototype, 'currentTime', { get() { return d.get.call(this) * window.__rate + window.__skip; } });
     const def = Object.defineProperty;
     Object.defineProperty = function (o, k, dd) {
       if (k !== 'crowd' || !dd || typeof dd.value !== 'number') return def(o, k, dd);
@@ -77,7 +80,7 @@ async function take([file, id, tab, bar, bpm, qpb, secs]) {
     };
     // (the bundle's field helper defines a field only where the name is already `in` the object: else it assigns)
     def(Object.prototype, 'crowd', { configurable: true, get() { return undefined; }, set(x) { Object.defineProperty(this, 'crowd', { value: x }); } });
-  });
+  }, rate);
   const p = await ctx.newPage();
   await p.goto(URL + '?unlock=all');
   for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); }
@@ -90,7 +93,7 @@ async function take([file, id, tab, bar, bpm, qpb, secs]) {
   await p.click('#sel-play');
   await p.waitForTimeout(2500);
   const target = ((bar - 1) * qpb * 60) / bpm + LEAD_S;
-  await p.evaluate((tg) => { window.__skip = tg - (performance.now() - window.__t0) / 1000; }, target);
+  await p.evaluate((tg) => { window.__skip = tg - ((performance.now() - window.__t0) / 1000) * window.__rate; }, target);
   const frames = await cast(p, cdp, secs + 0.3);
   await b.close();
   const dst = path.join(out, `${file}-${W}x${H}.webm`);
