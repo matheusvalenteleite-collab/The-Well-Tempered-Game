@@ -80,3 +80,14 @@ test("drawing only, under the notes, no canvas blur; ⚙ CANONS: MORPH by defaul
   assert.match(b, /<Choice id="canons" label="CANONS"/);
   for (const l of ["pt", "es"]) assert.match(src(`src/i18n/${l}.ts`), /CANONS: "/);
 });
+
+test("the layers (the board, #450): the copies over the other voices and under the player's notes; the landing flare again over them", () => {
+  const m = src("src/touch/MusicBox.tsx");
+  const under = m.indexOf('paintCanon(g, fugueById(fr.piece), canonGeo!, "under")');
+  const players = m.indexOf("// The voice played (or two): full, outlined.");
+  const over = m.indexOf('paintCanon(g, fugueById(fr.piece), canonGeo, "over")');
+  assert.ok(under > 0 && players > under && over > players, `${under} ${players} ${over}`);
+  const e = src("src/touch/canon-ribbon.ts");
+  assert.match(e, /if \(veil > 0 && under\)/);
+  assert.match(e, /Math\.max\(k\.bh \* 0\.4, k\.bh \* Math\.abs\(c\)\)/);
+});

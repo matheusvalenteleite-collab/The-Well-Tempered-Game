@@ -11,8 +11,9 @@
  * "big morph", named by the leg's label). Adaptive density (the board): every segment for 8 bars after a big morph, then
  * every second one, until the next big morph.
  *
- * Drawing only, under every note (the player's notes never move and are drawn over the copy); nothing judged reads it. No
- * canvas blur (the glow is a second, larger rectangle), for a phone's frame budget. The CANONS setting (⚙): MORPH or OFF.
+ * Drawing only, over the world and the other voices (which dim a little while a shape flies) and under the player's notes
+ * (they never move and stay on top), but for the landing flare, an outline drawn over them; nothing judged reads it. No canvas blur (the glow is two larger, fainter rectangles),
+ * for a phone's frame budget. The CANONS setting (⚙): MORPH or OFF.
  */
 import type { TouchFugue } from "./fugue.ts";
 import { tempoOf } from "./tempi.ts";
@@ -184,7 +185,7 @@ function place(s: Shape, i: number, ph: Phase, k: EchoGeo): Place {
   if (s.contrary) {
     const ax = s.c + s.dS * u, c = Math.cos(Math.PI * u);
     st = ax + (st - ax) * c;
-    h = Math.max(1, k.bh * Math.abs(c));
+    h = Math.max(k.bh * 0.4, k.bh * Math.abs(c));
   }
   st += s.rS[i] * u;
   const tt = a.on + (s.tB0 - s.tA0 + s.rT[i]) * u, d = a.dur + (s.T[i].dur - a.dur) * u;
@@ -193,51 +194,72 @@ function place(s: Shape, i: number, ph: Phase, k: EchoGeo): Place {
 }
 /** A shape's colour at a phase: the leader's ink to the follower's (each shape is one leader voice into one follower voice). */
 const colourOf = (s: Shape, ph: Phase, k: EchoGeo) => mix(k.ink(s.A[0].voice), k.ink(s.T[0].voice), ease(ph.u));
-/** Draws the ribbon under the notes: the shapes in flight, the answers flaring as they land, the canon named at first. */
-export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo) {
+/** Draws the ribbon: the shapes in flight and the canon named at first under the player's notes; the answers flaring as they land over them. */
+export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo, pass: "under" | "over" | "both" = "both") {
   if (canonsMode() === "off") return;
   const shapes = ribbonShapes(f);
   if (!shapes.length) return;
   const q = f.tpq;
   g.save();
+  // "under": the veil, the flying copies and the labels (under the player's notes); "over": the landing flare alone, an
+  // outline over the notes it lands on (the player's, where the player follows: under them it would be hidden).
+  const under = pass !== "over", over = pass !== "under";
+  // D970 (the board, the game against the prototype): while a shape flies, the world and the other voices dim a little
+  // (they are drawn already; the player's notes come after, so they stay bright), so the copy reads as in the prototype.
+  let veil = 0;
+  for (const s of shapes) {
+    if (!s.shown || k.now < s.start || k.now >= s.landed + q) continue;
+    const inn = Math.min(1, (k.now - s.start) / (q * 0.75)), outv = Math.min(1, Math.max(0, (s.landed + q - k.now) / q));
+    veil = Math.max(veil, Math.min(inn, outv) * (s.big ? 1 : 0.75));
+  }
+  if (veil > 0 && under) {
+    g.globalAlpha = 0.3 * veil;
+    g.fillStyle = "#06070f";
+    g.fillRect(0, 0, k.w, k.h);
+  }
   for (const s of shapes) {
     if (!s.shown || k.now < s.start || k.now >= s.end) continue;
     if (k.now < s.landed) {
+      if (!under) continue;
       // the trail: the same notes a moment before, fainter, gone within half a beat
       for (let j = 4; j >= 1; j--) {
         const t = k.now - j * q * 0.07;
         if (t < s.fly) continue;
         const ph = phase(s, t);
-        g.globalAlpha = 0.18 * (1 - j / 5);
+        g.globalAlpha = 0.26 * (1 - j / 5);
         g.fillStyle = colourOf(s, ph, k);
         for (let i = 0; i < s.A.length; i++) {
           const p = place(s, i, ph, k);
           g.fillRect(p.x, p.y - p.h / 2, p.w, p.h);
         }
       }
-      const ph = phase(s, k.now), col = colourOf(s, ph, k), under = s.contrary && ph.u >= 0.5;
+      const ph = phase(s, k.now), col = colourOf(s, ph, k), flip = s.contrary && ph.u >= 0.5;
       for (let i = 0; i < s.A.length; i++) {
         const p = place(s, i, ph, k);
-        // the glow: a larger, fainter copy (no canvas blur)
-        g.globalAlpha = s.big ? 0.3 : 0.22;
+        // the glow: two larger, fainter copies (no canvas blur)
         g.fillStyle = col;
-        g.fillRect(p.x - 1, p.y - p.h / 2 - 1, p.w + 2, p.h + 2);
-        g.globalAlpha = s.big ? 0.9 : 0.8;
+        g.globalAlpha = s.big ? 0.2 : 0.16;
+        g.fillRect(p.x - 3, p.y - p.h / 2 - 3, p.w + 6, p.h + 6);
+        g.globalAlpha = s.big ? 0.38 : 0.3;
+        g.fillRect(p.x - 1.5, p.y - p.h / 2 - 1.5, p.w + 3, p.h + 3);
+        g.globalAlpha = 0.95;
         g.fillRect(p.x, p.y - p.h / 2, p.w, p.h);
         // the lit edge: on top, underneath once turned over
-        g.globalAlpha = 0.55;
+        g.globalAlpha = 0.7;
         g.fillStyle = "#ffffff";
-        g.fillRect(p.x, under ? p.y + p.h / 2 - 1 : p.y - p.h / 2, p.w, 1);
+        g.fillRect(p.x, flip ? p.y + p.h / 2 - 1 : p.y - p.h / 2, p.w, 1);
       }
-    } else {
+    } else if (over) {
       // landed: the follower's notes flare in their own colour, then settle
       const fade = 1 - (k.now - s.landed) / (s.end - s.landed);
       for (const b of s.T) {
         const x1 = k.xOf(b.on), x2 = k.xOf(b.on + b.dur), y = k.yOf(b.step);
         if (x2 < 0 || x1 > k.w) continue;
-        g.globalAlpha = (s.big ? 0.95 : 0.75) * fade;
         g.strokeStyle = k.ink(b.voice);
         g.lineWidth = 1;
+        g.globalAlpha = (s.big ? 0.4 : 0.3) * fade;
+        g.strokeRect(x1 - 3.5, y - 3.5, Math.max(2, x2 - x1) + 6, k.bh + 7);
+        g.globalAlpha = (s.big ? 0.95 : 0.85) * fade;
         g.strokeRect(x1 - 1.5, y - 1.5, Math.max(2, x2 - x1) + 2, k.bh + 3);
         g.globalAlpha = (s.big ? 0.3 : 0.18) * fade;
         g.fillStyle = "#ffffff";
@@ -248,7 +270,7 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
   // Each leg named over the first bars of its follower, fading (D930): the canon at first, then each change of leader.
   const spec = CANONS[f.id];
   for (const s of shapes) {
-    if (!s.big) continue;
+    if (!s.big || !under) continue;
     const fadeL = 1 - Math.max(0, Math.min(1, (k.now - s.tB0 - 3 * k.barTicks) / (2 * k.barTicks)));
     if (!k.quiet && k.now >= s.start && fadeL > 0) {
       g.globalAlpha = 0.85 * fadeL;
