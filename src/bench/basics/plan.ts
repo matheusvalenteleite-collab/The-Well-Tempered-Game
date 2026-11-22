@@ -14,7 +14,8 @@ import type { LensStats } from "../manual/lens.ts";
 import "./exercises.ts";
 
 export type ClipId = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift" | "strong" | "legato" | "short" | "shake" | "slide";
-export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides" | "join";
+/** D992: "signs", the thumbs' ● ○ (not drawn in BASICS on a stage without it: not yet introduced). */
+export type Aid = "rings" | "arrow" | "gold" | "drain" | "lift" | "made" | "sides" | "join" | "signs";
 
 export type PassRule =
   | { kind: "right"; need: number }

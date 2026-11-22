@@ -96,10 +96,11 @@ import type { DressId, DressLine } from "./manual/dress.ts";
 import { decider, fixFor, heHears, isCourse, lastPlay, lessonById, PARTS as MANUAL_PARTS, runOf, shownId, SOUND_PRESET, soundOf, spotEntries, spotJudge, spotPassed, stagePassed, STEP_WORD, TOUR, watchWord, type DemoStyle, type ManualLesson, type Material, type Quiz, type StageKind } from "./manual/lessons.ts";
 import { LensTally } from "./manual/lens.ts";
 import { paintAids } from "./manual/aids.ts";
-import { ACTS, ACTS_READY, FINALE, beatFor, stagePassed as basicsPassed } from "./basics/plan.ts";
+import { ACTS, ACTS_READY, FINALE, beatFor, stagePassed as basicsPassed, type Stage } from "./basics/plan.ts";
 import { basicsRun, nextAt, stageOf, versionAt, type BasicsAt } from "./basics/runner.ts";
 import { paintBasics2, paintCue, paintInstruction, type MissShown } from "./basics/aids2.ts";
 import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
+import { ClipSound, clipScore } from "./basics/clip-sound.ts";
 import { glennHosts, glennShown, hostLine, setHost } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
 import { GlennFilm } from "./GlennFilm.tsx";
@@ -1633,10 +1634,43 @@ export function BenchApp() {
     const after = () => (act + 1 < Math.min(ACTS_READY, ACTS.length) ? basicsAct(act + 1) : basicsFinale());
     setHostView({ kind: "card", act: a.n, title: a.title, line: a.glenn, go: () => basicsIdea({ act, stage: 0 }), skip: after });
   }
+  /**
+   * D991: a stage's clip heard: its own notes on its sound, and its beat (a click, or the take's drums: the style set and
+   * forgotten as a take's are), laid on the audio clock with the video kept on it (clip-sound.ts), until the clip is left.
+   */
+  const clipSoundFor = (st: Stage) => (video: HTMLVideoElement) => {
+    const ch = ensureChip();
+    const sound = st.sound ?? "pianoSampled";
+    setPreset(presetById(sound).id);
+    const score = clipScore(st);
+    const beat = beatFor(st);
+    setBacking(beat?.kind === "drums");
+    if (beat?.kind === "drums") {
+      setDrumStyle(score.piece.id, beat.style === "home" ? homeFor(score.piece.id, sound) : beat.style);
+      basDrums.current = [...basDrums.current, score.piece.id];
+      ch.drumsFor(score.piece);
+    }
+    let player: ClipSound | null = null;
+    let gone = false;
+    const pitches = score.notes.map((n) => n.midi);
+    void ch
+      .resume()
+      .then(() => ch.prepare(pitches, pitches))
+      .catch(() => {})
+      .then(() => {
+        if (gone) return;
+        player = new ClipSound(ch, video, score, beat);
+        player.start();
+      });
+    return () => {
+      gone = true;
+      player?.stop();
+    };
+  };
   function basicsIdea(at: { act: number; stage: number }) {
     const st = stageOf(at);
     const go = () => basicsTake({ ...at, phase: "do", misses: 0, notches: 0 });
-    if (st.clip) setHostView({ kind: "clip", stage: st.id, done: go });
+    if (st.clip) setHostView({ kind: "clip", stage: st.id, done: go, sound: clipSoundFor(st) });
     else go();
   }
   function basicsTake(at: BasicsAt) {
@@ -1673,7 +1707,7 @@ export function BenchApp() {
     // D941: each take after another version (the help's clip still shows the first).
     const again = (o: Partial<BasicsAt> = {}) => basicsTake({ ...at, misses, takes, v: (at.v ?? 0) + 1, ...o });
     if ([4, 8, 12].some(crossed)) return again({ notches: at.notches + 1 });
-    if (crossed(3) && st.clip) return setHostView({ kind: "clip", stage: st.id, done: () => again() });
+    if (crossed(3) && st.clip) return setHostView({ kind: "clip", stage: st.id, done: () => again(), sound: clipSoundFor(st) });
     if (crossed(2) || crossed(3)) return setHostView({ kind: "hint", text: st.hint, done: () => again() });
     again();
   }
