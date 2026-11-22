@@ -77,3 +77,31 @@ test("D992: the thumbs' ● ○ not drawn in BASICS until a stage introduces the
   const paint = readFileSync(new URL("../src/bench/paint-proto.ts", import.meta.url), "utf8");
   assert.match(paint, /g\.o\.quiet && g\.o\.thumbSigns !== false\) thumbSigns\(/);
 });
+
+test("D994: the ● ○ introduced at 3.2 by Glenn's line (translated), on from there; D995: no PROVE in Acts I-II nor 5.2", () => {
+  const all = ACTS.flatMap((a) => a.stages);
+  const at = all.findIndex((s) => s.id === "3.2");
+  all.forEach((s, i) => assert.equal(s.aids.includes("signs"), i >= at, s.id));
+  const s32 = stage("3.2");
+  assert.ok(s32.intro && BASICS_PT[s32.intro] && BASICS_ES[s32.intro]);
+  assert.deepEqual(all.filter((s) => s.intro).map((s) => s.id), ["3.2"]);
+  assert.deepEqual(all.filter((s) => s.noProve).map((s) => s.id), ["1.1", "1.2", "2.1", "2.2", "2.3", "2.4", "2.5", "5.2"]);
+  const app = readFileSync(new URL("../src/bench/BenchApp.tsx", import.meta.url), "utf8");
+  assert.match(app, /at\.phase === "do" && !st\.light && !st\.noProve\) return basicsTake\(\{ \.\.\.at, phase: "prove"/);
+  assert.match(app, /if \(st\.intro\) setHostView\(\{ kind: "note", line: st\.intro, done: show \}\)/);
+});
+
+test("D996: each clip says what its idea is for (en, pt, es), over the clip's top, plain, TOUCH TO PLAY below it", () => {
+  for (const st of ACTS.flatMap((a) => a.stages).filter((s) => s.clip)) {
+    assert.ok(st.why && st.why.length <= 100, st.id);
+    assert.ok(BASICS_PT[st.why!] && BASICS_ES[st.why!], st.id);
+    assert.notEqual(st.why, st.hint, st.id);
+  }
+  const host = readFileSync(new URL("../src/bench/basics/BasicsHost.tsx", import.meta.url), "utf8");
+  assert.match(host, /view\.why && \(\s*<p className="basics2-why"/);
+  const css = readFileSync(new URL("../src/bench/bench.css", import.meta.url), "utf8");
+  const why = /\.basics2-why \{[^}]*\}/.exec(css)![0];
+  assert.match(why, /top: 4%/);
+  assert.doesNotMatch(why, /background/);
+  assert.match(/\.basics2-touch \{[^}]*\}/.exec(css)![0], /bottom: 6%/);
+});

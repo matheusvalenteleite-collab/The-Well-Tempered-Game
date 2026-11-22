@@ -1344,7 +1344,8 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .basics2-cliplayer { cursor: pointer; }
 /* D991: the clip loops until touched; TOUCH TO PLAY over its empty top, breathing (1.6 s: slower than once a second). */
 .basics2-clipwrap { position: relative; display: inline-block; }
-.basics2-touch { position: absolute; left: 0; right: 0; top: 5%; margin: 0; text-align: center; color: #f3d78a; font: 700 clamp(11px, 2.4vw, 16px)/1 var(--tg-font, monospace); letter-spacing: 0.12em; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); animation: basics2-breathe 1.6s ease-in-out infinite; pointer-events: none; }
+.basics2-touch { position: absolute; left: 0; right: 0; bottom: 6%; margin: 0; text-align: center; color: #f3d78a; font: 700 clamp(11px, 2.4vw, 16px)/1 var(--tg-font, monospace); letter-spacing: 0.12em; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); animation: basics2-breathe 1.6s ease-in-out infinite; pointer-events: none; }
+.basics2-why { position: absolute; left: 8%; right: 8%; top: 4%; margin: 0; text-align: center; color: #ece6d6; font: 500 clamp(11px, 2.1vw, 15px)/1.3 system-ui, sans-serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); pointer-events: none; text-wrap: balance; }
 @keyframes basics2-breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .basics2-touch { animation: none; opacity: 0.85; } }
 .basics2-clip { width: min(640px, 92vw, calc(82vh * 16 / 9)); height: auto; border: 2px solid #78789f; box-shadow: 3px 3px 0 #0a0810; background: #1d1a24; }

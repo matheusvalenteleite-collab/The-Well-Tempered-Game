@@ -57,6 +57,12 @@ export interface Stage {
   light?: boolean;
   /** D941: Act VI's drums where the station names its own (6.7 PSYCH: LIEBEZEIT, D932's calmed style), else the sound's as the game plays it. */
   drums?: string;
+  /** D995: no PROVE (one passed DO and the stage is done): Acts I-II (the owner: "Doing them once seems good enough") and 5.2. */
+  noProve?: boolean;
+  /** D996: the clip's line: what the idea is for (shown while the clip loops; neither Glenn's act line nor the in-play hint). */
+  why?: string;
+  /** D994: Glenn's line before the stage's clip (3.2: the thumbs' ● ○ introduced). */
+  intro?: string;
   /** A line said at a moment of the music (5.2: at the soprano's entry), by bar. */
   cue?: { bar: number; text: string };
 }
@@ -69,7 +75,9 @@ export interface Act {
 }
 
 const PIANO = "pianoSampled";
-const ex = (id: string, o: Partial<Stage> & Pick<Stage, "piece" | "bpm" | "pass" | "hint" | "clip">): Stage => ({ id, voice: 0, wait: "first", aids: ["rings", "gold"], solo: true, ...o });
+/** D994: Glenn's line introducing the thumbs' ● ○ (the owner approved it, via the board), before 3.2's clip. */
+export const SIGNS_LINE = "From now on, a dot under each note says which thumb. Filled: the thumb you start with. Hollow: the other. Each bar wears its own dot.";
+const ex = (id: string, o: Partial<Stage> & Pick<Stage, "piece" | "bpm" | "pass" | "hint" | "clip">): Stage => ({ id, voice: 0, wait: "first", aids: ["rings", "gold", "signs"], solo: true, ...o });
 
 export const ACTS: readonly Act[] = [
   {
@@ -77,8 +85,8 @@ export const ACTS: readonly Act[] = [
     title: "TIMING",
     glenn: "Watch the notes drift towards the gold line. The moment one arrives, touch a bar, either one. Timing is everything.",
     stages: [
-      ex("1.1", { clip: "tap", piece: "basics-1-1", bpm: 60, wait: "all", easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "Touch as the note meets the gold line." }),
-      ex("1.2", { clip: "tap", piece: "basics-1-2", bpm: 60, easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "One touch for each note, as it arrives." }),
+      ex("1.1", { why: "The music waits for you. Touch either bar the moment the note reaches the gold line.", noProve: true, clip: "tap", piece: "basics-1-1", bpm: 60, wait: "all", easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "Touch as the note meets the gold line." }),
+      ex("1.2", { why: "Now the music keeps going. One touch for each note, right on the gold line.", noProve: true, clip: "tap", piece: "basics-1-2", bpm: 60, easy: "timing", aids: ["gold", "rings"], pass: { kind: "right", need: 4 }, hint: "One touch for each note, as it arrives." }),
     ],
   },
   {
@@ -86,11 +94,11 @@ export const ACTS: readonly Act[] = [
     title: "DIRECTION",
     glenn: "It's not where you touch, it's where you go. Tune goes up, reach higher than your last touch. Down, go lower. Same note, same spot.",
     stages: [
-      ex("2.1", { clip: "up", piece: "basics-2-1", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Higher than your last touch." }),
-      ex("2.2", { clip: "down", piece: "basics-2-2", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Lower than your last touch." }),
-      ex("2.3", { clip: "same", piece: "basics-2-3", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Same note: touch the same spot." }),
-      ex("2.4", { clip: "up", piece: "basics-2-4", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 6 }, hint: "Up, down or the same: follow the tune." }),
-      ex("2.5", { clip: "leap", piece: "basics-2-5", bpm: 80, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "A big jump needs only a small move the right way." }),
+      ex("2.1", { why: "Higher than your last touch: the tune goes up. How far doesn't matter, only the way.", noProve: true, clip: "up", piece: "basics-2-1", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Higher than your last touch." }),
+      ex("2.2", { why: "Lower than your last touch: the tune goes down.", noProve: true, clip: "down", piece: "basics-2-2", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Lower than your last touch." }),
+      ex("2.3", { why: "The same note again: touch the same spot. Don't move.", noProve: true, clip: "same", piece: "basics-2-3", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 3 }, hint: "Same note: touch the same spot." }),
+      ex("2.4", { why: "Up, down or the same: each touch follows the tune's way from the one before.", noProve: true, clip: "up", piece: "basics-2-4", bpm: 72, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "moves", need: 6 }, hint: "Up, down or the same: follow the tune." }),
+      ex("2.5", { why: "Even a big leap needs only a small move, the right way.", noProve: true, clip: "leap", piece: "basics-2-5", bpm: 80, side: "right", aids: ["rings", "arrow", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "A big jump needs only a small move the right way." }),
     ],
   },
   {
@@ -98,8 +106,8 @@ export const ACTS: readonly Act[] = [
     title: "TWO THUMBS",
     glenn: "One thumb? Nobody plays the piano with one finger. Share the notes between your thumbs: left, right, left. It's quicker, and it sounds better.",
     stages: [
-      ex("3.1", { clip: "two", piece: "basics-3-1", bpm: 60, aids: ["rings", "arrow", "sides", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "Left, right, left: take turns." }),
-      ex("3.2", { clip: "two", piece: "basics-3-1", bpm: 120, aids: ["rings", "arrow", "sides", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "Take turns; each thumb follows its own last touch." }),
+      ex("3.1", { why: "Two thumbs take turns. Each one follows its own last touch.", clip: "two", piece: "basics-3-1", bpm: 60, aids: ["rings", "arrow", "sides", "made", "gold"], pass: { kind: "clean", slips: 1 }, hint: "Left, right, left: take turns." }),
+      ex("3.2", { why: "Faster now. Taking turns is what makes it possible.", clip: "two", piece: "basics-3-1", bpm: 120, intro: SIGNS_LINE, aids: ["rings", "arrow", "sides", "made", "gold", "signs"], pass: { kind: "clean", slips: 1 }, hint: "Take turns; each thumb follows its own last touch." }),
     ],
   },
   {
@@ -107,8 +115,8 @@ export const ACTS: readonly Act[] = [
     title: "HOLDING",
     glenn: "Your thumb is the key. Keep it down and the note sings on; lift it and the note stops. Long notes, long holds.",
     stages: [
-      ex("4.1", { clip: "hold", piece: "basics-4-1", bpm: 66, aids: ["rings", "drain", "gold"], pass: { kind: "holds", holds: 3, rests: 0 }, hint: "Keep your thumb down until the block runs out." }),
-      ex("4.2", { clip: "lift", piece: "basics-4-2", bpm: 66, aids: ["rings", "drain", "lift", "gold"], pass: { kind: "holds", holds: 0, rests: 1 }, hint: "At a rest, lift your thumb." }),
+      ex("4.1", { why: "A long note sounds as long as your thumb stays down. Hold it to the end of the block.", clip: "hold", piece: "basics-4-1", bpm: 66, aids: ["rings", "drain", "gold", "signs"], pass: { kind: "holds", holds: 3, rests: 0 }, hint: "Keep your thumb down until the block runs out." }),
+      ex("4.2", { why: "A rest is silence: lift your thumb and let the note stop.", clip: "lift", piece: "basics-4-2", bpm: 66, aids: ["rings", "drain", "lift", "gold", "signs"], pass: { kind: "holds", holds: 0, rests: 1 }, hint: "At a rest, lift your thumb." }),
     ],
   },
   {
@@ -116,8 +124,8 @@ export const ACTS: readonly Act[] = [
     title: "A REAL FUGUE",
     glenn: "Now, a real fugue. Four voices, from one of his last works, and a damn fine one. You begin, alone, in the alto. The others will follow you.",
     stages: [
-      ex("5.1", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, aids: ["rings", "arrow", "gold", "drain", "lift"], pass: { kind: "share", share: 0.6 }, hint: "Follow the tune: up, down, the same." }),
-      ex("5.2", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 8, bpm: 44, solo: false, aids: ["rings", "gold", "drain", "lift"], pass: { kind: "share", share: 0.55 }, hint: "Yours are bright; the others play themselves.", cue: { bar: 5, text: "Listen: someone answers you with your own tune. That's a fugue. Theirs are dim, yours are bright. Keep going." } }),
+      ex("5.1", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, aids: ["rings", "arrow", "gold", "drain", "lift", "signs"], pass: { kind: "share", share: 0.6 }, hint: "Follow the tune: up, down, the same." }),
+      ex("5.2", { noProve: true, clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 8, bpm: 44, solo: false, aids: ["rings", "gold", "drain", "lift", "signs"], pass: { kind: "share", share: 0.55 }, hint: "Yours are bright; the others play themselves.", cue: { bar: 5, text: "Listen: someone answers you with your own tune. That's a fugue. Theirs are dim, yours are bright. Keep going." } }),
     ],
   },
   {
@@ -125,13 +133,13 @@ export const ACTS: readonly Act[] = [
     title: "MAKE IT SING",
     glenn: "Right notes at the right time: that's the game. Now make it music. Every sound listens to your thumbs in its own way, and none of it costs you points. Start with the piano: near the box it sings out, near the edge it whispers.",
     stages: [
-      ex("6.1", { clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
-      ex("6.2", { clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "join"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
-      ex("6.3", { clip: "short", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold"], pass: { kind: "tries", what: "short", need: 3 }, hint: "Touch and let go at once: short." }),
-      ex("6.4", { clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 53, skip: 2, count: 13, ornaments: true, light: true, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
-      ex("6.5", { clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "soloVoices", aids: ["rings", "gold"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
-      ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "gameboy", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
-      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "krautrock", drums: "liebezeit", aids: ["rings", "gold"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.1", { why: "Near the box a note sounds strong; out at the edge, soft. Same note, two colours.", clip: "strong", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "colour", need: 3 }, hint: "By the box: strong. By the edge: soft." }),
+      ex("6.2", { why: "Touch the next note before you lift the last: the sound joins, no gap.", clip: "legato", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "join", "signs"], pass: { kind: "tries", what: "joins", need: 3 }, hint: "Pass the note from thumb to thumb, no gap." }),
+      ex("6.3", { why: "Touch and let go at once: a short, crisp note.", clip: "short", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: PIANO, aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "short", need: 3 }, hint: "Touch and let go at once: short." }),
+      ex("6.4", { why: "A sign over a note: touch it, then rock your thumb. That's a trill.", clip: "shake", piece: "bwv1080-04", voice: 2, fromBar: 50, toBar: 53, skip: 2, count: 13, ornaments: true, light: true, bpm: 44, sound: "harpsichordSampled", aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "shake", need: 1 }, hint: "Touch the note, then rock your thumb." }),
+      ex("6.5", { why: "Keep your thumb down and glide to the next note: the sound slides.", clip: "slide", piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "soloVoices", aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "slide", need: 2 }, hint: "Keep your thumb down and glide to the next note." }),
+      ex("6.6", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "gameboy", aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
+      ex("6.7", { clip: null, piece: "bwv1080-01", voice: 1, fromBar: 1, toBar: 4, bpm: 44, light: true, sound: "krautrock", drums: "liebezeit", aids: ["rings", "gold", "signs"], pass: { kind: "tries", what: "any", need: 1 }, hint: "Play it your way." }),
     ],
   },
 ];
