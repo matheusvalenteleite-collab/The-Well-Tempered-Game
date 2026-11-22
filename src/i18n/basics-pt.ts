@@ -6,6 +6,7 @@ export const BASICS_PT: Record<string, string> = {
   ADVANCED: "AVANÇADO",
   "UNDER CONSTRUCTION": "EM CONSTRUÇÃO",
   CONTINUE: "CONTINUAR",
+  "TOUCH TO PLAY": "TOQUE PARA COMEÇAR",
   "I KNOW THIS": "JÁ SEI ISSO",
   "TO THE GAME": "PARA O JOGO",
   "YOU DID": "VOCÊ FEZ",

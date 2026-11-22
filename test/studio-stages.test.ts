@@ -16,6 +16,8 @@ const AOF = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "
 test("all 48 fugues have a world of their own, and only they; the Art of Fugue its one setting (D669)", () => {
   const ids = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
   assert.deepEqual([...STAGE_IDS].sort(), ids);
+  // D980: a WTC prelude in its fugue's world.
+  for (const id of ids) assert.ok(hasStage(id.replace("f", "p")), id);
   for (const id of AOF) assert.ok(hasStage(id), id);
   // D670: the Inventions and Sinfonias share the Songbirds.
   for (let b = 772; b <= 801; b++) assert.ok(hasStage(`bwv${b}`), `bwv${b}`);
@@ -31,7 +33,8 @@ test("all 48 fugues have a world of their own, and only they; the Art of Fugue i
   assert.ok(hasStage("bwv998-1") && hasStage("bwv998-2") && hasStage("bwv998-3"));
   // D677: the Goldberg Variations, the Night Watch.
   for (let v = 0; v <= 30; v++) assert.ok(hasStage(`bwv988-${String(v).padStart(2, "0")}`), `bwv988 ${v}`);
-  assert.ok(!hasStage("wtc1p01") && !hasStage(undefined));
+  // D980: a prelude in its fugue's world (above); nothing for no piece.
+  assert.ok(hasStage("wtc1p01") && !hasStage(undefined));
   const s = src("src/touch/stage-bg.ts");
   assert.ok(!/^  "bwv1080-/m.test(s), "no per-piece Art of Fugue world or script");
   assert.match(s, /test: \(id\) => id\.startsWith\("bwv1080-"\), world: constellation/);

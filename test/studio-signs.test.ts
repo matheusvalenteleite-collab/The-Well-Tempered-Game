@@ -60,8 +60,8 @@ test("the drawn join is the judge's; DETACHED asked only where the score has no 
 test("the thumbs: ● ○ under the notes from the plan, each bar's sign; no arrows, no ghost thumb, no drawn skin thumb", () => {
   const p = src("src/bench/paint-proto.ts");
   assert.match(p, /function thumbSigns\(/);
-  // D444: in the tutorial's lessons only (Options.quiet), never in the game itself.
-  assert.match(p, /if \(g\.proto\.id === "ladder" && rows && g\.o\.quiet\) thumbSigns\(c, w, h, bw, g, t\);/);
+  // D444: in the tutorial's lessons only (Options.quiet), never in the game itself; D992: not in BASICS until introduced.
+  assert.match(p, /if \(g\.proto\.id === "ladder" && rows && g\.o\.quiet && g\.o\.thumbSigns !== false\) thumbSigns\(c, w, h, bw, g, t\);/);
   assert.ok(!p.includes('d === 0 ? "=" : d > 0 ? "▲" : "▼"'), "no way arrow");
   assert.ok(!p.includes("function thumbCoach") && !p.includes("#f2c9a0"), "no skin-coloured thumb");
   assert.ok(!p.includes('"LEFT THUMB" : "RIGHT THUMB"'));

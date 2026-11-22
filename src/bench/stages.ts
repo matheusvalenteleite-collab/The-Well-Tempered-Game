@@ -13,6 +13,7 @@
  * HIGHWAY_LANES: one hand, D251: the prelude's own, not chosen), its fugue on LADDER (SUBJECT withdrawn);
  * on a computer both on the computer's HIGHWAY (keys).
  */
+import { preludeReady } from "../touch/prelude-plan.ts";
 import { APP } from "./config.ts";
 import type { TouchFugue } from "../touch/fugue.ts";
 import { betterGrade } from "./cards.ts";
@@ -136,7 +137,8 @@ function keep(id: string, grade: string, today: string): boolean {
  */
 export function stageMode(f: TouchFugue, platform: Platform, chosen: ProtoId): ProtoId {
   // D442: the Glenn pilot's preludes on a phone on LADDER, the fugues' screen (THE REVEAL, reveal.ts).
-  if (f.kind === "prelude") return platform === "computer" ? "keys" : APP.glennPilot ? "ladder" : "highway";
+  // D980 (reverses D229 for the ready preludes): the same game as the fugues, LADDER on a phone.
+  if (f.kind === "prelude") return platform === "computer" ? "keys" : APP.glennPilot || preludeReady(f.id) ? "ladder" : "highway";
   if (platform === "mobile") return "ladder";
   return chosen;
 }

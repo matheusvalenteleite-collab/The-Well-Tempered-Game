@@ -1342,6 +1342,11 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .basics2-go { color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; }
 .basics2-skip { color: var(--tg-fg); background: transparent; border: 1px solid #78789f; }
 .basics2-cliplayer { cursor: pointer; }
+/* D991: the clip loops until touched; TOUCH TO PLAY over its empty top, breathing (1.6 s: slower than once a second). */
+.basics2-clipwrap { position: relative; display: inline-block; }
+.basics2-touch { position: absolute; left: 0; right: 0; top: 5%; margin: 0; text-align: center; color: #f3d78a; font: 700 clamp(11px, 2.4vw, 16px)/1 var(--tg-font, monospace); letter-spacing: 0.12em; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); animation: basics2-breathe 1.6s ease-in-out infinite; pointer-events: none; }
+@keyframes basics2-breathe { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .basics2-touch { animation: none; opacity: 0.85; } }
 .basics2-clip { width: min(640px, 92vw, calc(82vh * 16 / 9)); height: auto; border: 2px solid #78789f; box-shadow: 3px 3px 0 #0a0810; background: #1d1a24; }
 .basics2-hintlayer { background: rgba(10, 8, 16, 0.5); cursor: pointer; }
 .basics2-hint { margin: 0; padding: 10px 14px; max-width: min(520px, 100%); font-family: var(--tg-pixel); font-size: 9px; line-height: 1.7; color: #2a2216; background: var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; text-align: center; }
