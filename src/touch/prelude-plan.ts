@@ -1,7 +1,7 @@
 /**
  * D881-D885: THE WTC PRELUDES IN THE MAIN GAME, the per-piece plan (docs/audits/PRELUDES-PLAN.md; the board's rulings for
  * the owner): which voices a prelude offers (the others still sound, by the game: voice-mode.ts `voicesFrom`), at which
- * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). Book I 1-12 so far.
+ * tempo, and which are held back. Voice numbers are data/touch/pieces.json's (highest first). Book I so far.
  */
 export interface PreludePlan {
   /** The voices the player may take. */
@@ -26,6 +26,19 @@ export const PRELUDE_PLAN: Readonly<Record<string, PreludePlan>> = {
   wtc1p10: { offer: [0], why: "an ornate melody over broken chords: the melody (D881)" },
   wtc1p11: { offer: [0, 1], why: "two-part, as an invention" },
   wtc1p12: { offer: [0, 1, 2, 3], why: "four voices (D881; voiced after Mutopia, CC BY-SA 4.0)" },
+  // D888-D891: batch 2, Book I 13-24.
+  wtc1p13: { offer: [0, 1], why: "two-part: a tune over an accompanying motif" },
+  wtc1p14: { offer: [0, 1], why: "two-part, invention-like (D891: at the ceiling)" },
+  wtc1p15: { offer: [0, 1], why: "two-part figuration, the hands swapping the figure (D891)" },
+  wtc1p16: { offer: [0, 1, 2], why: "three voices: a trilled soprano, an alto, a bass (D888)" },
+  wtc1p17: { offer: [0, 1], why: "concerto-like: a tune over a broken-chord bass, not dull by any test (D891)" },
+  wtc1p18: { offer: [0, 1, 2], why: "three-part, sinfonia-like (D888)" },
+  wtc1p19: { offer: [0, 1, 2], why: "three-part, imitative; the middle voice crossing the hands (D888)" },
+  wtc1p20: { offer: [0, 1], why: "two-part, invention-like (D891)" },
+  wtc1p21: { offer: [0], tempo: "slow", why: "toccata: the right hand, at the slow tempo (D889)" },
+  wtc1p22: { offer: [0], why: "a five-part arioso: the melody alone (D890)" },
+  wtc1p23: { offer: [0, 1, 2], why: "three-part, imitative (D888)" },
+  wtc1p24: { offer: [0, 1, 2], why: "a trio: two upper voices over a walking bass (D888)" },
 };
 /**
  * D882: the one deliberate exception to D864's dull-lines rule (the board for the owner): I/1's right hand, whose bars
