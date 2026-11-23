@@ -823,10 +823,16 @@ export const KRAUT2_TRIM_DB = -11.2;
  */
 export const KRAUT2_BUS_THRESHOLD = -11;
 export const KRAUT2_FUZZ_DB = 5;
-export const KRAUT2_TOP: EqBand[] = [{ type: "peaking", hz: 90, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: 0.6 }];
+/**
+ * D1010: a gentle top's Q, as the Web Audio API reads a lowpass's Q (in dB: the resonance 10^(Q/20)): a Butterworth's (a
+ * resonance of 1/sqrt 2), flat under the corner and no peak. Preset.top's (chip.ts bandChain); D1012: D931's tops too (their
+ * 0.6, a resonance of 1.07, peaked about +1.4 dB at 7-9 kHz).
+ */
+export const TOP_Q = 20 * Math.log10(Math.SQRT1_2);
+export const KRAUT2_TOP: EqBand[] = [{ type: "peaking", hz: 90, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: TOP_Q }];
 export const ABBEY2_BUS_THRESHOLD = -19;
 export const ABBEY2_MOOG_DB = 1.5;
-export const ABBEY2_TOP: EqBand[] = [{ type: "peaking", hz: 110, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: 0.6 }];
+export const ABBEY2_TOP: EqBand[] = [{ type: "peaking", hz: 110, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: TOP_Q }];
 /** D575: the guitar's tape echo, a colour (was mix 0.5, feedback 0.38, full band): its repeats' level, their regeneration, their band. */
 export const KRAUT_ECHO = { feedback: 0.24, mix: 0.2, hp: 300, lp: 2600 } as const;
 // D931: -7.1 (-11.5 before): the band's whole level where it was on the phone model without the bus tape's gain.

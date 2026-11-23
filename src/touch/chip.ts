@@ -33,7 +33,7 @@ import { BREAKS_OFF, tempoOf } from "./tempi.ts";
 import { emitMusic, setOutputLevel, type LiveKind } from "./music-events.ts";
 import { stageMode } from "./stage-bg.ts";
 import { CURVE_SOUND, SFX_SOUND, flowEnv, isFlow, modsAt, sfxKindsNow, sfxPlan, shotEnv, shotLen, swellEnv, swellSurge, tpsOf, type SfxKind } from "./world-sfx.ts";
-import { buildChain, type BandChain } from "./band-fx.ts";
+import { buildChain, TOP_Q, type BandChain } from "./band-fx.ts";
 
 /** D357: the ROOM in force for a preset (room.ts), or null where the preset's reverb is its own. */
 const roomOf = (presetId: string): RoomId | null => (hasRoom(presetId) ? liveRoom() : null);
@@ -129,6 +129,8 @@ export const VOICE_CAP = { phone: 32, computer: 64, phoneSustained: 18 };
  * `least` s; at most `max` of them a note.
  */
 export const CHAIN = { xf: 0.3, points: 10, tries: 6, spread: 0.8, least: 1.2, max: 16 };
+/** D1010: the Q of a sound's own top (Preset.top): band-fx.ts TOP_Q, a Butterworth's. */
+export { TOP_Q };
 /**
  * D249: on a phone, a sustained recorded sound (the organ: 10-16 nodes a note, every note held on its
  * loop) has the lower cap, and ORGANO PLENO's extra pipes count against it, one each.
@@ -1433,7 +1435,10 @@ export class Chip {
   /** D540: the band chain the preset now asks for, built or taken down (its tail let ring out, then disconnected). */
   private bandChain() {
     const spec = preset().chain ?? null;
-    if ((this.chain?.spec ?? null) === spec) return;
+    // D1010: a sound's own top (Preset.top), where it has no chain: a gentle lowpass between the notes' way in and the master.
+    const top = spec ? 0 : (preset().top ?? 0);
+    if ((this.chain?.spec ?? null) === spec && this.topHz === top) return;
+    this.topHz = top;
     const old = this.chain;
     this.chain = null;
     this.laneMine.clear();
@@ -1457,8 +1462,20 @@ export class Chip {
       this.bandIn.connect(this.chain.input);
       this.chain.output.connect(this.master);
       if (this.lastBeatS) this.chain.setBeat(this.lastBeatS);
+    } else if (top) {
+      if (!this.top) {
+        this.top = this.ctx.createBiquadFilter();
+        this.top.type = "lowpass";
+        this.top.Q.value = TOP_Q;
+        this.top.connect(this.master);
+      }
+      this.top.frequency.value = top;
+      this.bandIn.connect(this.top);
     } else this.bandIn.connect(this.master);
   }
+  /** D1010: the sound's own top (Preset.top) now, 0 for none; its lowpass, made the first time a sound asks for one. */
+  private topHz = 0;
+  private top: BiquadFilterNode | null = null;
 
   /** Where a voice of one's own joins the sound (the testbench's instruments, D170). */
   get input(): AudioNode {
