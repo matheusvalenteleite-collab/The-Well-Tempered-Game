@@ -37,6 +37,12 @@ export const DULL_VOICES: Readonly<Record<string, readonly number[]>> = {
   "bwv1065-2": [1, 3, 5, 7], // the four harpsichords' left hands: 66-77% repeated pitches
   "bwv54-1": [2, 3, 5], // the violas' and the continuo's throbbing quavers: 57-62% repeated pitches
   "bwv1063-2": [1], // Harpsichord I's left hand: 53% repeated pitches
+  // D964: the Musical Offering's (the yardstick on the new pieces): canon 3b's bass, the royal theme in long notes as a
+  // cantus firmus (0.59 notes a second); the trio sonata's slow movements' continuo, throbbing (the Largo's 39% repeated
+  // pitches; the Andante's bars repeating the bar before, 17%, and made of their first half twice, 17%).
+  "bwv1079-3b": [2],
+  "bwv1079-8a": [2],
+  "bwv1079-8c": [2],
 };
 
 /** The voices that still sing from a tick on. */

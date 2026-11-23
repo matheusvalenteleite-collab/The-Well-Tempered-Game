@@ -1,0 +1,47 @@
+# THE MUSICAL OFFERING'S CANONS AND SONATA: THEIR ENTRIES (D964), in data/wtc/expert-entries.txt's grammar (D707's
+# dux / comes for a canon's leader and follower). Each canon's leader and follower as the canon-rule checker finds
+# them (tools/touch/canon-check.ts: the rule, the delay, the voice that leads), placed at their first notes ("at",
+# n= notes long, no fitting: the crab's follower runs backwards, which no finder reads). Bars as the game numbers
+# them (the rounds taken, D964). The ricercars' entries are the finders' (D340), not listed here.
+
+== bwv1079-3a | G
+1+0 U dux at n=8 len=4   # the line forwards
+1+0 L comes at n=8   # the same line backwards, at the unison (cancrizans)
+
+== bwv1079-3b | G
+1+1 S dux at n=8 len=4   # Violin I
+2+1 A comes at n=8   # Violin II at the unison, a bar later
+
+== bwv1079-3c | G
+1+0.25 B dux at n=8 len=4   # the lower line
+1+2.25 A comes inv at n=8   # by contrary motion, half a bar later
+
+== bwv1079-3d | G
+1+0.75 B dux at n=8 len=4   # the lower line
+1+2.5 S comes inv aug at n=8   # by augmentation and contrary motion
+
+== bwv1079-3e | G
+1+0.25 B dux at n=8 len=4   # the lower line
+2+0.25 A comes at n=8   # at the fifth above, a bar later (the canon rising a tone each round)
+
+== bwv1079-4 | G
+1+0 A dux at n=8 len=4   # the middle voice
+11+0 S comes at n=8   # at the fifth above (epidiapente), ten bars later
+
+== bwv1079-2 | G
+1+0.75 S dux at n=8 len=4   # the upper line
+2+0.75 B comes at n=8   # two octaves below, a bar later
+
+== bwv1079-9 | G
+1+1 S dux at n=8 len=4   # the upper line
+3+1 A comes inv at n=8   # in exact contrary motion (per giusti intervalli), two bars later
+
+== bwv1079-6 | G
+1+3 U dux at n=8 len=4   # the upper line
+4+1 L comes inv at n=8   # by contrary motion, two and a half bars later (the first solution)
+
+== bwv1079-7 | G
+1+1 S dux at n=8 len=4   # the first entry (the voices in the order they enter: S A T B the first to the fourth)
+8+1 A comes at n=8   # the second, an octave below, seven bars later
+15+1 T comes at n=8   # the third, at the first's pitch
+22+1 B comes at n=8   # the fourth, an octave below

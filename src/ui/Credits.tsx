@@ -43,6 +43,13 @@ export function Credits({ onClose }: { onClose(): void }) {
           concerto: he left only nine bars; verits99's "trial reconstruction based on BWV 35" (CC0 1.0) completes it from Cantata 35's
           two sinfonias and the aria "Gott hat alles wohlgemacht".
         </p>
+        <p>
+          The MUSICAL OFFERING's canons, its Fuga canonica and its trio sonata (D964): verits99's musescore.com scores (CC0 1.0), the
+          crab canon Roland Bouman's (CC0 1.0), as kept in the PDMX dataset (Long, Novack, Berg-Kirkpatrick and McAuley, 2024).
+          Credited though CC0 asks for nothing. The canons' solutions checked against Nuno Rodrigues's edition (IMSLP, 2022) and the
+          trio sonata against Craig Stuart Sapp's encoding of the Bach-Gesellschaft (github.com/craigsapp/bach-musical-offering):
+          read as checks only, none of their notes shipped.
+        </p>
         <h3>Software and sounds</h3>
         <p>VexFlow (MIT), React (MIT), smplr (MIT). MP3 export: lamejs (@breezystack/lamejs, LGPL-3.0; source at github.com/breezystack/lamejs), a JavaScript port of LAME. Other sounds are synthesized in the browser.</p>
         <p>
