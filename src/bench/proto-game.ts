@@ -14,6 +14,7 @@
 import { BREAKS_OFF } from "../touch/tempi.ts";
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
 import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { shakeVoice } from "../touch/shake-voice.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -259,7 +260,7 @@ interface Held {
    * the note's end ([onset, length, MIDI] in ticks, the realisation's), the next to sound, the tick of
    * the last leg (it settles on the main note MECH.trillStopMs after it), and whether it has settled.
    */
-  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed; piano?: PianoTrill };
+  trill?: { parts: [number, number, number][]; next: number; last: number; main: number; v: ReturnType<typeof voicing>; play: Play; settled: boolean; live: { sd: Sounding; end: number }[]; nachschlag?: boolean; rec?: Performed; piano?: PianoTrill; carrier?: Sounding; tau?: number; hammer?: { level: number; lp: number } };
   /** D385: the landing on a written trill struck its upper note (the piano: no main note first). */
   upperStruck?: boolean;
   /** D272: its note is one the reading wants short (staccato): judged so at its end. */
@@ -2849,12 +2850,23 @@ export class ProtoGame {
   private soundParts(h: Held, parts: [number, number, number][], t: number, v: ReturnType<typeof voicing>, play: Play, rec: Performed, detachLast = false) {
     const now = this.chip.ctx.currentTime;
     if (h.trill) h.trill.settled = true;
+    // D1040 draft: the shake's own voice (shake-voice.ts): one note carrying the ornament's pitches (a slur), or each its own attack.
+    const sv = shakeVoice(preset().id, v.patch);
+    const carrier = sv?.kind === "slur" ? h.sounds.find((x) => x.glide) : undefined;
+    if (sv?.kind === "slur" && carrier) {
+      for (const sd of h.sounds) if (sd !== carrier) sd.stop(now + 0.02);
+      for (const [pon, , pm] of parts) carrier.glide!(pm, sv.tau, now + Math.max(0, this.timeAt(pon) - this.timeAt(t)));
+      h.sounds = [carrier];
+      rec.parts.push(...parts);
+      return;
+    }
     for (const sd of h.sounds) sd.stop(now + 0.02);
     h.sounds = parts.map(([pon, pdur, pm], k) => {
       const at = now + Math.max(0, this.timeAt(pon) - this.timeAt(t));
       const last = k === parts.length - 1;
       // The Schneller's last note detached (I.2.8 §3: "never tied and never slurred").
-      return this.touchNote(pm, at, last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), v, { ...play, legato: !(last && detachLast) });
+      const hammer = sv?.kind === "hammer" && k > 0 ? { level: (play.level ?? 1) * sv.level, lp: Math.min(play.lp ?? Infinity, sv.lp) } : {};
+      return this.touchNote(pm, at, last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon)), v, { ...play, ...hammer, legato: !(last && detachLast) });
     });
     rec.parts.push(...parts);
   }
@@ -2878,10 +2890,13 @@ export class ProtoGame {
     // D385: on the piano a pianist's trill (piano-trill.ts); begun after the landing struck its upper note
     // (upperStruck), it goes on from the main note, and the upper note rings into it (no dry cut).
     const ptr = this.pianoTrillOf(parts, main, h.upperStruck || this.whole ? "main" : "upper", nachschlag);
-    for (const sd of h.sounds) sd.stop(now + (ptr ? PIANO_TRILL.overlap : 0.02));
-    h.sounds = [];
+    // D1040 draft: the shake's own voice (shake-voice.ts): a slur keeps the sounding note and moves its pitch.
+    const sv = ptr ? null : shakeVoice(preset().id, v.patch);
+    const carrier = sv?.kind === "slur" ? h.sounds.find((x) => x.glide) : undefined;
+    for (const sd of h.sounds) if (sd !== carrier) sd.stop(now + (ptr ? PIANO_TRILL.overlap : 0.02));
+    h.sounds = carrier ? [carrier] : [];
     h.upperStruck = false;
-    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}) };
+    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play, settled: false, live: carrier ? [{ sd: carrier, end: Infinity }] : [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}), ...(carrier && sv?.kind === "slur" ? { carrier, tau: sv.tau } : {}), ...(sv?.kind === "hammer" ? { hammer: { level: sv.level, lp: sv.lp } } : {}) };
     this.trillStep(h, t);
   }
   /** D385: a trill's realisation as a pianist plays it, on the piano only (undefined elsewhere, or no room). */
@@ -2894,6 +2909,10 @@ export class ProtoGame {
     const p = r.piano;
     if (!p || i >= p.db.length) return play;
     return { ...play, level: (play.level ?? 1) * 10 ** (p.db[i] / 20), dampMul: PIANO_TRILL.dampMul, altSample: p.partner[i] };
+  }
+  /** D1040 draft: a hammered trill note's Play (shake-voice.ts "hammer"): softer and darker than the pluck. */
+  private hammerPlay(r: NonNullable<Held["trill"]>): Partial<Play> {
+    return r.hammer ? { level: (r.play.level ?? 1) * r.hammer.level, lp: Math.min(r.play.lp ?? Infinity, r.hammer.lp) } : {};
   }
   /** D319: a leg of the shake: the trill goes on. */
   private trillOn(h: Held, t: number) {
@@ -2930,13 +2949,20 @@ export class ProtoGame {
           const at = audioAt(from);
           const len = Math.max(0.03, this.timeAt(from + g) - this.timeAt(from));
           const ov = r.piano ? PIANO_TRILL.overlap : 0;
+          if (r.carrier) {
+            r.carrier.glide!(pm, r.tau, at);
+            r.rec?.parts.push([from, g, pm]);
+            from += g;
+            continue;
+          }
           keep(this.touchNote(pm, at, len + ov, r.v, r.piano ? { ...r.play, legato: true, dampMul: PIANO_TRILL.dampMul, level: (r.play.level ?? 1) * 10 ** (PIANO_TRILL.auxDb / 20) } : { ...r.play, legato: true }), at + len + ov);
           r.rec?.parts.push([from, g, pm]);
           from += g;
         }
       }
       const at = audioAt(from);
-      keep(this.touchNote(r.main, at, HOLD_MAX, r.v, { ...r.play, legato: true }), at + HOLD_MAX);
+      if (r.carrier) r.carrier.glide!(r.main, r.tau, at);
+      else keep(this.touchNote(r.main, at, HOLD_MAX, r.v, { ...r.play, ...this.hammerPlay(r), legato: true }), at + HOLD_MAX);
       r.rec?.parts.push([from, Math.max(1, end - from), r.main]);
       r.next = r.parts.length;
       r.settled = true;
@@ -2948,7 +2974,8 @@ export class ProtoGame {
       const last = r.next === r.parts.length - 1;
       const at = audioAt(pon);
       const len = (last ? HOLD_MAX : Math.max(0.03, this.timeAt(pon + pdur) - this.timeAt(pon))) + (r.piano?.over[r.next] ?? 0);
-      keep(this.touchNote(pm, at, len, r.v, this.trillPlay(r, r.next, { ...r.play, legato: true })), at + len);
+      if (r.carrier) r.carrier.glide!(pm, r.tau, at);
+      else keep(this.touchNote(pm, at, len, r.v, this.trillPlay(r, r.next, { ...r.play, ...(r.next > 0 ? this.hammerPlay(r) : {}), legato: true })), at + len);
       r.rec?.parts.push([pon, pdur, pm]);
       r.next++;
     }
