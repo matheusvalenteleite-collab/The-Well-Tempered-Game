@@ -34,7 +34,7 @@ test("D297: the ten new presets follow the five; no piece opens on them; phrased
     // D340: but the MORE BACH and CHORALES tabs' asked-for exceptions (the chorales and the Ricercar a 6 on PIPE ORGAN, BWV 1043 on SUPER 16-BIT). D348: and the harpsichord concertos.
     // D355: and the pieces given a sound of their own (tools/touch/colour-plans).
     // D980: a ready prelude on its fugue's sound, by its fugue's plan.
-    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !COLOURS[p] && !(preludeReady(p) && COLOURS[fugueOfPrelude(p)]) && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
+    assert.ok(!Object.entries(PIECE_SOUND).some(([p, s]) => s === id && !COLOURS[p] && !(preludeReady(p) && COLOURS[fugueOfPrelude(p)]) && !/^(chor\d{3}|bwv1043-\d|bwv1079-ric6|bwv1079-8[a-d]|bwv228-\d|bwv54-\d|bwv10(5[2-9]|6[0-5])-\d)$/.test(p)), id);
     // D305: VOCAL SYNTH sung as singers sing.
     // D309: PIPE ORGAN the organ's way, SOLO VOICES the singers' legato.
     assert.equal(styleOf(id), id === "vocalSynth" ? "sung" : id === "chamberOrgan" ? "organ" : id === "soloVoices" ? "solo" : "plain");

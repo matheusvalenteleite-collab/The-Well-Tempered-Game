@@ -1695,6 +1695,9 @@ export const PRESETS: Preset[] = [
     pieces: {
       "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM3", 0, 0.285], ["s16Cello", 0]] },
       "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM3", 0, 0.285], ["s16Bassoon", 0]] },
+      // D964: the Musical Offering's trio sonata as Bach scored it: the flute left, the violin right, the continuo's bass on
+      // the cello alone in the middle (a bass instrument, no chords: Bach's figures are not realized). Levels unmeasured.
+      ...Object.fromEntries(["8a", "8b", "8c", "8d"].map((m) => [`bwv1079-${m}`, { 3: [["s16Flute", -0.2], ["s16Violin", 0.2], ["s16Cello", 0]] }])),
     },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,

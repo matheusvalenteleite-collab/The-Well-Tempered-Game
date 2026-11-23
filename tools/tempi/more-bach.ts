@@ -34,6 +34,10 @@ const REFERENCE: Record<string, number> = {
   "bwv1080-c14": 72, "bwv1080-c15": 63 /* ♪. = 84 */, "bwv1080-c16": 75 /* ♩. = 50 */, "bwv1080-c17": 96,
   // The Musical Offering.
   "bwv1079-ric3": 88, "bwv1079-ric6": 72,
+  // D964: the canons, the Fuga canonica and the trio sonata (editorial: a moderate, historically informed pace).
+  "bwv1079-3a": 72, "bwv1079-3b": 60, "bwv1079-3c": 60, "bwv1079-3d": 54, "bwv1079-3e": 60, "bwv1079-4": 88 /* 𝅗𝅥 = 44 */,
+  "bwv1079-2": 56, "bwv1079-9": 84 /* 𝅗𝅥 = 42 */, "bwv1079-6": 76, "bwv1079-7": 66,
+  "bwv1079-8a": 48 /* Largo */, "bwv1079-8b": 100 /* Allegro, 2/4 */, "bwv1079-8c": 56 /* Andante */, "bwv1079-8d": 88 /* Allegro, ♩. = 59 */,
   // The Inventions.
   bwv772: 72, bwv773: 66, bwv774: 69 /* ♩. = 46 */, bwv775: 75 /* ♩. = 50 */, bwv776: 72, bwv777: 66 /* ♩. = 44 */,
   bwv778: 60, bwv779: 112, bwv780: 72, bwv781: 90 /* ♩. = 60 */, bwv782: 60, bwv783: 84 /* ♩. = 56 */,

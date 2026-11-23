@@ -316,7 +316,9 @@ function ExtraCard({ id, n, done, grade, score, open, hear, compact = false, sou
   const word = pieceWord(f);
   // The unfinished fugue (pieces.json, D169) has a card of its own: its formal title.
   const name = f.short ?? popTitle(id).split(" · ").at(-1) ?? f.title.toUpperCase();
-  const sub = !f.short ? "FUGA A 3 SOGGETTI · UNFINISHED" : f.title.toUpperCase() !== f.short ? f.title.toUpperCase() : "DIE KUNST DER FUGE";
+  // D964: a card whose title is its label names its work: the Musical Offering's (the ricercars and the Canon a 4 read
+  // DIE KUNST DER FUGE before), else the Art of Fugue's.
+  const sub = !f.short ? "FUGA A 3 SOGGETTI · UNFINISHED" : f.title.toUpperCase() !== f.short ? f.title.toUpperCase() : f.collection === "mo" ? "MUSIKALISCHES OPFER" : "DIE KUNST DER FUGE";
   const stamp = grade ? (
     <span className="tb-lite-grade" id={`grade-${id}`} style={{ ["--grade" as string]: GRADE_INK[grade] ?? "var(--tg-shine)" }} aria-label={tr("BEST GRADE {g}", { g: grade })}>
       {grade}

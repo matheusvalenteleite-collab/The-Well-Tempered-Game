@@ -58,6 +58,20 @@ interface Spec {
    * first range's. Instead of fromBar/toBar.
    */
   xmlRanges?: [from: number, to: number][];
+  /** D964: the file read transposed (the PDMX Musical Offering is written a semitone low, to sound at A = 415 Hz). */
+  xmlTranspose?: { chromatic: number; diatonic: number };
+  /**
+   * D964: written-out trills folded back into their main note with a trill sign (the game adds no notes): a run of four
+   * or more notes of a thirty-second or less, each where the last ends, alternating between neighbours a semitone or a
+   * tone apart, with its termination (the note below, then the main note); the main note the lower one.
+   */
+  foldTrills?: true;
+  /** D964: layers left out on purpose (an editor's continuo realization: the game plays Bach's bass alone). */
+  xmlDrop?: string[];
+  /** D964: voices moved by octaves (a canon's solution as printed: the Canon a 4's lower entries, the crab canon at the unison). */
+  octaves?: Record<number, number>;
+  /** D964: the last bar ends on its first chord: the voices named keep only the notes they strike at its start, the others are silent in it. */
+  endChord?: number[];
   /** D757: xmlRanges counted by the file's measures (from 1), not their written numbers (the Goldberg's restart and repeat); the bars keep their place in the piece (a first ending left out leaves a gap). */
   xmlByIndex?: boolean;
   /** D757: the edition's ornament signs and appoggiaturas kept, as kern's signs on their notes (TouchFugue.ornaments): never written out. */
@@ -254,6 +268,72 @@ const MO: Spec[] = [
     credit: AOF_CREDIT,
   },
 ];
+
+/**
+ * D964: THE MUSICAL OFFERING MADE WHOLE (the owner: "I want it complete"; docs/audits/MUSICAL-OFFERING-PLAN.md): the
+ * ten canons and the trio sonata from PDMX (data/sources/musical-offering/SOURCE.md): MuseScore user verits99's set,
+ * CC0, written a semitone low for A = 415 Hz and read up a semitone; the crab canon Roland Bouman's (CC0). Each canon's
+ * solution checked by its rule (tools/touch/canon-check.ts) and against Nuno Rodrigues's printed resolutions; the trio
+ * against Sapp's kern. The perpetual canons once through with the print's repeat, ending where Rodrigues ends (bars of
+ * the file's written-out rounds); the trills the file writes out folded back into signs; the editor's continuo
+ * realization left out (Bach's bass alone). BWV numbers the traditional ones (as Ricercar a 6, 1079/5).
+ */
+const MO_PDMX = "MUSESCORE USER VERITS99 (PDMX) · CC0";
+const MO_UP = { chromatic: 1, diatonic: 1 };
+const moPiece = (o: Partial<Spec> & Pick<Spec, "id" | "number" | "title" | "short" | "bwv" | "xml" | "xmlRanges" | "xmlVoices" | "voiceNames">): Spec => ({
+  collection: "mo",
+  key: "c",
+  dir: "musical-offering",
+  mutopia: 0,
+  xmlDir: "pdmx",
+  xmlTranspose: MO_UP,
+  foldTrills: true,
+  keepOrnaments: true,
+  entries: false,
+  credit: MO_PDMX,
+  ...o,
+});
+const MO_CANONS: Spec[] = [
+  moPiece({ id: "bwv1079-3a", number: 3, title: "Canon a 2 cancrizans", short: "CANON · CANCRIZANS", bwv: "1079/3a", xml: "143009.mxl", xmlTranspose: undefined, xmlParts: [0], xmlRanges: [[1, 18]], xmlVoices: ["1:1", "1:2"], octaves: { 1: 1 }, voiceNames: ["Forwards", "Backwards"], credit: "MUSESCORE USER ROLAND BOUMAN (PDMX) · CC0" }),
+  moPiece({ id: "bwv1079-3b", number: 4, title: "Canon a 2 violini in unisono", short: "CANON · IN UNISONO", bwv: "1079/3b", xml: "234011.mxl", xmlParts: [0, 1], xmlRanges: [[1, 24], [33, 33]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], voiceNames: ["Violin I", "Violin II", "Bass (the theme)"] }),
+  moPiece({ id: "bwv1079-3c", number: 5, title: "Canon a 2 per motum contrarium", short: "CANON · CONTRARY MOTION", bwv: "1079/3c", xml: "234061.mxl", xmlParts: [0, 1], xmlRanges: [[1, 11], [16, 16]], xmlVoices: ["0:1:1", "1:2:5", "1:1:1"], voiceNames: ["The theme", "Upper", "Lower"] }),
+  moPiece({ id: "bwv1079-3d", number: 6, title: "Canon a 2 per augmentationem, contrario motu", short: "CANON · AUGMENTATION", bwv: "1079/3d", xml: "235391.mxl", xmlParts: [0, 1], xmlRanges: [[1, 37]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], voiceNames: ["Upper", "The theme", "Lower"] }),
+  moPiece({ id: "bwv1079-3e", number: 7, title: "Canon a 2 per tonos", short: "CANON · PER TONOS", bwv: "1079/3e", xml: "235326.mxl", xmlParts: [0, 1], xmlRanges: [[1, 49]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], voiceNames: ["The theme", "Upper", "Lower"] }),
+  moPiece({ id: "bwv1079-4", number: 8, title: "Fuga canonica in Epidiapente", short: "FUGA CANONICA", bwv: "1079/4", xml: "237496.mxl", xmlParts: [0, 1], xmlRanges: [[1, 78]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], voiceNames: ["Upper", "Middle", "Continuo"] }),
+  moPiece({ id: "bwv1079-2", number: 9, title: "Canon perpetuus super Thema Regium", short: "CANON PERPETUUS", bwv: "1079/2", xml: "237336.mxl", xmlParts: [0, 1], xmlRanges: [[1, 12], [18, 20]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], voiceNames: ["Upper", "The theme", "Lower"] }),
+  moPiece({ id: "bwv1079-9", number: 10, title: "Canon perpetuus (contrario motu)", short: "CANON PERPETUUS · CONTRARY MOTION", bwv: "1079/9", xml: "238486.mxl", xmlParts: [0, 1], xmlRanges: [[1, 62], [33, 45]], xmlVoices: ["0:1:1", "1:1:1", "1:2:5"], endChord: [1, 2], voiceNames: ["Upper", "Lower", "Continuo"] }),
+  moPiece({ id: "bwv1079-6", number: 11, title: "Canon a 2 \"Quaerendo invenietis\"", short: "CANON A 2 · QUAERENDO", bwv: "1079/6", xml: "238516.mxl", xmlParts: [0], xmlRanges: [[1, 41]], xmlVoices: ["1:1", "2:5"], voiceNames: ["Upper", "Lower"] }),
+  moPiece({ id: "bwv1079-7", number: 12, title: "Canon a 4", short: "CANON A 4", bwv: "1079/7", xml: "238991.mxl", xmlParts: [0, 1], xmlRanges: [[1, 50]], xmlVoices: ["0:1:1", "0:2:5", "1:1:1", "1:2:5"], octaves: { 1: -1, 3: -1 }, voiceNames: ["First", "Second", "Third", "Fourth"] }),
+];
+const TRIO_VOICES = ["Flute", "Violin", "Continuo"];
+const MO_TRIO: Spec[] = (
+  [
+    ["Largo", "230326.mxl", [[1, 16], [33, 63], [96, 96]]],
+    ["Allegro", "232966.mxl", [[1, 250]]],
+    ["Andante", "233106.mxl", [[1, 30]]],
+    ["Allegro", "233216.mxl", [[1, 113]]],
+  ] as [string, string, [number, number][]][]
+).map(([tempo, xml, xmlRanges], i) =>
+  moPiece({
+    id: `bwv1079-8${"abcd"[i]}`,
+    number: 13 + i,
+    title: `Sonata sopr'il Soggetto Reale: ${["I", "II", "III", "IV"][i]}. ${tempo}`,
+    short: `TRIO SONATA · ${tempo.toUpperCase()}`,
+    bwv: `1079/8${"abcd"[i]}`,
+    xml,
+    xmlParts: [0, 1],
+    xmlRanges,
+    xmlVoices: ["0:1:1", "0:2:5", "1:2:5"],
+    xmlDrop: ["1:1:1"],
+    voiceNames: TRIO_VOICES,
+    // The two Allegros are fugal (their entries the finders'); the Largo and the Andante are not.
+    entries: i === 1 || i === 3,
+    // The subjects given (the finders take a one-bar motive, or the bass's own figure): the finale's the flute's first twelve notes, the violin's answer.
+    // The Allegro's: the violin's first twelve notes, the flute's answer (bar 10).
+    ...(i === 3 ? { theme: { subject: [0, 1, 12] as [number, number, number], answer: [1, 9, 12] as [number, number, number] } } : {}),
+    ...(i === 1 ? { theme: { subject: [1, 1, 12] as [number, number, number], answer: [0, 10, 12] as [number, number, number] } } : {}),
+  }),
+);
 
 const KEYS = ["C", "c", "D", "d", "Eb", "E", "e", "F", "f", "G", "g", "A", "a", "Bb", "b"];
 const INV_MUTOPIA = [40, 58, 70, 67, 55, 159, 73, 61, 171, 62, 71, 174, 59, 72, 68];
@@ -1019,7 +1099,7 @@ const GOLDBERG: Spec[] = [
   }))(),
 ].sort((a, b) => a.number - b.number);
 
-export const SPECS: Spec[] = [...AOF, ...MO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
+export const SPECS: Spec[] = [...AOF, ...MO, ...MO_CANONS, ...MO_TRIO, ...INV, ...SIN, ...DUETS, ...KEYBOARD, ...GOLDBERG, ...CONCERTO, ...VOCAL];
 
 /**
  * D361: a sung part is one line, the MusicXML voice(s) carrying its words. Another voice written on its
@@ -1047,10 +1127,52 @@ export function sungLine(x: XmlScore, i: number, kept: readonly number[]): { not
   return { notes, dropped };
 }
 
+/**
+ * D964: a written-out trill folded back into its main note (Spec.foldTrills): a run of at least four notes of a
+ * thirty-second or less, each starting where the last ends, alternating between two notes a semitone or a tone apart
+ * (and its termination, the note below the main note and the main note); the main note is the lower, and takes the
+ * run's time. Checked against Sapp's kern of the trio sonata, whose trills are signs (D964).
+ */
+export function foldTrills(v: Note[], short = TPQ / 8): { notes: Note[]; trills: { on: number; midi: number }[] } {
+  const out: Note[] = [];
+  const trills: { on: number; midi: number }[] = [];
+  const near = (a: number, b: number) => [1, 2].includes(Math.abs(a - b));
+  for (let i = 0; i < v.length; ) {
+    const ok = (k: number) => v[k][1] <= short && (k === i || v[k][0] === v[k - 1][0] + v[k - 1][1]);
+    if (i + 3 < v.length && [i, i + 1, i + 2, i + 3].every(ok) && near(v[i][2], v[i + 1][2]) && v[i + 2][2] === v[i][2] && v[i + 3][2] === v[i + 1][2]) {
+      let j = i + 4;
+      while (j < v.length && ok(j) && v[j][2] === v[j - 2][2]) j++;
+      const lo = Math.min(v[i][2], v[i + 1][2]);
+      const main = v.slice(i, j).find((n) => n[2] === lo)!;
+      if (j + 1 < v.length && ok(j) && ok(j + 1) && near(lo, v[j][2]) && v[j][2] < lo && v[j + 1][2] === lo) j += 2;
+      const end = v[j - 1][0] + v[j - 1][1];
+      out.push([v[i][0], end - v[i][0], main[2], main[3]]);
+      trills.push({ on: v[i][0], midi: main[2] });
+      i = j;
+      continue;
+    }
+    out.push(v[i]);
+    i++;
+  }
+  return { notes: out, trills };
+}
+/** A pitch's name from its MIDI number and diatonic step (C0 = 0): the spelling a moved note keeps. */
+function spellMidi(midi: number, dia: number): string {
+  const letter = "CDEFGAB"[((dia % 7) + 7) % 7];
+  const oct = Math.floor(dia / 7);
+  const nat = [0, 2, 4, 5, 7, 9, 11][((dia % 7) + 7) % 7] + 12 * (oct + 1);
+  const acc = midi - nat;
+  return `${letter}${acc > 0 ? "#".repeat(acc) : "b".repeat(-acc)}${oct}`;
+}
+
 /** D756: a movement from a file holding the whole work (Spec.xmlRanges), its voices from one part's layers (xmlVoices). */
 function readXmlRanges(s: Spec, x: XmlScore): Read {
   if (!s.xmlVoices) throw new Error(`${s.id}: xmlRanges wants xmlVoices`);
-  const part = x.parts[(s.xmlParts ?? [0])[0]].notes;
+  // D964: layers from several parts, named "part:staff:voice" (the part by its index in the file); one part's as "staff:voice".
+  const keptParts = s.xmlParts ?? [0];
+  const partOf = new Map<XmlPart["notes"][number], number>();
+  const part = keptParts.flatMap((pi) => x.parts[pi].notes.map((n) => (partOf.set(n, pi), n)));
+  part.sort((p, q) => p[0] - q[0]);
   // A layer may be qualified by the (new) bars where it is that voice ("2:5@3-10"): those read before the plain ones.
   const rules = s.xmlVoices.flatMap((v, vi) =>
     v.split("|").map((l) => {
@@ -1061,7 +1183,8 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   );
   rules.sort((p, q) => Number(q.qualified) - Number(p.qualified));
   let bar = 0;
-  const home = (n: XmlPart["notes"][number]) => rules.find((r) => r.layer === `${n[3]}:${n[4]}` && (!r.qualified || (bar >= r.a && bar <= r.b)))?.vi ?? -1;
+  const layerOf = (n: XmlPart["notes"][number], layer: string) => (layer.split(":").length === 3 ? `${partOf.get(n)}:${n[3]}:${n[4]}` : `${n[3]}:${n[4]}`);
+  const home = (n: XmlPart["notes"][number]) => rules.find((r) => r.layer === layerOf(n, r.layer) && (!r.qualified || (bar >= r.a && bar <= r.b)))?.vi ?? -1;
   const start = (n: number) => {
     const b = s.xmlByIndex ? x.measures[n - 1] : x.bars.find((m) => m.n === n);
     if (!b) throw new Error(`${s.id}: no bar ${n}`);
@@ -1071,7 +1194,6 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   const first = s.xmlRanges![0][0];
   const orn: NonNullable<Read["orn"]> = [];
   const unplayed: NonNullable<Read["unplayed"]> = [];
-  const p0 = x.parts[(s.xmlParts ?? [0])[0]];
   const spell: Record<number, string> = {};
   const spelled: string[] = [];
   const voices: Note[][] = s.xmlVoices.map(() => []);
@@ -1090,14 +1212,14 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
         if (!marks.has(k)) marks.set(k, { on: on - a + base, midi: parsePitch(pitch).midi, signs: "", graces: [] });
         return marks.get(k)!;
       };
-      for (const o of p0.ornaments)
+      for (const o of keptParts.flatMap((pi) => x.parts[pi].ornaments))
         if (o.on >= a && o.on < z)
           for (const g of o.signs) {
             if (KERN_SIGN[g]) mark(o.on, o.pitch).signs += KERN_SIGN[g];
             else unplayed.push({ on: o.on - a + base, midi: parsePitch(o.pitch).midi, sign: g });
           }
       // An appoggiatura: on the note it leads to (the same staff and voice; the top of a chord).
-      for (const g of p0.graces) {
+      for (const g of keptParts.flatMap((pi) => x.parts[pi].graces)) {
         if (g.on < a || g.on >= z) continue;
         const host = part.filter((n) => n[0] === g.on && n[3] === g.staff && n[4] === g.voice).sort((p, q) => parsePitch(q[2]).midi - parsePitch(p[2]).midi)[0];
         if (!host) throw new Error(`${s.id}: an appoggiatura ${g.pitch} with no note at ${g.on}`);
@@ -1109,8 +1231,9 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
       if (n[0] < a || n[0] >= z) continue;
       bar = bars.filter((b) => b.on <= n[0] - a + base).at(-1)!.n;
       const vi = home(n);
+      if (vi < 0 && s.xmlDrop?.some((l) => l === layerOf(n, l))) continue;
       if (vi < 0) {
-        lost.add(`${n[3]}:${n[4]}`);
+        lost.add(`${keptParts.length > 1 ? `${partOf.get(n)}:` : ""}${n[3]}:${n[4]}`);
         continue;
       }
       const p = parsePitch(n[2]);
@@ -1123,13 +1246,27 @@ function readXmlRanges(s: Spec, x: XmlScore): Read {
   if (lost.size) throw new Error(`${s.id}: MusicXML layers ${[...lost].join(", ")} not in ${s.xmlVoices.join(", ")}`);
   const a0 = start(s.xmlRanges![0][0]);
   const meter = [...x.measures].filter((m) => m.on <= a0 && m.time).at(-1)?.time ?? x.meter;
-  return { voices: voices.map(sortVoice), spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 }, ...(s.keepOrnaments ? { orn, unplayed } : {}) };
+  let shaped = voices.map(sortVoice);
+  if (s.foldTrills)
+    shaped = shaped.map((v) => {
+      const f = foldTrills(v);
+      for (const t of f.trills) orn.push({ on: t.on, midi: t.midi, signs: "T", graces: [] });
+      return f.notes;
+    });
+  for (const [vi, k] of Object.entries(s.octaves ?? {})) shaped[Number(vi)] = shaped[Number(vi)].map((n) => [n[0], n[1], n[2] + 12 * k, n[3] + 7 * k] as Note);
+  if (s.endChord) {
+    const last = bars.at(-1)!.on;
+    shaped = shaped.map((v, vi) => v.filter((n) => n[0] < last || (n[0] === last && s.endChord!.includes(vi))));
+  }
+  for (const v of shaped) for (const n of v) spell[n[2]] ??= spellMidi(n[2], n[3]);
+  const keep = s.keepOrnaments || s.foldTrills;
+  return { voices: shaped, spell, spelled, bars, meter, length: base, agree: { midiInLy: 0, lyInMidi: 0, midiNotes: 0, lyNotes: 0 }, ...(keep ? { orn, unplayed } : {}) };
 }
 
 /** D341: a piece from a MusicXML edition: its parts as voices, its bars from `fromBar` to `toBar` (moved to begin at 0), checked against its MIDI (the piano reduction left out). */
 export function readXmlPiece(s: Spec): Read {
   const dir = `${SRC}${s.dir}/${s.xmlDir ?? "imslp"}/`;
-  const x = readMusicXml(`${dir}${s.xml}`);
+  const x = readMusicXml(`${dir}${s.xml}`, s.xmlTranspose);
   const from = s.fromBar ? x.bars.find((b) => b.n === s.fromBar)!.on : 0;
   const toBar = s.toBar;
   const to = toBar ? (x.bars.find((b) => b.n === toBar + 1)?.on ?? x.length) : x.length;
@@ -1489,6 +1626,9 @@ for (const [id, ex] of FUGUE903_TABLE) AOF_TABLE.set(id, ex);
 /** D779: and the Albinoni Fugue's (data/touch/951-entries.txt). */
 export const FUGUE951_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/951-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
 for (const [id, ex] of FUGUE951_TABLE) AOF_TABLE.set(id, ex);
+/** D964: and the Musical Offering's canons (data/touch/mo-entries.txt: each canon's leader and follower). */
+export const MO_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/mo-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
+for (const [id, ex] of MO_TABLE) AOF_TABLE.set(id, ex);
 /** D780: and BWV 906's and 998's (data/touch/906-998-entries.txt, the same grammar and ways). */
 export const F906_998_TABLE: Map<string, ExpertFugue> = parseExpert(readFileSync(`${ROOT}data/touch/906-998-entries.txt`, "utf8"), (id) => SPECS.find((x) => x.id === id)?.voiceNames.length ?? 0);
 for (const [id, ex] of F906_998_TABLE) AOF_TABLE.set(id, ex);
