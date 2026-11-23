@@ -835,6 +835,12 @@ export const TOP_Q = 20 * Math.log10(Math.SQRT1_2);
  * b. 26 and I/4 b. 70, 60 s each), 10-12 dB under after the balance's caps (SOUND_LOUD's trim 6, the player's lift 4.4).
  */
 export const KRAUT2_CLEAN_DB = 14;
+/**
+ * D1033: the Moog bass on a computer (its lane, sound.ts k2Moog): +3 dB there, nothing on a phone (KRAUT2_MOOG_PHONE_LIFT
+ * lifts it there already). I/20's Moog, playing E3-A3 in bars 66-78 (its fixed 1100 Hz filter leaves it fewer harmonics up
+ * there), sat 6-11 dB under the loudest voice for 12-14 s on a computer, lost in three of the four seats.
+ */
+export const KRAUT2_MOOG_DESK_DB = 3;
 export const KRAUT2_TOP: EqBand[] = [{ type: "peaking", hz: 90, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: TOP_Q }];
 export const ABBEY2_BUS_THRESHOLD = -19;
 export const ABBEY2_MOOG_DB = 1.5;
@@ -868,6 +874,8 @@ export const BAND_CHAINS = {
       // D575: the Minimoog-style lead (sound.ts k2Synth): a little presence, the tape, a little left (the organ's seat).
       synth: [{ kind: "eq", bands: [{ type: "peaking", hz: 1800, db: 1.5, q: 1 }, { type: "lowpass", hz: 7500, q: 0.6 }] }, { kind: "tape", drive: 1.3, rolloff: 9000 }, { kind: "place", pan: -0.3 }],
       clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "gain", db: KRAUT2_CLEAN_DB }, { kind: "place", pan: 0.55 }],
+      // D1033: the Moog's own lane: a computer's lift alone (the phone's 0 dB, its sound there as it was).
+      moog: [{ kind: "gain", db: KRAUT2_MOOG_DESK_DB, phoneDb: 0 }],
       mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
     // D931: no bus tape (its drive 1.8 after the 1176 shaved the band's transients) and the 1176 eased (KRAUT2_BUS_THRESHOLD):
