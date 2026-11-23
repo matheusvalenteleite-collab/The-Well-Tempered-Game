@@ -14,6 +14,7 @@
 import { BREAKS_OFF } from "../touch/tempi.ts";
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter, type PianoTrill } from "../touch/piano-trill.ts";
 import { contextSteps, fallingSecondAfter, freeOrnamentParts, keySignature, nachschlagAt, ornamentMark, ornamentsOf, realiseHeld, realiseNote, shakeOf, twoLegKind, type Ornament, type Shake } from "../touch/ornament-play.ts";
+import { ornamentPlay } from "../touch/ornament-level.ts";
 import { ShakeReader, shakeThresholds, type FreeKind, type Gesture, type ShakeThresholds } from "../touch/free-ornament.ts";
 import { freeTally, type FreeTally } from "./free-summary.ts";
 import { ornamentUnit, trillUnit } from "../music/ornaments.ts";
@@ -2849,6 +2850,7 @@ export class ProtoGame {
   private soundParts(h: Held, parts: [number, number, number][], t: number, v: ReturnType<typeof voicing>, play: Play, rec: Performed, detachLast = false) {
     const now = this.chip.ctx.currentTime;
     if (h.trill) h.trill.settled = true;
+    play = ornamentPlay(v, play);
     for (const sd of h.sounds) sd.stop(now + 0.02);
     h.sounds = parts.map(([pon, pdur, pm], k) => {
       const at = now + Math.max(0, this.timeAt(pon) - this.timeAt(t));
@@ -2881,7 +2883,7 @@ export class ProtoGame {
     for (const sd of h.sounds) sd.stop(now + (ptr ? PIANO_TRILL.overlap : 0.02));
     h.sounds = [];
     h.upperStruck = false;
-    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play, settled: false, live: [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}) };
+    h.trill = { parts: ptr?.parts ?? parts, next: 0, last: t, main, v, play: ornamentPlay(v, play), settled: false, live: [], nachschlag, rec, ...(ptr ? { piano: ptr } : {}) };
     this.trillStep(h, t);
   }
   /** D385: a trill's realisation as a pianist plays it, on the piano only (undefined elsewhere, or no room). */
