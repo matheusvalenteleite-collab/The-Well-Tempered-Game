@@ -43,6 +43,11 @@ const SHOTS = [
   ['mo-2', 'bwv1079-2', 'MORE', 2.6, 56, 4],
   ['mo-4', 'bwv1079-4', 'MORE', 11.6, 88, 4],
   ['mo-7', 'bwv1079-7', 'MORE', 8.5, 66, 4],
+  // D976: batch B
+  ['mo-3d', 'bwv1079-3d', 'MORE', 2.0, 54, 4],
+  ['mo-6', 'bwv1079-6', 'MORE', 10.0, 76, 4],
+  ['mo-3e', 'bwv1079-3e', 'MORE', 9.0, 60, 4],
+  ['mo-9', 'bwv1079-9', 'MORE', 20.5, 84, 4],
 ];
 fs.mkdirSync(out, { recursive: true });
 let failed = 0;

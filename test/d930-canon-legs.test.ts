@@ -92,7 +92,9 @@ test("at most one token in flight a beat in each leg (Var. 24's two-bar delay: n
     for (const p of flying) {
       const now = p.a.on;
       const n = flying.filter((q) => q.leg === p.leg && now >= q.a.on && now < q.b.on).length;
-      assert.ok(n <= Math.ceil(L[p.leg].delay / beat) + 1, `${id} ${n}`);
+      // (D976: in augmentation the gap grows with the leader's time: its widest in the leg)
+      const gap = Math.max(...flying.filter((q) => q.leg === p.leg).map((q) => q.b.on - q.a.on), L[p.leg].delay);
+      assert.ok(n <= Math.ceil(gap / beat) + 1, `${id} ${n}`);
     }
   }
 });
