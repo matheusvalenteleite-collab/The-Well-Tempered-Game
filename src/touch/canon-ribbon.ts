@@ -184,6 +184,32 @@ function place(s: Shape, i: number, ph: Phase, k: EchoGeo): Place {
   return { x, w: Math.max(2, k.xOf(tt + d) - x - 1), y: k.yOf(st) + k.bh / 2 - 2 * ph.uL * (1 - u), h };
 }
 /**
+ * D975 (the board: a far flight, the Musical Offering's 7- and 10-bar canons, must read, else the D972 emblem rule): a
+ * shape whose leader's notes are off screen as it lifts off (`now - t0` behind is the box's view) does not stream in from
+ * the edge: it appears as a small contour of its notes in the box's top margin over where it will land (under any entry
+ * tab), holds about a beat, then drops onto the follower's notes, turning over in contrary motion, its colour going from
+ * the leader's to the follower's in step.
+ */
+export const isFar = (s: Shape, k: { now: number; t0: number }) => s.tA0 < s.start - (k.now - k.t0);
+/** A far shape's appearing: from a beat and a quarter before its flight. */
+const farFrom = (s: Shape, q: number) => s.fly - 1.25 * q;
+function placeFar(s: Shape, i: number, ph: Phase, k: EchoGeo, top: number): Place {
+  const a = s.A[i], b = s.T[i], u = ph.u;
+  let lo = Infinity, hi = -Infinity;
+  for (const n of s.A) (lo = Math.min(lo, n.step)), (hi = Math.max(hi, n.step));
+  const HM = Math.max(8, Math.round(k.bh * 2.5)), eh = Math.max(2, Math.round(k.bh * 0.5));
+  let ey = top + 2 + ((hi - a.step) / Math.max(1, hi - lo)) * (HM - eh) + eh / 2;
+  const cE = top + 2 + HM / 2;
+  let h = eh + (k.bh - eh) * u;
+  if (s.contrary) {
+    const c = Math.cos(Math.PI * u);
+    ey = cE + (ey - cE) * c;
+    h *= Math.max(0.4, Math.abs(c));
+  }
+  const x = k.xOf(b.on);
+  return { x, w: Math.max(2, k.xOf(b.on + b.dur) - x - 1), y: ey + (k.yOf(b.step) + k.bh / 2 - ey) * u, h };
+}
+/**
  * A shape's colour at a phase: the leader's ink to the follower's (each shape is one leader voice into one follower voice),
  * in step with the motion (the owner on 3.14: "gradually shift from home color to target color, in sync with movement"):
  * the flight's own eased progress, the same as the position's, so exactly the leader's ink at lift-off and exactly the
@@ -204,8 +230,9 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
   // (they are drawn already; the player's notes come after, so they stay bright), so the copy reads as in the prototype.
   let veil = 0;
   for (const s of shapes) {
-    if (k.now < s.start || k.now >= s.landed + q) continue;
-    const inn = Math.min(1, (k.now - s.start) / (q * 0.75)), outv = Math.min(1, Math.max(0, (s.landed + q - k.now) / q));
+    const from = isFar(s, k) ? farFrom(s, q) : s.start;
+    if (k.now < from || k.now >= s.landed + q) continue;
+    const inn = Math.min(1, (k.now - from) / (q * 0.75)), outv = Math.min(1, Math.max(0, (s.landed + q - k.now) / q));
     veil = Math.max(veil, Math.min(inn, outv) * (s.big ? 1 : 0.75));
   }
   if (veil > 0 && under) {
@@ -214,9 +241,14 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
     g.fillRect(0, 0, k.w, k.h);
   }
   for (const s of shapes) {
-    if (k.now < s.start || k.now >= s.end) continue;
+    const far = isFar(s, k);
+    if (k.now < (far ? farFrom(s, q) : s.start) || k.now >= s.end) continue;
     if (k.now < s.landed) {
       if (!under) continue;
+      // D975: a far shape's band, in the top margin over where it lands, under any entry tab
+      const top = far ? Math.max(6, (k.tabsBelow ? k.tabsBelow(k.xOf(s.tB0) - 4, k.xOf(s.T[s.T.length - 1].on + s.T[s.T.length - 1].dur) + 4) : 0) + 3) : 0;
+      const at = (i: number, ph: Phase) => (far ? placeFar(s, i, ph, k, top) : place(s, i, ph, k));
+      const appear = far ? ease((k.now - farFrom(s, q)) / Math.max(1, s.fly - farFrom(s, q))) : 1;
       // the trail: the same notes a moment before, fainter, gone within half a beat
       for (let j = 4; j >= 1; j--) {
         const t = k.now - j * q * 0.07;
@@ -225,23 +257,23 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
         g.globalAlpha = 0.26 * (1 - j / 5);
         g.fillStyle = colourOf(s, ph, k);
         for (let i = 0; i < s.A.length; i++) {
-          const p = place(s, i, ph, k);
+          const p = at(i, ph);
           g.fillRect(p.x, p.y - p.h / 2, p.w, p.h);
         }
       }
       const ph = phase(s, k.now), col = colourOf(s, ph, k), flip = s.contrary && ph.u >= 0.5;
       for (let i = 0; i < s.A.length; i++) {
-        const p = place(s, i, ph, k);
+        const p = at(i, ph);
         // the glow: two larger, fainter copies (no canvas blur)
         g.fillStyle = col;
-        g.globalAlpha = s.big ? 0.2 : 0.16;
+        g.globalAlpha = (s.big ? 0.2 : 0.16) * appear;
         g.fillRect(p.x - 3, p.y - p.h / 2 - 3, p.w + 6, p.h + 6);
-        g.globalAlpha = s.big ? 0.38 : 0.3;
+        g.globalAlpha = (s.big ? 0.38 : 0.3) * appear;
         g.fillRect(p.x - 1.5, p.y - p.h / 2 - 1.5, p.w + 3, p.h + 3);
-        g.globalAlpha = 0.95;
+        g.globalAlpha = 0.95 * appear;
         g.fillRect(p.x, p.y - p.h / 2, p.w, p.h);
         // the lit edge: on top, underneath once turned over
-        g.globalAlpha = 0.7;
+        g.globalAlpha = 0.7 * appear;
         g.fillStyle = "#ffffff";
         g.fillRect(p.x, flip ? p.y + p.h / 2 - 1 : p.y - p.h / 2, p.w, 1);
       }

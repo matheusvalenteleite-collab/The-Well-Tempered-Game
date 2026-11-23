@@ -91,6 +91,26 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
       leg(23, 25, [0], [1], 15360, false, -14, "THE RIGHT HAND LEADS AGAIN"),
     ],
   },
+  // D975 (batch A of the Musical Offering's canons, D964; the steps and mirror sums found on the game's own notes, every
+  // answered note paired): Canon a 2 in unisono, the first violin led, the second a bar later at the same pitch (the bass,
+  // the royal theme, free).
+  "bwv1079-3b": { legs: [leg(1, 26, [0], [1], 7680, false, 0, "CANON AT THE UNISON · ONE BAR LATER")] },
+  // Canon a 2 per motum contrarium: the theme's voice free; the lower line leads, the upper answers half a bar later,
+  // turned over (steps summing to 60).
+  "bwv1079-3c": { legs: [leg(1, 13, [2], [1], 3840, true, 60, "CANON IN CONTRARY MOTION · HALF A BAR LATER")] },
+  // Canon perpetuus super Thema Regium: the upper line leads, the lower answers two octaves below a bar later; the
+  // royal theme (the middle voice) free.
+  "bwv1079-2": { legs: [leg(1, 16, [0], [2], 7680, false, -14, "CANON AT TWO OCTAVES · ONE BAR LATER")] },
+  // Fuga canonica in Epidiapente: the middle voice leads, the upper answers a fifth above ten bars later (the continuo free).
+  "bwv1079-4": { legs: [leg(1, 79, [1], [0], 76800, false, 4, "CANON AT THE FIFTH · TEN BARS LATER")] },
+  // Canon a 4: each voice answers the one before it seven bars later, at the octave below, then above, then below.
+  "bwv1079-7": {
+    legs: [
+      leg(1, 51, [0], [1], 53760, false, -7, "CANON A 4 · THE SECOND VOICE"),
+      leg(8, 51, [1], [2], 53760, false, 7, "CANON A 4 · THE THIRD VOICE"),
+      leg(15, 51, [2], [3], 53760, false, -7, "CANON A 4 · THE FOURTH VOICE"),
+    ],
+  },
   // Invention 8: canonic in its opening (bars 1-7) and its return (bars 26-29) only, a bar later, an octave below.
   bwv779: {
     legs: [
@@ -152,6 +172,8 @@ export function echoPairs(f: TouchFugue): EchoPair[] {
 }
 
 export interface EchoGeo {
+  /** D972/D975: the lowest entry tab's bottom over these columns (0: none), so an emblem stands under the tabs. */
+  tabsBelow?: (x0: number, x1: number) => number;
   xOf: (tick: number) => number;
   yOf: (step: number) => number;
   bh: number;
