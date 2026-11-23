@@ -42,6 +42,8 @@ fs.mkdirSync(outDir, { recursive: true });
       const { tempoOf } = await import('/src/touch/tempi.ts');
       const { loadColours } = await import('/src/touch/colour.ts');
       await loadColours().catch(() => {});
+      // D1040 draft: `shake3` turns the shake's own voices on (src/touch/shake-voice.ts SHAKE_PROTO).
+      { const sv = await import('/src/touch/shake-voice.ts'); sv.SHAKE_PROTO.on = !!job.shake3; }
       const f = fugueById(job.piece);
       const sound = playerSound(job.sound);
       setPreset(sound);
@@ -110,7 +112,9 @@ fs.mkdirSync(outDir, { recursive: true });
           const s0 = held.a + (sw.delay ?? 0.08);
           if (now >= s0) {
             const u = Math.min(1, (now - s0) / Math.max(0.05, held.e - 0.03 - s0));
-            g.move(held.id, { side: held.side, x: xOf(held.side, (job.land ?? 0.5) + sw.amp * swayAt(u)), y: held.y, w: W, h: H }, 0);
+            // `shake`: along the bar, `amp` px either way of the row at `rate` legs a second, for `legs` legs (a free trill or mordent's contour).
+            if (sw.shape === 'shake') { const k = (now - s0) * sw.rate; if (k < sw.legs) g.move(held.id, { side: held.side, x: xOf(held.side, job.land ?? 0.5), y: held.y + sw.amp * (1 - 4 * Math.abs(((k / 2 + 0.25) % 1) - 0.5)), w: W, h: H }, 0); }
+            else g.move(held.id, { side: held.side, x: xOf(held.side, (job.land ?? 0.5) + sw.amp * swayAt(u)), y: held.y, w: W, h: H }, 0);
           }
         }
         if (!done) done = g.step();
@@ -130,7 +134,8 @@ fs.mkdirSync(outDir, { recursive: true });
       for (let i = 0; i < n; i++) pcm[i] = Math.max(-1, Math.min(1, (L[i0 + i] + R[i0 + i]) / 2)) * 32767;
       window.__pcm = pcm;
       if (job.slides) for (const n of notes) { const a = g.timeAt(n.on) - t0, e = g.timeAt(n.on + n.dur) - t0 - 0.02; if (a < job.secs && e - a >= (sw?.minDur ?? 0.2)) swayed.push({ midi: n.midi ?? null, at: +a.toFixed(3), dur: +(e - a).toFixed(3) }); }
-      return { touches: touches.map((x) => ({ ...x, t: +(x.t - t0).toFixed(4) })), W, H, slid, piece: f.id, sound, player: pv, sr: SR, n: pcm.length, t0, swayed, failed: ch.failed, stolen: ch.stolen, slides: g.slides ?? null };
+      const orn = [...g.performed.values()].map((p) => ({ kind: p.kind, free: p.free, parts: p.parts.map(([on, d, m]) => [+(g.timeAt(on) - t0).toFixed(3), +(d / tps).toFixed(3), m]) }));
+      return { orn, touches: touches.map((x) => ({ ...x, t: +(x.t - t0).toFixed(4) })), W, H, slid, piece: f.id, sound, player: pv, sr: SR, n: pcm.length, t0, swayed, failed: ch.failed, stolen: ch.stolen, slides: g.slides ?? null };
     }, job);
     const size = 1 << 20, bytes = r.n * 2, parts = [];
     for (let i = 0; i * size < bytes; i++) parts.push(Buffer.from(await p.evaluate(([i, s]) => { const a = new Uint8Array(window.__pcm.buffer, i * s, Math.min(s, window.__pcm.byteLength - i * s)); let x = ''; for (let j = 0; j < a.length; j += 0x8000) x += String.fromCharCode(...a.subarray(j, j + 0x8000)); return btoa(x); }, [i, size]), 'base64'));
