@@ -30,9 +30,11 @@ test("D340: MORE BACH: the Art of Fugue (11 contrapuncti, 2 mirror fugues each r
   // D348: and the harpsichord concertos, 39 movements (test/d348-concertos.test.ts); D351: 42 with BWV 1059R.
   // D751: and the Four Duets.
   // D757: and the Goldberg Variations (the Aria and the variations).
-  assert.equal(MORE_BACH.length, 69 + GOLD + 42);
-  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("keyboard"), count("goldberg"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2, 15, 15, 4, 7, GOLD, 3, 2, 2, 42]);
-  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 69 + GOLD + 42);
+  // D964: and the Musical Offering whole: the ten canons, the Fuga canonica (counted with them) and the trio sonata's four movements.
+  const MO_NEW = 14;
+  assert.equal(MORE_BACH.length, 69 + MO_NEW + GOLD + 42);
+  assert.deepEqual([count("aof"), count("mo"), count("inv"), count("sin"), count("duet"), count("keyboard"), count("goldberg"), count("concerto"), count("motet"), count("cantata"), count("hconcerto")], [19, 2 + MO_NEW, 15, 15, 4, 7, GOLD, 3, 2, 2, 42]);
+  assert.equal(new Set(MORE_BACH.map((f) => f.id)).size, 69 + MO_NEW + GOLD + 42);
   for (const f of MORE_BACH) {
     assert.equal(fugueById(f.id), f);
     assert.equal(f.voices.length, f.voiceNames.length, f.id);
@@ -72,7 +74,7 @@ test("D340: MORE BACH's voices and bars, as the editions have them (and the seco
 test("D340: what the pipeline computes for the WTC: entries in the fugues, inventions and sinfonias (none in the canons and the concerto), cadences, keys, tempi, sounds, characters", () => {
   for (const f of MORE_BACH) {
     // D707: the canons too (their dux and comes, data/touch/aof-entries.txt).
-    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && (f.collection !== "goldberg" || f.id === "bwv988-10") && !["bwv228-1", "bwv54-1"].includes(f.id); // D755, D756: BWV 906's Fantasia, BWV 998's Prelude and Allegro are no fugues; D780: their motive's returns their entries (data/touch/906-998-entries.txt)
+    const fugal = !["concerto", "hconcerto"].includes(f.collection!) && (f.collection !== "goldberg" || f.id === "bwv988-10") && !["bwv228-1", "bwv54-1", "bwv1079-8a", "bwv1079-8c"].includes(f.id); // D964: the trio sonata's Largo and Andante are no fugues. D755, D756: BWV 906's Fantasia, BWV 998's Prelude and Allegro are no fugues; D780: their motive's returns their entries (data/touch/906-998-entries.txt)
     if (fugal) assert.ok(f.entries.length >= 2, `${f.id}: ${f.entries.length} entries`);
     else assert.equal(f.entries.length, 0, f.id);
     for (const e of f.entries) assert.ok(f.voices[e.voice].some((n) => n[0] === e.on), `${f.id}: entry at ${e.on} on a note`);
@@ -140,8 +142,10 @@ test("D340: the tabs: BOOK I, BOOK II, MORE BACH (its five sections, Contrapunct
   assert.deepEqual(LITE_TABS.map(([t]) => t), ["I", "II", "AOF", "INV", "GOLD", "MORE", "CHORALES"]);
   // D751: and the Four Duets after the Sinfonias.
   assert.deepEqual(MORE_SECTIONS.map((s) => s.title), ["ART OF FUGUE", "MUSICAL OFFERING", "INVENTIONS", "SINFONIAS", "FOUR DUETS", "FANTASIAS AND FUGUES", "GOLDBERG VARIATIONS", "CONCERTO", "HARPSICHORD CONCERTOS", "MOTET", "CANTATA"]);
-  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 2, 15, 15, 4, 7, GOLD, 3, 42, 2, 2]);
+  assert.deepEqual(MORE_SECTIONS.map((s) => s.ids.length), [20, 16, 15, 15, 4, 7, GOLD, 3, 42, 2, 2]);
   assert.equal(MORE_SECTIONS[0].ids.at(-1), "bwv1080-14");
+  // D964: the Musical Offering whole, as one work: the ricercars first, the canons, the trio sonata's four movements.
+  assert.deepEqual(MORE_SECTIONS[1].ids, ["bwv1079-ric3", "bwv1079-ric6", "bwv1079-3a", "bwv1079-3b", "bwv1079-3c", "bwv1079-3d", "bwv1079-3e", "bwv1079-4", "bwv1079-2", "bwv1079-9", "bwv1079-6", "bwv1079-7", "bwv1079-8a", "bwv1079-8b", "bwv1079-8c", "bwv1079-8d"]);
   assert.equal(CHORALE_IDS.length, 370);
   assert.equal(liteTabOf("bwv1080-14"), "AOF");
   assert.equal(liteTabOf("chor001"), "CHORALES");
