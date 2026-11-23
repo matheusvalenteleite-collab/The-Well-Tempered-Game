@@ -7,12 +7,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById } from "../src/touch/fugue.ts";
-import { readingsOf, wholeReadingOf, readingMarks } from "../src/touch/readings.ts";
+import { wholeReadingOf, readingMarks } from "../src/touch/readings.ts";
 import { SFZ, wholePlan } from "../src/touch/whole-reading.ts";
 import { WORD_GLOSS, glossOf, wholeAsk, wholeAsks, wholeBox, wholeLegend, firstOn } from "../src/touch/whole-marks.ts";
 import { Chip } from "../src/touch/chip.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
+import { allReadingsOf } from "./book-readings.ts";
 
 const FIVE = ["wtc1f01", "wtc1f02", "wtc1f08", "wtc1f16", "wtc1f24"];
 /** D392: BUSONI for every fugue of Book I. */
@@ -128,7 +129,7 @@ test("D391: the judge asks what the box draws: slurs joined inside and lifted at
 test("D391: the subject-only readings are unchanged: no whole box, their marks on the entries only, the judge by the subject's place", () => {
   for (const id of FIVE) {
     const f = fugueById(id);
-    for (const r of readingsOf(id).filter((x) => !x.whole)) {
+    for (const r of allReadingsOf(id).filter((x) => !x.whole)) {
       assert.equal(wholeBox(f, r, [0]), null, `${id} ${r.id}`);
       const m = readingMarks(f.entries, r);
       const subj = new Set(f.entries.filter((e) => !e.theme).flatMap((e) => e.notes.map(([on]) => `${e.voice}:${on}`)));
@@ -137,7 +138,7 @@ test("D391: the subject-only readings are unchanged: no whole box, their marks o
       assert.equal((g as unknown as { wholeAsking(): boolean }).wholeAsking(), false);
     }
   }
-  assert.equal(wholeBox(fugueById("wtc1f03"), readingsOf("wtc1f03")[0], [0]), null);
+  assert.equal(wholeBox(fugueById("wtc1f03"), allReadingsOf("wtc1f03")[0], [0]), null);
 });
 
 test("D391: draw order: sparks, then the whole reading's arcs and guides, then the note marks; the verdict over the articulation's word", () => {
