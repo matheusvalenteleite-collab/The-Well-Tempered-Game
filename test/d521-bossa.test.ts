@@ -95,7 +95,8 @@ test("D521: the player's touch as JAZZ QUARTET's: the guitar's pluck by the zone
   assert.equal(landing("jazz", 0.05, 60, PATCHES.bnGuitar).layer, "soft");
   assert.equal(landing("jazz", 0.5, 60, PATCHES.bnGuitar).layer, "firm");
   assert.equal(holdMode("jazz", PATCHES.bnFlute, false), "breath");
-  assert.equal(holdMode("jazz", PATCHES.bnGuitar, true), "none");
+  // D1014: a held guitar note swayed is the finger's vibrato.
+  assert.equal(holdMode("jazz", PATCHES.bnGuitar, true), "finger");
   assert.equal(slideFamily("bossaNova", PATCHES.bnFlute), "flute");
   assert.equal(slideFamily("bossaNova", PATCHES.bnGuitar), "plucked");
   assert.equal(slideFamily("bossaNova", PATCHES.bnBass), "bass");

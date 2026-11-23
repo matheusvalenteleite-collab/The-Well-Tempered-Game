@@ -1443,7 +1443,7 @@ export const PATCHES = {
   // (a fresh attack; a joined note no new envelope) and closing over 0.35 s to a round, singing tone; a slow drift of 3
   // cents (the oscillators' warmth), a 5-cent vibrato only after 0.45 s on a long note; no glide (every pitch Bach's own).
   k2Synth: P({ osc: [{ wave: "saw" }, { wave: "square", detune: 5, gain: 0.55 }], filter: { freq: 3.6, q: 2.2, env: 2.2, envDecay: 0.35, poles: 4 }, hp: 90, amp: { a: 0.006, d: 0.3, s: 0.82, r: 0.09 }, drift: { cents: 3, rate: 0.07 }, vib: { depth: 5, rate: 5.2, delay: 0.45 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.synth, one: {}, lane: "synth" }),
-  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {}, phoneLift: KRAUT2_MOOG_PHONE_LIFT }),
+  k2Moog: P({ osc: [{ wave: "saw" }, { wave: "saw", detune: 6, gain: 0.8 }, { wave: "square", octave: -1, gain: 0.45 }], filter: { freq: 1100, hz: true, q: 1.5, env: 2.4, envDecay: 0.12, poles: 4 }, slide: 0.03, hp: 38, amp: { a: 0.008, d: 0.6, s: 0.72, r: 0.05 }, drift: { cents: 2, rate: 0.05 }, send: KRAUT2_SEND * 0.2, level: KRAUT2_LEVEL.moog, one: {}, phoneLift: KRAUT2_MOOG_PHONE_LIFT, lane: "moog" }),
   k2Fuzz: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.fuzz, sample: "rockGuitar2", one: {}, lane: "guitar" }),
   k2Tron: P({ osc: [{ wave: "sine" }, { wave: "triangle", octave: 1, gain: 0.15 }], amp: { a: 0.035, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.035, d: 0.1, s: 0.92, r: 0.09 }, vib: { depth: 7, rate: 0.9, delay: 0 }, send: KRAUT2_SEND, level: KRAUT2_LEVEL.tron, sample: "trialFlute", one: {}, lane: "mellotron" }),
   k2Clean: P({ osc: [{ wave: "triangle" }, { wave: "saw", gain: 0.3 }], filter: { freq: 4, q: 1, env: 2, envDecay: 0.12 }, amp: { a: 0.003, d: 1.2, s: 0, r: 0.1 }, send: KRAUT2_SEND * 1.5, level: KRAUT2_LEVEL.clean, sample: "rockGuitar", one: {}, lane: "clean" }),
@@ -1589,6 +1589,11 @@ export interface Preset {
    * phone besides. A constant of the piece and the sound, never of the play.
    */
   levels?: Readonly<Record<string, { gain?: number; phoneGain?: number }>>;
+  /**
+   * D1010: a sound without a band chain, its top rolled gently (chip.ts bandChain: a 2-pole lowpass at this frequency, Q
+   * TOP_Q, between the notes' way in and the master, D931's way): the bright synthesized sounds' energy over 7 kHz.
+   */
+  top?: number;
 }
 
 /**
@@ -1641,9 +1646,9 @@ export const PRESETS: Preset[] = [
   // D209: the game's own sound: 2A03-like pulses of three widths over a triangle (on a phone, D291, a pulse bass).
   // D436: +2.8 dB, and on a phone +3 dB more (it stood 5.8 dB under the median there, 2.8 on a computer).
   // D645: its pulse bass on a phone +2 dB more (phoneBass: II/11 6.1 LU under its loudest voice alone on the phone model).
-  { id: "chip", levels: { wtc2f11: { gain: 0.8, phoneGain: 1.24 }, wtc2f17: { gain: 0.76, phoneGain: 1.32 } }, name: "CLASSIC CHIP", slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41, phoneBass: 1.26 },
+  { id: "chip", levels: { wtc2f11: { gain: 0.8, phoneGain: 1.24 }, wtc2f17: { gain: 0.76, phoneGain: 1.32 } }, name: "CLASSIC CHIP", top: 9000, slots: null, drums: "chipMarch", kit: "chip", room: 0.22, gain: 1.38, phoneGain: 1.41, phoneBass: 1.26 },
   // D294: GAME BOY (in place of D292's ROUND CHIP): the DMG's pulses and wave channel; no drums (DRUMS stays the classic chip's).
-  { id: "gameboy", levels: { wtc1f03: { gain: 1.12, phoneGain: 0.89 }, wtc2f04: { gain: 1.14, phoneGain: 0.88 } }, name: "GAME BOY", slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
+  { id: "gameboy", levels: { wtc1f03: { gain: 1.12, phoneGain: 0.89 }, wtc2f04: { gain: 1.14, phoneGain: 0.88 } }, name: "GAME BOY", top: 9000, slots: ["gbLead", "gbHarm", "gbWave", "gbThin", "gbBass"], room: 0.18 },
   // D190: recorded, every voice on the one instrument (as Bach played his fugues).
   // D339: both in a music room of their own (chip.ts REVERBS.salon) in place of the shared room (a white-noise impulse, no pre-delay, undamped).
   // D351: six voices (the Ricercar a 6 at its FAST tempo, bench/tempo-steps.ts): the five upper on the treble, the bass alone on the bass.
@@ -1661,6 +1666,7 @@ export const PRESETS: Preset[] = [
   {
     id: "analog",
     name: "SWITCHED-ON",
+    top: 9000,
     slots: ["solLead", "solSquare", "solNasal", "solBloop", "solBass"],
     // D304: nearly dry (Carlos's records are close and dry; 0.24 fogged the lines).
     room: 0.05,

@@ -1,0 +1,345 @@
+{
+ "finger-psych": {
+  "piece": "wtc1f22",
+  "sound": "krautrock",
+  "player": 2,
+  "fromBar": 14,
+  "gesture": "out",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": 0.0
+  },
+  "level_swing_db": {
+   "before": [
+    0.0,
+    0.0
+   ],
+   "after": [
+    0.26,
+    0.75
+   ]
+  },
+  "timbre_db": {
+   "before": 0.0,
+   "after": 0.81
+  },
+  "centroid_hz": {
+   "before": 2062,
+   "after": 2003
+  },
+  "pitch": {
+   "frames": 1020,
+   "after_mean_cents": 0.99,
+   "diff_mean_cents": 0.44,
+   "per_note_mean_max_abs": 1.34,
+   "diff_p95_abs": 17.16
+  },
+  "still_max_diff": 1
+ },
+ "finger-bossa": {
+  "piece": "wtc1f01",
+  "sound": "bossaNova",
+  "player": 2,
+  "fromBar": 22,
+  "gesture": "out",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": -0.1
+  },
+  "level_swing_db": {
+   "before": [
+    0.0,
+    0.0
+   ],
+   "after": [
+    0.41,
+    1.64
+   ]
+  },
+  "timbre_db": {
+   "before": 0.0,
+   "after": 0.94
+  },
+  "centroid_hz": {
+   "before": 1357,
+   "after": 1281
+  },
+  "pitch": {
+   "frames": 920,
+   "after_mean_cents": 0.07,
+   "diff_mean_cents": 0.13,
+   "per_note_mean_max_abs": 0.73,
+   "diff_p95_abs": 16.85
+  },
+  "still_max_diff": 1
+ },
+ "duty-gb-lead": {
+  "piece": "wtc1f01",
+  "sound": "gameboy",
+  "player": 0,
+  "fromBar": 7,
+  "gesture": "tri2",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": 0.0
+  },
+  "level_swing_db": {
+   "before": [
+    0.1,
+    0.32
+   ],
+   "after": [
+    0.41,
+    1.14
+   ]
+  },
+  "timbre_db": {
+   "before": 1.38,
+   "after": 6.95
+  },
+  "centroid_hz": {
+   "before": 2915,
+   "after": 2905
+  },
+  "pitch": {
+   "frames": 866,
+   "after_mean_cents": -0.06,
+   "diff_mean_cents": -0.28,
+   "per_note_mean_max_abs": 0.75,
+   "diff_p95_abs": 8.88
+  },
+  "still_max_diff": 0
+ },
+ "duty-gb-thin": {
+  "piece": "wtc1f01",
+  "sound": "gameboy",
+  "player": 2,
+  "fromBar": 22,
+  "gesture": "tri2",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": 0.1
+  },
+  "level_swing_db": {
+   "before": [
+    0.11,
+    0.4
+   ],
+   "after": [
+    0.3,
+    1.18
+   ]
+  },
+  "timbre_db": {
+   "before": 0.33,
+   "after": 2.54
+  },
+  "centroid_hz": {
+   "before": 1769,
+   "after": 1627
+  },
+  "pitch": {
+   "frames": 991,
+   "after_mean_cents": 0.26,
+   "diff_mean_cents": -0.03,
+   "per_note_mean_max_abs": 0.34,
+   "diff_p95_abs": 8.63
+  },
+  "still_max_diff": 1
+ },
+ "bow-consort-violin": {
+  "piece": "wtc1f08",
+  "sound": "stringConsort",
+  "player": 0,
+  "fromBar": 24,
+  "gesture": "arch",
+  "gesture_lu": {
+   "before": 1.4,
+   "after": -0.3
+  },
+  "level_swing_db": {
+   "before": [
+    1.43,
+    2.31
+   ],
+   "after": [
+    0.31,
+    0.74
+   ]
+  },
+  "timbre_db": {
+   "before": 0.09,
+   "after": 0.52
+  },
+  "centroid_hz": {
+   "before": 2606,
+   "after": 2762
+  },
+  "pitch": {
+   "frames": 1128,
+   "after_mean_cents": 2.8,
+   "diff_mean_cents": 0.11,
+   "per_note_mean_max_abs": 0.54,
+   "diff_p95_abs": 0.69
+  },
+  "still_max_diff": 1
+ },
+ "bow-consort-cello": {
+  "piece": "wtc1f01",
+  "sound": "stringConsort",
+  "player": 3,
+  "fromBar": 22,
+  "gesture": "arch",
+  "gesture_lu": {
+   "before": 0.8,
+   "after": 0.3
+  },
+  "level_swing_db": {
+   "before": [
+    0.77,
+    1.91
+   ],
+   "after": [
+    0.16,
+    0.7
+   ]
+  },
+  "timbre_db": {
+   "before": 0.07,
+   "after": 0.5
+  },
+  "centroid_hz": {
+   "before": 1779,
+   "after": 1894
+  },
+  "pitch": {
+   "frames": 723,
+   "after_mean_cents": 1.16,
+   "diff_mean_cents": 0.01,
+   "per_note_mean_max_abs": 0.1,
+   "diff_p95_abs": 0.29
+  },
+  "still_max_diff": 1
+ },
+ "bow-baroque-violin": {
+  "piece": "wtc1f08",
+  "sound": "baroqueBand",
+  "player": 0,
+  "fromBar": 24,
+  "gesture": "arch",
+  "gesture_lu": {
+   "before": 1.4,
+   "after": 0.0
+  },
+  "level_swing_db": {
+   "before": [
+    1.46,
+    2.35
+   ],
+   "after": [
+    0.33,
+    0.91
+   ]
+  },
+  "timbre_db": {
+   "before": 0.09,
+   "after": 0.63
+  },
+  "centroid_hz": {
+   "before": 3038,
+   "after": 3212
+  },
+  "pitch": {
+   "frames": 1131,
+   "after_mean_cents": 3.29,
+   "diff_mean_cents": 0.24,
+   "per_note_mean_max_abs": 0.43,
+   "diff_p95_abs": 1.2
+  },
+  "still_max_diff": 1
+ },
+ "slide-psych-moog": {
+  "piece": "wtc1f08",
+  "sound": "krautrock",
+  "player": 2,
+  "fromBar": 20,
+  "gesture": "slides",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": 0.4
+  },
+  "level_swing_db": {
+   "before": [
+    0.0,
+    0.0
+   ],
+   "after": [
+    0.74,
+    3.44
+   ]
+  },
+  "timbre_db": {
+   "before": 0.0,
+   "after": 1.78
+  },
+  "centroid_hz": {
+   "before": 1158,
+   "after": 1169
+  },
+  "pitch": {
+   "frames": 151,
+   "after_mean_cents": 1.71,
+   "diff_mean_cents": -0.06,
+   "per_note_mean_max_abs": 0.78,
+   "diff_p95_abs": 1.14
+  },
+  "slides": {
+   "scripted": 14,
+   "played": 14,
+   "slid_note_mean_max_abs_cents": 4.03,
+   "measured": 9
+  }
+ },
+ "slide-psych-synth": {
+  "piece": "wtc1f22",
+  "sound": "krautrock",
+  "player": 1,
+  "fromBar": 4,
+  "gesture": "slides",
+  "gesture_lu": {
+   "before": 0.0,
+   "after": -0.4
+  },
+  "level_swing_db": {
+   "before": [
+    0.0,
+    0.0
+   ],
+   "after": [
+    1.31,
+    4.47
+   ]
+  },
+  "timbre_db": {
+   "before": 0.0,
+   "after": 3.77
+  },
+  "centroid_hz": {
+   "before": 1466,
+   "after": 1491
+  },
+  "pitch": {
+   "frames": 875,
+   "after_mean_cents": 1.89,
+   "diff_mean_cents": -0.5,
+   "per_note_mean_max_abs": 10.37,
+   "diff_p95_abs": 5.16
+  },
+  "slides": {
+   "scripted": 10,
+   "played": 10,
+   "slid_note_mean_max_abs_cents": 5.17,
+   "measured": 10
+  }
+ }
+}

@@ -92,8 +92,9 @@ test("D486: each instrument family colours a slide its own way, by interval", ()
   assert.equal(name("tomita", 60, 64), "portamento");
   assert.equal(name("analog", 60, 64), "portamento");
   // Glides longer for larger intervals; a falling leap on the strings slower still.
-  const tau = (id: string, a: number, b: number) => (g(id, a, b) as { tau: number }).tau;
-  assert.ok(tau("tomita", 60, 62) < tau("tomita", 60, 64) && tau("tomita", 60, 64) < tau("tomita", 60, 67));
+  // (D1030: on a long note, where the settled glide's cap, slide-sound.ts settleTau, does not bind.)
+  const tau = (id: string, a: number, b: number, ms = 500) => (g(id, a, b, ms) as { tau: number }).tau;
+  assert.ok(tau("tomita", 60, 62, 4000) < tau("tomita", 60, 64, 4000) && tau("tomita", 60, 64, 4000) < tau("tomita", 60, 67, 4000));
   assert.ok(tau("stringConsort", 67, 60) > tau("stringConsort", 60, 67));
   // Families and classes as named.
   assert.equal(slideFamily("harpsichordSampled"), "plucked");
