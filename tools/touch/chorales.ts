@@ -4,10 +4,12 @@
  * Sapp's Humdrum edition, CC BY-NC-SA 4.0: data/sources/bach-370-chorales/SOURCE.md), in the touch
  * game's shape (src/touch/fugue.ts TouchFugue): the four voices (any may be played), tied notes joined,
  * as written (repeats not taken).
- * THE FERMATAS: each pause is held one beat longer than written (the chord under it held, the music
- * after it moved a beat later, the bar it ends kept one beat long), and the tick where the music goes
- * on after it is kept (`fermatas`): there the band waits for the player's next note (BAND TIME's WAITS,
- * band-time.ts, D328; `bandTime: "waits"`). The final fermata is held a beat too.
+ * THE FERMATAS (D1006, the owner's option b: "fewer fermata slowdowns in the chorales"): two are HELD, the
+ * final one and the one that closes the Stollen (the first section, where the source marks it repeated: A A B):
+ * held one beat longer than written (the chord under it held, the music after it moved a beat later, the bar it
+ * ends kept one beat long), and the tick where the music goes on after it kept (`fermatas`): there the band waits
+ * for the player's next note (BAND TIME's WAITS, band-time.ts, D328; `bandTime: "waits"`). Every other fermata
+ * plays in time, with a short breath: the chord under it let go an eighth of a beat early (no time added, no wait).
  * Computed as for the other pieces: the cadences, the keys they reach (brought home at the end).
  * Run: node tools/touch/chorales.ts
  */
@@ -40,6 +42,9 @@ interface Chorale {
   measures: { number: number; offset: string }[];
   length: string;
   voices: Record<"soprano" | "alto" | "tenor" | "bass", CNote[]>;
+  /** The form as the source marks it (A A B: the Stollen repeated, the Abgesang), where it does; its sections. */
+  expansion?: { full?: string[] };
+  sections?: { label: string; offset: string }[];
 }
 
 const ticks = (f: string) => {
@@ -125,6 +130,36 @@ export function layWords(notes: readonly Note[], attacks: readonly Attack[]): { 
   return { verses, laid, lost, shift, stanzas: [...new Set(stanzas)] };
 }
 
+/**
+ * D1006: the fermatas held (ticks as written): the final one, and the Stollen's close: the Stollen the first section, or the
+ * second where the first is only a pickup (shorter than a bar), where the source marks it repeated (expansion A A …, or
+ * with first and second endings, A A1 A A2 …); its close the latest fermata ending within a bar before the repeat
+ * (the next section, or the second ending).
+ */
+export function heldFermatas(c: Pick<Chorale, "expansion" | "sections">, marks: readonly number[], bar: number): number[] {
+  const held = new Set<number>();
+  if (marks.length) held.add(marks[marks.length - 1]);
+  const full = c.expansion?.full;
+  const secs = (c.sections ?? []).map((x) => ({ label: x.label, on: ticks(x.offset) })).sort((x, y) => x.on - y.on);
+  const at = (label: string) => secs.find((x) => x.label === label);
+  if (full && secs.length) {
+    // The Stollen: the first section, or the second after a pickup.
+    const first = at(full[0]);
+    const afterFirst = first ? secs.find((y) => y.on > first.on)?.on : undefined;
+    const i = full.length > 1 && full[1] !== full[0] && first && afterFirst !== undefined && afterFirst - first.on < bar ? 1 : 0;
+    const x = full[i];
+    const plain = full[i + 1] === x;
+    const volta = full[i + 1] === `${x}1` && full[i + 2] === x && full[i + 3] === `${x}2`;
+    const start = at(x);
+    const bound = plain && start ? secs.find((y) => y.on > start.on)?.on : volta ? at(`${x}2`)?.on : undefined;
+    if (bound !== undefined) {
+      const close = marks.filter((m) => m <= bound && bound - m <= bar).at(-1);
+      if (close !== undefined) held.add(close);
+    }
+  }
+  return [...held].sort((a, b) => a - b);
+}
+
 export function chorale(c: Chorale) {
   const meter = c.meters[0].meter;
   const [num, den] = meter.split("/").map(Number);
@@ -159,16 +194,21 @@ export function chorale(c: Chorale) {
   });
   // A fermata's end: where some voice's fermata note ends; a cluster of them (the voices' fermatas a
   // little apart) counts once, at the latest.
-  const marks = [...ends].sort((a, b) => a - b).filter((t, i, a) => !(i + 1 < a.length && a[i + 1] - t < beat));
+  const all = [...ends].sort((a, b) => a - b).filter((t, i, a) => !(i + 1 < a.length && a[i + 1] - t < beat));
+  // D1006: the held ones: the last, and the Stollen's close (the latest fermata within a bar before the section that
+  // follows the repeated first one).
+  const marks = heldFermatas(c, all, (num * 4 * TPQ) / den);
   // Hold each one a beat: every note from its end on moves a beat later (all the earlier holds too),
-  // the notes sounding into it are held a beat longer.
+  // the notes sounding into it are held a beat longer. The others: a breath, the chord under them let go early.
+  const breath = beat / 8;
   const shiftAt = (t: number) => marks.filter((m) => m <= t).length * beat;
   for (const v of voices)
     for (const n of v) {
       const end = n[0] + n[1];
       const held = marks.some((m) => m === end);
+      const breathe = !held && all.includes(end) && n[1] > 4 * breath;
       n[0] += shiftAt(n[0]);
-      n[1] = end + shiftAt(end - 1) + (held ? beat : 0) - n[0];
+      n[1] = end + shiftAt(end - 1) + (held ? beat : 0) - n[0] - (breathe ? breath : 0);
     }
   const fermatas = marks.map((m) => m + shiftAt(m));
   const lengthAsWritten = ticks(c.length);
@@ -240,7 +280,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const out = allChorales();
   writeFileSync(`${ROOT}data/touch/chorales.json`, JSON.stringify(out) + "\n");
   const n = out.reduce((t, f) => t + f.voices.flat().length, 0);
-  console.log(`wrote data/touch/chorales.json: ${out.length} chorales, ${n} notes, ${out.reduce((t, f) => t + f.fermatas.length, 0)} fermatas held`);
+  console.log(`wrote data/touch/chorales.json: ${out.length} chorales, ${n} notes, ${out.reduce((t, f) => t + f.fermatas.length, 0)} fermatas held (${out.filter((f) => f.fermatas.length >= 2).length} with a Stollen hold)`);
   // D728: the words laid, and any the setting has that found no note of ours (its version differing there).
   const sop = WORDS_REPORT.filter((r) => r.voice === 0);
   const sum = (rs: typeof WORDS_REPORT, k: "laid" | "lost") => rs.reduce((t, r) => t + r[k], 0);

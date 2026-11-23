@@ -116,10 +116,11 @@ test("D540: a slimmed recording is one channel at its rate, a plucked one cut wi
   assert.ok(sampledMidis("jazzVibes").some((m, i, a) => i > 0 && m - a[i - 1] === 1));
 });
 
-test("D540: the plans let go of every other sound's sets, never a set the sound now plays (BAROQUE BAND's oboe is ZELENKA's oboe II's set)", () => {
+test("D540: the plans let go of every other sound's sets, never a set the sound now plays (D1031: BAROQUE BAND's oboe its own TinySOL set, ZELENKA's oboe II's the trial oboe)", () => {
   setPreset("baroqueBand");
   const plans = soundPlans([60, 62, 64, 67, 72], [60], null).flat();
-  const oboe = plans.filter((e) => e.set === "trialOboe");
+  const oboe = plans.filter((e) => e.set === "baroqueOboe");
+  assert.ok(plans.some((e) => e.set === "trialOboe" && e.notes.length === 0), "ZELENKA's trial oboe let go");
   assert.ok(oboe.length >= 1 && oboe.every((e) => e.notes.length > 0), "the oboe's set loaded, never emptied by oboe II's");
   assert.ok(plans.some((e) => e.set === "jazzVibes" && e.notes.length === 0), "the vibraphone's let go");
   setPreset("jazzQuartet");

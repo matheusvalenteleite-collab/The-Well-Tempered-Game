@@ -67,6 +67,8 @@ async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out, {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   await ctx.addInitScript((rate) => {
+    // every tab open (the owner's unlock, unlock.ts UNLOCK_KEY): MORE BACH's pieces too
+    try { localStorage.setItem('tb-unlock-all', '1'); } catch {}
     window.__skip = 0;
     window.__rate = rate;
     const d = Object.getOwnPropertyDescriptor(BaseAudioContext.prototype, 'currentTime');
@@ -85,11 +87,14 @@ async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out, {
   for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(w / 2, h / 2); await p.waitForTimeout(1200); }
   const x = await p.$('#install-hint-x'); if (x) await x.click().catch(() => {});
   await p.click('#tab-book-' + tab); await p.waitForTimeout(500);
-  await p.click('#tile-' + id); await p.waitForTimeout(400);
+  // a grid tab's tile, or MORE BACH's card
+  const pick = (await p.$('#tile-' + id)) ? '#tile-' + id : '#card-' + id;
+  await p.$eval(pick, (el) => { el.scrollIntoView({ block: 'center' }); el.click(); });
+  await p.waitForTimeout(400);
   const cdp = await ctx.newCDPSession(p);
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: true, screenWidth: w, screenHeight: h });
   await p.evaluate(() => { window.__t0 = performance.now(); });
-  await p.click('#sel-play');
+  await p.click((await p.$('#sel-play')) ? '#sel-play' : '#play');
   await p.waitForTimeout(2500);
   const target = ((bar - 1) * qpb * 60) / bpm + LEAD_S;
   await p.evaluate((tg) => { window.__skip = tg - ((performance.now() - window.__t0) / 1000) * window.__rate; }, target);

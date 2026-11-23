@@ -37,6 +37,12 @@ const SHOTS = [
   // D973: the answer (I/2, bar 3) and a stretto's entry (II/5, bar 14), in flight
   ['i02-answer', 'wtc1f02', 'I', 2.3, 70, 4],
   ['ii05-stretto', 'wtc2f05', 'II', 14.2, 63, 4],
+  // D975: the Musical Offering's canons, batch A
+  ['mo-3b', 'bwv1079-3b', 'MORE', 2.6, 60, 4],
+  ['mo-3c', 'bwv1079-3c', 'MORE', 1.8, 60, 4],
+  ['mo-2', 'bwv1079-2', 'MORE', 2.6, 56, 4],
+  ['mo-4', 'bwv1079-4', 'MORE', 11.6, 88, 4],
+  ['mo-7', 'bwv1079-7', 'MORE', 8.5, 66, 4],
 ];
 fs.mkdirSync(out, { recursive: true });
 let failed = 0;
@@ -44,6 +50,8 @@ async function shot([file, id, tab, bar, bpm, qpb], W, H) {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const ctx = await b.newContext({ viewport: { width: W, height: H }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await ctx.addInitScript(() => {
+    // every tab open (the owner's unlock, unlock.ts UNLOCK_KEY): MORE BACH's pieces too
+    try { localStorage.setItem('tb-unlock-all', '1'); } catch {}
     window.__skip = 0;
     const d = Object.getOwnPropertyDescriptor(BaseAudioContext.prototype, 'currentTime');
     Object.defineProperty(BaseAudioContext.prototype, 'currentTime', { get() { return d.get.call(this) + window.__skip; } });
@@ -54,9 +62,12 @@ async function shot([file, id, tab, bar, bpm, qpb], W, H) {
   for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); }
   const x = await p.$('#install-hint-x'); if (x) await x.click().catch(() => {});
   await p.click('#tab-book-' + tab); await p.waitForTimeout(500);
-  await p.click('#tile-' + id); await p.waitForTimeout(400);
+  // a grid tab's tile, or MORE BACH's card
+  const pick = (await p.$('#tile-' + id)) ? '#tile-' + id : '#card-' + id;
+  await p.$eval(pick, (el) => { el.scrollIntoView({ block: 'center' }); el.click(); });
+  await p.waitForTimeout(400);
   await p.evaluate(() => { window.__t0 = performance.now(); });
-  await p.click('#sel-play');
+  await p.click((await p.$('#sel-play')) ? '#sel-play' : '#play');
   await p.waitForTimeout(2500);
   const target = ((bar - 1) * qpb * 60) / bpm + LEAD_S;
   await p.evaluate((tg) => { window.__skip = tg - (performance.now() - window.__t0) / 1000 - 0.25; }, target);

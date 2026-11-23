@@ -23,7 +23,11 @@ export function pieceWord(f: Pick<TouchFugue, "id" | "kind" | "collection" | "sh
     case "aof":
       return /^bwv1080-c\d\d$/.test(f.id) ? "CANON" : "FUGA";
     case "mo":
-      return "RICERCAR";
+      // D964: the Offering whole: its ricercars, the Fuga canonica, its canons, the sonata's movements (their tempo word).
+      if (/ric\d$/.test(f.id)) return "RICERCAR";
+      if (f.id === "bwv1079-4") return "FUGA";
+      if (/-8[a-d]$/.test(f.id)) return (f.title.toUpperCase().match(/\b(LARGO|ALLEGRO|ANDANTE)\b/)?.[1] ?? "SONATA");
+      return "CANON";
     case "inv":
       return "INVENTIO";
     case "sin":

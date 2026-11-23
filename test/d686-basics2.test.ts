@@ -128,7 +128,7 @@ test("every line and label in Portuguese and Spanish; the developer view only; n
   }
   for (const w of ["CONTINUE", "I KNOW THIS", "TO THE GAME", "LIFT"]) assert.ok(BASICS_PT[w] && BASICS_ES[w], w);
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /basics=\{unlocked\(\) \? \{ beginner/);
+  assert.match(app, /basics=\{\{ beginner: beginner\(lite\.best\), start: \(\) => basicsAct\(0\), soon: unlocked\(\) \}\}/); // D1004: for every player
   assert.doesNotMatch(app, /GlennPiano|BASICS_FLOOR|SURPRISE_SOUNDS/);
 });
 

@@ -1294,7 +1294,7 @@ export const PATCHES = {
   // D429's slurs), VSCO's oboe (its tongue: WIND_TONGUE), the continuo harpsichord on the cello's line (Patch.double);
   // one room (REVERBS.band) at one send (BAND_SEND), the player's line the band's (Patch.one).
   bandViolin: P({ osc: [{ wave: "saw", gain: 0.7 }, { wave: "sine", gain: 0.6 }], filter: { freq: 4.5, q: 0.7, env: 1.4, envDecay: 0.2 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViolin", bow: STRING_BOW, one: {} }),
-  bandOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: BAND_SEND, level: 0.46, sample: "trialOboe", bow: WIND_TONGUE, one: {} }),
+  bandOboe: P({ osc: [{ wave: "reed" }, { wave: "sine", gain: 0.4 }], filter: { freq: 4.2, q: 1.4, env: 1.2, envDecay: 0.1 }, amp: { a: 0.03, d: 0.1, s: 0.9, r: 0.1 }, rec: { a: 0.03, d: 0.1, s: 0.92, r: 0.1 }, send: BAND_SEND, level: 0.46, sample: "baroqueOboe", bow: WIND_TONGUE, one: {} }),
   bandViola: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3.2, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.5, sample: "consortViola", bow: STRING_BOW, one: {} }),
   bandCello: P({ osc: [{ wave: "saw", gain: 0.6 }, { wave: "triangle", gain: 0.6 }], filter: { freq: 3, q: 0.8, env: 1.6, envDecay: 0.15 }, amp: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, rec: { a: 0.05, d: 0.2, s: 0.9, r: 0.12 }, send: BAND_SEND, level: 0.59, sample: "consortCello", bow: STRING_BOW, one: {}, phoneLift: BAND_CELLO_PHONE_LIFT, double: { patch: { ...HARPSI_SAMPLED, send: BAND_SEND }, level: 10 ** (CONTINUO.db / 20), phoneLevel: 10 ** (CONTINUO.phoneDb / 20), pan: CONTINUO.pan, late: CONTINUO.late } }),
   // D504's ZELENKA TRIO patches (oboe I and II, the bassoon, the continuo cello and harpsichord): withdrawn with it (D1037);
@@ -1659,6 +1659,9 @@ export const PRESETS: Preset[] = [
     pieces: {
       "bwv54-1": { 6: [["s16Violin", -0.12], ["s16Violin", 0.12], ["s16Strings", -0.25, 0.84], ["s16Strings", 0.25, 0.84], ["altoM3", 0, 0.285], ["s16Cello", 0]] },
       "bwv54-3": { 4: [["s16Violin", 0.25], ["s16Harpsi", -0.25], ["altoM3", 0, 0.285], ["s16Bassoon", 0]] },
+      // D964: the Musical Offering's trio sonata as Bach scored it: the flute left, the violin right, the continuo's bass on
+      // the cello alone in the middle (a bass instrument, no chords: Bach's figures are not realized). Levels unmeasured.
+      ...Object.fromEntries(["8a", "8b", "8c", "8d"].map((m) => [`bwv1079-${m}`, { 3: [["s16Flute", -0.2], ["s16Violin", 0.2], ["s16Cello", 0]] }])),
     },
     slots: ["s16Violin", "s16Flute", "s16Harpsi", "s16Strings", "s16Bassoon"],
     room: 0,
@@ -2482,7 +2485,8 @@ export const BAND_STRINGS_CREDIT = "STRINGS: VIOLIN VERSILIAN STUDIOS VSO2 CE ·
 /** TRIALS' recordings (VSCO 2 CE is CC0, credit encouraged; VSO2 CE, the cello and TinySOL ask for it). */
 export const VSCO_CREDIT = "VS CHAMBER ORCHESTRA 2 CE · VERSILIAN STUDIOS · CC0";
 /** D430: BAROQUE BAND's (the consort's strings, VSCO's oboe, VCSL's harpsichord). */
-export const BAROQUE_CREDIT = `${BAND_STRINGS_CREDIT} · OBOE ${VSCO_CREDIT} · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
+// D1031: BAROQUE BAND's oboe TinySOL's (oboeSolo/); its strings D358's.
+export const BAROQUE_CREDIT = `${BAND_STRINGS_CREDIT} · OBOE TINYSOL, IRCAM · CC BY 4.0 · HARPSICHORD VCSL · VERSILIAN STUDIOS · CC0`;
 export const WINDS_CREDIT = `WINDS: FLUTE, HORN, BASSOON VERSILIAN STUDIOS VSO2 CE · CC BY 3.0 · OBOE, CLARINET ${VSCO_CREDIT}`;
 export const JAZZ_QUARTET_CREDIT = `VIBRAPHONE, BASS: UNIVERSITY OF IOWA ELECTRONIC MUSIC STUDIOS · ${PIANO_CREDIT} · TENOR SAX (I/6): KARORYFER SAMPLES VIA TONEJS-INSTRUMENTS · CC BY 3.0 · BRUSHES: SWIRLY DRUMS · KARORYFER SAMPLES · CC0`;
 /** D547 (D521's before it): BOSSA NOVA's (Iowa's alto flute, guitar and bass: free for any use; the tenor sax via tonejs-instruments: CC BY 3.0; the brushes and Big Rusty's kit: CC0). */

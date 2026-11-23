@@ -79,7 +79,7 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
     wtc1f06: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     wtc1f07: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     wtc1f08: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
-    wtc1f09: { 3: [["bandOboe", -0.18, 0.79], ["bandViolin", 0.1, 0.85], ["bandCello", 0.05]] },
+    wtc1f09: { 3: [["bandOboe", -0.18, 1.12], ["bandViolin", 0.1, 0.85], ["bandCello", 0.05]] },
     wtc1f11: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },
     wtc1f12: { 4: [["bandViolin", -0.2, 1.11], ["bandViola", -0.04, 0.85], ["bandViola", 0.16, 1.32], ["bandCello", 0.05]] },
     wtc1f15: { 3: [["bandViolin", -0.18, 1.11], ["bandViola", 0.1, 0.85], ["bandCello", 0.05]] },

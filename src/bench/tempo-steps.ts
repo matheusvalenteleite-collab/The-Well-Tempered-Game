@@ -45,7 +45,7 @@ const CHORALES = new Set(CHORALE_INDEX);
 export const isWtcFugue = (id: string): boolean => /^wtc[12]f\d\d$/.test(id);
 
 /** The kinds the tempi are chosen by (a chorale's own; D351: and once the sounds). */
-export type StepKind = "wtc" | "aof" | "ric3" | "ric6" | "inv" | "sin" | "duet" | "keyboard" | "goldberg" | "concerto" | "hconcerto" | "motet" | "cantata" | "chorale";
+export type StepKind = "wtc" | "aof" | "ric3" | "ric6" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "goldberg" | "concerto" | "hconcerto" | "motet" | "cantata" | "chorale";
 export function stepKind(id: string): StepKind | null {
   if (CHORALES.has(id)) return "chorale";
   if (isWtcFugue(id)) return "wtc";
@@ -53,6 +53,8 @@ export function stepKind(id: string): StepKind | null {
   if (id === "bwv1079-ric3") return "ric3";
   if (id === "bwv1079-ric6") return "ric6";
   const c = COLLECTION.get(id);
+  // D964: the Musical Offering's canons and trio sonata.
+  if (c === "mo") return "mo";
   // D751: and the Four Duets.
   return c === "aof" || c === "inv" || c === "sin" || c === "duet" || c === "keyboard" || c === "goldberg" || c === "concerto" || c === "hconcerto" || c === "motet" || c === "cantata" ? c : null;
 }

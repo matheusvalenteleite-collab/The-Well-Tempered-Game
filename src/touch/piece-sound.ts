@@ -236,6 +236,10 @@ function moreBachSounds(): Record<string, string> {
   for (const n of ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12r", "12i", "13r", "13i", "c14", "c15", "c16", "c17"]) out[`bwv1080-${n}`] = "harpsichordSampled";
   out["bwv1079-ric3"] = "harpsichordSampled";
   out["bwv1079-ric6"] = "chamberOrgan";
+  // D964: the Offering's canons and the Fuga canonica on the harpsichord (to be voiced by the Instruments session);
+  // the trio sonata on SUPER 16-BIT as the concertos (D340's exception to D297): its flute, its violin, its cello on the bass alone.
+  for (const n of ["2", "3a", "3b", "3c", "3d", "3e", "4", "6", "7", "9"]) out[`bwv1079-${n}`] = "harpsichordSampled";
+  for (const n of ["8a", "8b", "8c", "8d"]) out[`bwv1079-${n}`] = "super16";
   for (let b = 772; b <= 801; b++) out[`bwv${b}`] = "harpsichordSampled";
   for (let m = 1; m <= 3; m++) out[`bwv1043-${m}`] = "super16";
   for (let c = 1; c <= 371; c++) out[`chor${String(c).padStart(3, "0")}`] = "chamberOrgan";

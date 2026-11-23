@@ -125,6 +125,14 @@ violinSolo/ celloSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent
          each note's level evened (K-weighted, and measured through the game's engine); the loudest peak at -1 dBFS;
          mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/consort/build_consort.py.
 
+D1031, the touch game's BAROQUE BAND's oboe (its own: the trials and ORCHESTRA & ORGAN keep oboe/ above; ZELENKA TRIO withdrawn, D1037):
+oboeSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, Fabien Lévy, Joshua Fineberg, Yan Maresz;
+         IRCAM; zenodo.org/records/3685367). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+         Oboe, ordinario, mf, every three or four semitones A#3-G#6. Changed: mono; onset kept 1 ms before the attack; retuned to its
+         name by resampling; 4.5 s with a 0.3 s fade; the held tone's slow swell evened; each note's level evened (K-weighted, and
+         measured through the game's engine); the loudest peak at -1 dBFS; mono 44.1 kHz 80 kbit/s MP3.
+         Script: tools/playback/consort/build_consort.py.
+
 D504, the touch game's ZELENKA TRIO (two oboes, the bassoon; its continuo the cello/ and harpsichord/ above; D1037: the sound withdrawn,
 these recordings kept: the oboe BWV 54's layered alto on SUPER 16-BIT, the bassoon VAUDEVILLE's and SUPER 16-BIT's lowest notes):
 trioOboe/ trioOboeMf/ trioOboeShort/ trioBassoon/ trioBassoonMf/ trioBassoonShort/   University of Iowa Electronic Music Studios,
