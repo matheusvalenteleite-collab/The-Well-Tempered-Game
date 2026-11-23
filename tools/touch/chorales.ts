@@ -131,18 +131,28 @@ export function layWords(notes: readonly Note[], attacks: readonly Attack[]): { 
 }
 
 /**
- * D1006: the fermatas held (ticks as written): the final one, and the Stollen's close where the source marks the first
- * section repeated (expansion A A ...): the latest fermata ending within a bar before the next section begins.
+ * D1006: the fermatas held (ticks as written): the final one, and the Stollen's close: the Stollen the first section, or the
+ * second where the first is only a pickup (shorter than a bar), where the source marks it repeated (expansion A A …, or
+ * with first and second endings, A A1 A A2 …); its close the latest fermata ending within a bar before the repeat
+ * (the next section, or the second ending).
  */
 export function heldFermatas(c: Pick<Chorale, "expansion" | "sections">, marks: readonly number[], bar: number): number[] {
   const held = new Set<number>();
   if (marks.length) held.add(marks[marks.length - 1]);
   const full = c.expansion?.full;
-  if (full && full.length >= 2 && full[0] === full[1] && c.sections) {
-    const a = c.sections.find((x) => x.label === full[0]);
-    const next = a ? c.sections.filter((x) => ticks(x.offset) > ticks(a.offset)).sort((x, y) => ticks(x.offset) - ticks(y.offset))[0] : undefined;
-    if (next) {
-      const bound = ticks(next.offset);
+  const secs = (c.sections ?? []).map((x) => ({ label: x.label, on: ticks(x.offset) })).sort((x, y) => x.on - y.on);
+  const at = (label: string) => secs.find((x) => x.label === label);
+  if (full && secs.length) {
+    // The Stollen: the first section, or the second after a pickup.
+    const first = at(full[0]);
+    const afterFirst = first ? secs.find((y) => y.on > first.on)?.on : undefined;
+    const i = full.length > 1 && full[1] !== full[0] && first && afterFirst !== undefined && afterFirst - first.on < bar ? 1 : 0;
+    const x = full[i];
+    const plain = full[i + 1] === x;
+    const volta = full[i + 1] === `${x}1` && full[i + 2] === x && full[i + 3] === `${x}2`;
+    const start = at(x);
+    const bound = plain && start ? secs.find((y) => y.on > start.on)?.on : volta ? at(`${x}2`)?.on : undefined;
+    if (bound !== undefined) {
       const close = marks.filter((m) => m <= bound && bound - m <= bar).at(-1);
       if (close !== undefined) held.add(close);
     }
