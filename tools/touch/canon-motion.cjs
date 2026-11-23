@@ -34,21 +34,21 @@ const TAKES = [
 ];
 
 /** Frames from the page's screencast for `secs` seconds: [{ t (s), jpeg (Buffer) }]. */
-async function cast(page, cdp, secs) {
+async function cast(page, cdp, secs, w = W, h = H) {
   const frames = [];
   const on = (f) => {
     frames.push({ t: f.metadata.timestamp, jpeg: Buffer.from(f.data, 'base64') });
     cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {});
   };
   cdp.on('Page.screencastFrame', on);
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 90, maxWidth: W, maxHeight: H, everyNthFrame: 1 });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 90, maxWidth: w, maxHeight: h, everyNthFrame: 1 });
   await page.waitForTimeout(secs * 1000);
   await cdp.send('Page.stopScreencast');
   cdp.off('Page.screencastFrame', on);
   return frames;
 }
 /** The frames, each held until the next one's timestamp, as a constant-rate webm. */
-function encode(frames, file, secs) {
+function encode(frames, file, secs, w = W, h = H) {
   const dir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'cast-'));
   const lines = ['ffconcat version 1.0'];
   frames.forEach((f, i) => {
@@ -59,13 +59,13 @@ function encode(frames, file, secs) {
   });
   lines.push(`file '${path.join(dir, `f${String(frames.length - 1).padStart(5, '0')}.jpg`)}'`);
   fs.writeFileSync(path.join(dir, 'list.txt'), lines.join('\n'));
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'), '-t', String(secs), '-vf', `fps=${FPS},scale=${W}:${H}`, '-c:v', 'libvpx-vp9', '-b:v', '1500k', '-an', file]);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(dir, 'list.txt'), '-t', String(secs), '-vf', `fps=${FPS},scale=${w}:${h}`, '-c:v', 'libvpx-vp9', '-b:v', '1500k', '-an', file]);
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
-async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out) {
+async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out, { w = W, h = H, query = '' } = {}) {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
-  const ctx = await b.newContext({ viewport: { width: W, height: H }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   await ctx.addInitScript((rate) => {
     window.__skip = 0;
     window.__rate = rate;
@@ -81,22 +81,22 @@ async function take([file, id, tab, bar, bpm, qpb, secs, rate = 1], dir = out) {
     def(Object.prototype, 'crowd', { configurable: true, get() { return undefined; }, set(x) { Object.defineProperty(this, 'crowd', { value: x }); } });
   }, rate);
   const p = await ctx.newPage();
-  await p.goto(URL + '?unlock=all');
-  for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); }
+  await p.goto(URL + '?unlock=all' + query);
+  for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(w / 2, h / 2); await p.waitForTimeout(1200); }
   const x = await p.$('#install-hint-x'); if (x) await x.click().catch(() => {});
   await p.click('#tab-book-' + tab); await p.waitForTimeout(500);
   await p.click('#tile-' + id); await p.waitForTimeout(400);
   const cdp = await ctx.newCDPSession(p);
-  await cdp.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: true, screenWidth: W, screenHeight: H });
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: true, screenWidth: w, screenHeight: h });
   await p.evaluate(() => { window.__t0 = performance.now(); });
   await p.click('#sel-play');
   await p.waitForTimeout(2500);
   const target = ((bar - 1) * qpb * 60) / bpm + LEAD_S;
   await p.evaluate((tg) => { window.__skip = tg - ((performance.now() - window.__t0) / 1000) * window.__rate; }, target);
-  const frames = await cast(p, cdp, secs + 0.3);
+  const frames = await cast(p, cdp, secs + 0.3, w, h);
   await b.close();
-  const dst = path.join(dir, `${file}-${W}x${H}.webm`);
-  encode(frames, dst, secs);
+  const dst = path.join(dir, `${file}-${w}x${h}.webm`);
+  encode(frames, dst, secs, w, h);
   console.log(dst, `${frames.length} frames (${(frames.length / secs).toFixed(0)} a second captured), ${FPS} fps`);
 }
 module.exports = { cast, encode, take, W, H, FPS };

@@ -307,9 +307,9 @@ export const PLAY: Chapter[] = [
         title: L("GAME BOY", "GAME BOY", "GAME BOY"),
         lead: [
           L(
-            "Where you land picks the wave: the soft side a round square, the middle a hollow pulse, the strong side a thin, bright one. A held note moved sideways wobbles (vibrato); a slide is the chip's quick pitch slide.",
-            "Onde você pousa escolhe a onda: o lado suave uma quadrada redonda, o meio um pulso oco, o lado forte um pulso fino e brilhante. Uma nota segurada e movida para o lado vibra (vibrato); um deslize é o rápido glissando do chip.",
-            "Donde te apoyas elige la onda: el lado suave una cuadrada redonda, el centro un pulso hueco, el lado fuerte un pulso fino y brillante. Una nota mantenida y movida de lado vibra (vibrato); un deslizamiento es el rápido glissando del chip.",
+            "Where you land picks the wave: the soft side a round square, the middle a hollow pulse, the strong side a thin, bright one. A held note moved sideways changes wave as you cross each third (the console's duty); a slide is the chip's quick pitch slide.",
+            "Onde você pousa escolhe a onda: o lado suave uma quadrada redonda, o meio um pulso oco, o lado forte um pulso fino e brilhante. Uma nota segurada e movida para o lado troca de onda a cada terço que você cruza (o duty do console); um deslize é o rápido glissando do chip.",
+            "Donde te apoyas elige la onda: el lado suave una cuadrada redonda, el centro un pulso hueco, el lado fuerte un pulso fino y brillante. Una nota mantenida y movida de lado cambia de onda en cada tercio que cruzas (el duty de la consola); un deslizamiento es el rápido glissando del chip.",
           ),
         ],
         fine: L(
@@ -325,9 +325,9 @@ export const PLAY: Chapter[] = [
         title: L("PSYCH", "PSYCH", "PSYCH"),
         lead: [
           L(
-            "A band of the late sixties: Mellotron, synthesizer, clean and fuzz guitars, Moog bass. The piano's three zones set each instrument's strength and colour; a held synthesizer, Mellotron or bass note swells as you move it sideways. The guitars, plucked, just ring.",
-            "Uma banda do fim dos anos sessenta: Mellotron, sintetizador, guitarras limpa e com fuzz, baixo Moog. As três zonas do piano dão a força e a cor de cada instrumento; uma nota segurada no sintetizador, no Mellotron ou no baixo cresce quando você a move para o lado. As guitarras, dedilhadas, só soam.",
-            "Una banda de finales de los sesenta: Mellotron, sintetizador, guitarras limpia y con fuzz, bajo Moog. Las tres zonas del piano dan la fuerza y el color de cada instrumento; una nota mantenida en el sintetizador, el Mellotron o el bajo crece cuando la mueves de lado. Las guitarras, punteadas, solo suenan.",
+            "A band of the late sixties: Mellotron, synthesizer, clean and fuzz guitars, Moog bass. The piano's three zones set each instrument's strength and colour; a held synthesizer, Mellotron or bass note swells as you move it sideways. A held guitar note moved sideways shakes into a guitarist's vibrato.",
+            "Uma banda do fim dos anos sessenta: Mellotron, sintetizador, guitarras limpa e com fuzz, baixo Moog. As três zonas do piano dão a força e a cor de cada instrumento; uma nota segurada no sintetizador, no Mellotron ou no baixo cresce quando você a move para o lado. Uma nota segurada na guitarra, movida para o lado, ganha o vibrato do guitarrista.",
+            "Una banda de finales de los sesenta: Mellotron, sintetizador, guitarras limpia y con fuzz, bajo Moog. Las tres zonas del piano dan la fuerza y el color de cada instrumento; una nota mantenida en el sintetizador, el Mellotron o el bajo crece cuando la mueves de lado. Una nota mantenida en la guitarra, movida de lado, toma el vibrato del guitarrista.",
           ),
         ],
         fine: L(

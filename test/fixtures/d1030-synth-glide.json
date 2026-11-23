@@ -1,0 +1,62 @@
+{
+ "analog": {
+  "uncapped": {
+   "semiquavers": 26,
+   "first_ms_median": 105.0,
+   "first_over_third": 26,
+   "reach_ms_median": 105.0,
+   "over_third": 26,
+   "mean_cents_abs_median": 38.2,
+   "mean_cents_abs_max": 55.1
+  },
+  "capped": {
+   "semiquavers": 26,
+   "first_ms_median": 39.0,
+   "first_over_third": 0,
+   "reach_ms_median": 39.0,
+   "over_third": 0,
+   "mean_cents_abs_median": 10.3,
+   "mean_cents_abs_max": 23.0
+  }
+ },
+ "tomita": {
+  "uncapped": {
+   "semiquavers": 26,
+   "first_ms_median": 98.0,
+   "first_over_third": 23,
+   "reach_ms_median": 161.0,
+   "over_third": 26,
+   "mean_cents_abs_median": 39.55,
+   "mean_cents_abs_max": 56.5
+  },
+  "capped": {
+   "semiquavers": 26,
+   "first_ms_median": 45.0,
+   "first_over_third": 3,
+   "reach_ms_median": 149.0,
+   "over_third": 14,
+   "mean_cents_abs_median": 11.2,
+   "mean_cents_abs_max": 24.1
+  }
+ },
+ "berlinSchool": {
+  "uncapped": {
+   "semiquavers": 26,
+   "first_ms_median": 103.0,
+   "first_over_third": 26,
+   "reach_ms_median": 103.0,
+   "over_third": 26,
+   "mean_cents_abs_median": 36.25,
+   "mean_cents_abs_max": 55.8
+  },
+  "capped": {
+   "semiquavers": 26,
+   "first_ms_median": 41.0,
+   "first_over_third": 0,
+   "reach_ms_median": 41.0,
+   "over_third": 0,
+   "mean_cents_abs_median": 8.95,
+   "mean_cents_abs_max": 22.0
+  }
+ }
+}

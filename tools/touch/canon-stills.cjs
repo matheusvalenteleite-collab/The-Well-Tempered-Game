@@ -34,6 +34,9 @@ const SHOTS = [
   ['i08-inversion', 'wtc1f08', 'I', 29.63, 59, 4],
   ['ii02-augmentation', 'wtc2f02', 'II', 13.6, 46, 4],
   ['ii09-diminution', 'wtc2f09', 'II', 26.56, 100, 8],
+  // D973: the answer (I/2, bar 3) and a stretto's entry (II/5, bar 14), in flight
+  ['i02-answer', 'wtc1f02', 'I', 2.3, 70, 4],
+  ['ii05-stretto', 'wtc2f05', 'II', 14.2, 63, 4],
 ];
 fs.mkdirSync(out, { recursive: true });
 let failed = 0;
