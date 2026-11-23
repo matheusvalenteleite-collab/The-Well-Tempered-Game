@@ -34,13 +34,20 @@ export interface CanonLeg {
   steps: number;
   /** What the box says over the leg's first bars. */
   label: string;
+  /**
+   * D976: in augmentation (2) the follower's onset is the leader's times `scale`, plus the delay (the leader's own time
+   * doubled; Canon per augmentationem). 1 unless given.
+   */
+  scale?: number;
+  /** D976: matched by MIDI, not staff step (a chromatic canon: the exact mirror, a transposition through the keys). */
+  chroma?: boolean;
 }
 
 export interface CanonSpec {
   legs: readonly CanonLeg[];
 }
 
-const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label });
+const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string, more: { scale?: number; chroma?: boolean } = {}): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label, ...more });
 
 // D908: Variations 6, 12, 15, 21 and 24 hold their second canonic line whole in voice 1 (more-bach.ts joinCanon), its
 // bass in voice 2: the legs that read it across voices 1 and 2 read voice 1.
@@ -111,6 +118,28 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
       leg(15, 51, [2], [3], 53760, false, -7, "CANON A 4 · THE FOURTH VOICE"),
     ],
   },
+  // D976 (batch B; the rules found on the game's notes): Canon a 2 per augmentationem, contrario motu: the lower line
+  // leads, the upper answers in notes twice as long, turned over (steps summing to 60), its onset the leader's doubled
+  // and a quarter later; the leader goes round again while the follower is still on its first statement, so the leg reads
+  // the first round only.
+  "bwv1079-3d": { legs: [leg(1, 20, [2], [0], 1920, true, 60, "CANON IN AUGMENTATION · IN CONTRARY MOTION", { scale: 2 })] },
+  // Canon a 2 Quaerendo invenietis: the upper line, the lower two and a half bars later in exact chromatic inversion
+  // (MIDI summing to 110).
+  "bwv1079-6": { legs: [leg(1, 42, [0], [1], 19200, true, 110, "CANON IN CONTRARY MOTION · TWO AND A HALF BARS LATER", { chroma: true })] },
+  // Canon a 2 per tonos: the lower line, the upper a fifth above a bar later; it rises a tone each round, so matched by
+  // MIDI (seven semitones up, every round).
+  "bwv1079-3e": { legs: [leg(1, 50, [2], [1], 7680, false, 7, "CANON AT THE FIFTH · RISING A TONE EACH ROUND", { chroma: true })] },
+  // Canon perpetuus contrario motu: the upper line, the lower two bars later in exact chromatic inversion, its axis moving
+  // in the round's second part (MIDI summing to 151, then 141).
+  "bwv1079-9": {
+    legs: [
+      leg(1, 18, [0], [1], 15360, true, 151, "CANON IN CONTRARY MOTION · TWO BARS LATER", { chroma: true }),
+      leg(18, 31, [0], [1], 15360, true, 141, "THE MIRROR MOVES", { chroma: true }),
+      leg(31, 48, [0], [1], 15360, true, 151, "CANON IN CONTRARY MOTION · AGAIN", { chroma: true }),
+      leg(48, 61, [0], [1], 15360, true, 141, "THE MIRROR MOVES AGAIN", { chroma: true }),
+      leg(61, 76, [0], [1], 15360, true, 151, "CANON IN CONTRARY MOTION · THE LAST ROUND", { chroma: true }),
+    ],
+  },
   // Invention 8: canonic in its opening (bars 1-7) and its return (bars 26-29) only, a bar later, an octave below.
   bwv779: {
     legs: [
@@ -155,8 +184,9 @@ export function echoPairs(f: TouchFugue): EchoPair[] {
     for (const v of L.dux)
       for (const [on, dur, midi, step] of f.voices[v] ?? []) {
         if (on < t0 || on >= t1) continue;
-        const want = L.contrary ? L.steps - step : step + L.steps;
-        const b = (at.get(on + L.delay) ?? []).find((n) => n.step === want);
+        // D976: by MIDI for a chromatic canon; the follower's onset scaled for an augmentation
+        const want = L.contrary ? L.steps - (L.chroma ? midi : step) : (L.chroma ? midi : step) + L.steps;
+        const b = (at.get(Math.round(on * (L.scale ?? 1)) + L.delay) ?? []).find((n) => (L.chroma ? n.midi : n.step) === want);
         if (b) out.push({ a: { on, dur, midi, step, voice: v }, b, leg: li, flies: false });
       }
   });
