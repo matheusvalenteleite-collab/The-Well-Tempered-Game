@@ -89,7 +89,7 @@ import { HearSubject, type Performed } from "./HearSubject.tsx";
 import { applyDrumPreset, applyLiteDrums, chooseDrumPreset, forgetDrumPreset, cycleDrumPreset, drumPresetOf, liteDrums, setLiteDrums } from "./LiteDrums.tsx";
 import { curatedFor, drumMenuFor, forgetDrumStyle, homeFor, setDrumStyle } from "../touch/drum-library.ts";
 import { ornamented } from "./hear-sound.ts";
-import { busoniOn, chosenReading, markOf, OFFER_READINGS, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
+import { busoniOn, markOf, playReading, readingsOf, setBusoniOn, type MarkNote } from "../touch/readings.ts";
 import { LensTally } from "./basics/lens.ts";
 import { ACTS, ACTS_READY, FINALE, beatFor, stagePassed as basicsPassed, type Stage } from "./basics/plan.ts";
 import { basicsRun, nextAt, stageOf, versionAt, type BasicsAt } from "./basics/runner.ts";
@@ -517,7 +517,7 @@ export function BenchApp() {
   // D970: the canons' rolling ribbon, MORPH (the default) or OFF.
   const [canons, setCanons] = useState(canonsMode);
   const [sfx, setSfx] = useState(sfxOn);
-  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (OFFER_READINGS ? chosenReading(f.id, presetById(soundNow).id) : busoni ? playReading(f.id) : null) : null;
+  const reading = run?.tut?.reading ? run.tut.reading : run?.reading ? (run.reading === "busoni" && !busoni ? null : (readingsOf(run.piece).find((x) => x.id === run.reading) ?? null)) : APP.lite && !run && f.kind === "fugue" ? (busoni ? playReading(f.id) : null) : null;
   // D327: the tuning in force: the sound's own (INSTRUMENT DEFAULT) or the one chosen; the samples retuned by tuning.ts hz() (sampled.ts rateFor).
   // D379: a tutorial step's own temperament (the fugue track's comparison), at the baroque A.
   const tuning = run?.tuning ? { id: run.tuning, a: 415 } : resolveTuning(tuningPref, soundNow);

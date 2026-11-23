@@ -508,7 +508,7 @@ export const TUTORIAL_LESSONS: Lesson[] = [
     short: (r) => {
       return tr("You followed {p}% of the marks; aim for 60%.", { p: Math.round(100 * (r.sheet.signs ?? 0)) });
     },
-    run: () => ({ proto: "ladder", fail: false, piece: "wtc1f02", voice: 1, from: 0, until: 2 * 7680, bpm: 60, wait: false, solo: true, easy: "direction", reading: "keller" }),
+    run: () => ({ proto: "ladder", fail: false, piece: "wtc1f02", voice: 1, from: 0, until: 2 * 7680, bpm: 60, wait: false, solo: true, easy: "direction", reading: "busoni" }),
     passAt: 0.75,
     pass: (r) => accuracy(r) >= 0.75 && (r.sheet.signs ?? 0) >= 0.6,
   },

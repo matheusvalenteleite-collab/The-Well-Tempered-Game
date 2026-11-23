@@ -90,32 +90,6 @@ test("D369 (5): the voice legend: the player's voice a chip of its own (VOCÊ: M
     for (const [k, v] of Object.entries(d)) assert.doesNotMatch(v, bad, `${k} → ${v}`);
 });
 
-test("D369 (6): HEAR THE SUBJECT's readings back for everyone; D344's reading the default until one is chosen", async () => {
-  const { chosenReading, chooseReading, bestReading, BEST_READING, NO_READING, readingsOf } = await import("../src/touch/readings.ts");
-  store.clear();
-  // D392: every Book I fugue now has BUSONI's whole-piece reading, the piano's default (d385-piano.test.ts); with no
-  // sound named and on every other sound D344's reading is the default until one is chosen.
-  const id = Object.keys(BEST_READING).find((k) => BEST_READING[k] !== NO_READING && readingsOf(k).filter((r) => !r.whole).length > 1)!;
-  assert.equal(chosenReading(id)?.id, bestReading(id)?.id, "nothing chosen: D344's");
-  assert.equal(chosenReading(id)?.id, BEST_READING[id]);
-  assert.equal(chosenReading(id, "harpsichordSampled")?.id, BEST_READING[id], "another sound: D344's");
-  const other = readingsOf(id).find((r) => r.id !== BEST_READING[id])!;
-  chooseReading(id, other.id);
-  assert.equal(chosenReading(id)?.id, other.id);
-  chooseReading(id, NO_READING);
-  assert.equal(chosenReading(id), null, "NONE chosen");
-  store.clear();
-  const app = src("src/bench/BenchApp.tsx");
-  assert.doesNotMatch(app, /single=\{!full\}/);
-  // D393 (WTC 1.90): the chooser kept behind OFFER_READINGS (off: only BUSONI offered, d393-busoni-only.test.ts);
-  // with it on, every reading and NONE are offered again, D344's (or the sound's) the one checked.
-  assert.match(app, /OFFER_READINGS \? chosenReading\(f\.id, presetById\(soundNow\)\.id\)/);
-  const hs = src("src/bench/HearSubject.tsx");
-  assert.match(hs, /\{offered && readings\.length > 0 && \(/);
-  assert.match(hs, /id="reading-none"/);
-  assert.match(hs, /chosenReading\(id, preset\(\)\.id\)/);
-});
-
 test("D369 (7), as D454 left it: the voice offered first is the fugue's easiest, finished or not; the voice last played wins", async () => {
   const { fugueById } = await import("../src/touch/fugue.ts");
   const { voicesFrom } = await import("../src/touch/voice-mode.ts");

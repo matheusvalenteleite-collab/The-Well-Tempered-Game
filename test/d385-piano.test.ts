@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fugueById, inBar, beatOf } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
-import { bestReading, chooseReading, chosenReading, markLegend, readingsOf, wholeReadingOf, BEST_READING, type Reading } from "../src/touch/readings.ts";
+import { markLegend, readingsOf, wholeReadingOf, type Reading } from "../src/touch/readings.ts";
 import { endingOf, endSpeedOf, LEVEL_DB, RAMP, SFZ,PALETTES, paletteOfWord, phraseArchDb, PHRASE_BREATH_HOLD, slurShapeDb, wholeMarks, wholePlan } from "../src/touch/whole-reading.ts";
 import { pianoTrill, PIANO_TRILL, TRILL_CHARACTERS, trillCharacter } from "../src/touch/piano-trill.ts";
 import { landing, PIANO_SOFT_BELOW_DB, PIANO_SOFT_NET_DB, PIANO_ZONE_DB, pianoDb, pianoZone, STRONG_ZONE_FROM } from "../src/touch/touch-expr.ts";
@@ -25,6 +25,7 @@ import { protoById } from "../src/bench/protos.ts";
 import { setPreset } from "../src/touch/sound.ts";
 import { PATCHES } from "../src/touch/sound.ts";
 import { trillUnit } from "../src/music/ornaments.ts";
+import { allReadingsOf } from "./book-readings.ts";
 
 /** D392: BUSONI for every fugue of Book I (D385 began with five: I/1, I/2, I/8, I/16, I/24). */
 const BOOK_I = Array.from({ length: 24 }, (_, i) => `wtc1f${String(i + 1).padStart(2, "0")}`);
@@ -53,7 +54,7 @@ const ROWS: Rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round((900 - 
 
 // ---- The reading loader ----
 
-test("D385, D392, D394: BUSONI loaded for all 48 fugues as a whole-piece reading beside the books' subject-only ones (kept as they were)", () => {
+test("D385, D392, D394: BUSONI loaded for all 48 fugues as a whole-piece reading (D1050: the books' subject-only ones deleted)", () => {
   for (const id of ALL) {
     const r = busoni(id);
     assert.ok(r && r.whole, id);
@@ -71,9 +72,8 @@ test("D385, D392, D394: BUSONI loaded for all 48 fugues as a whole-piece reading
     assert.ok(r.whole.hairpins.every((x) => x.from < x.to && x.to <= f.length), `${id}: hairpins`);
     for (const d of r.whole.dyn) assert.ok(LEVEL_DB[d.mark.trim()] !== undefined || RAMP.test(d.mark) || SFZ.test(d.mark), `${id}: "${d.mark}"`);
     assert.ok(r.whole.marks.every((m) => fugueById(id).voices[m.v]?.some((n) => n[0] === m.on)), `${id}: every mark on a note of the game's`);
-    // The books' readings come first, at most three, untouched (no whole).
-    const books = readingsOf(id).filter((x) => !x.whole);
-    assert.ok(books.length >= 1 && books.length <= 3 && readingsOf(id).at(-1)!.id === "busoni");
+    // D1050: the books' readings deleted: BUSONI alone.
+    assert.deepEqual(readingsOf(id).map((x) => x.id), ["busoni"]);
     // D392, D394: the edition's volume: Book I from Schirmer (1894), Book II from Breitkopf & Härtel (1915), but the
     // fugues Busoni swapped (I/7 and I/15 in his Book II volume, II/7 and II/15 in his Book I volume).
     const swapped = ["wtc1f07", "wtc1f15", "wtc2f07", "wtc2f15"].includes(id);
@@ -92,32 +92,13 @@ test("D385, D392, D394: BUSONI loaded for all 48 fugues as a whole-piece reading
   const json = JSON.parse(src("data/touch/readings.json")) as Record<string, Reading[]>;
   const book2 = Object.keys(json).filter((k) => k.startsWith("wtc2f"));
   assert.equal(book2.length, 24);
-  assert.ok(book2.every((k) => json[k].at(-1)!.whole && json[k].slice(0, -1).every((r) => !r.whole && r.notes.length > 0)), "Book II: the books' readings, then BUSONI");
+  assert.ok(book2.every((k) => json[k].length === 1 && json[k][0].whole), "Book II: BUSONI alone (D1050)");
   assert.equal(wholeReadingOf("bwv1080-14"), null);
   assert.equal(busoni("wtc1f07").year, 1915);
   // The tool writes it from the sources in the repository.
   assert.match(src("tools/touch/readings.ts"), /docs\/wtc\/readings\/\$\{ed\.id\}/);
   for (const id of ALL) assert.ok(src(`docs/wtc/readings/busoni/${id}-busoni.json`).includes("wtc-reading/2"));
 });
-
-test("D385, D392, D394: on the piano BUSONI is the default reading of all 48 fugues; every other sound keeps D344's; a choice still wins", () => {
-  mem.clear();
-  for (const id of ALL) {
-    assert.equal(bestReading(id, "pianoSampled")?.id, "busoni", id);
-    assert.equal(chosenReading(id, "pianoSampled")?.id, "busoni", id);
-    const d344 = readingsOf(id).some((r) => r.id === BEST_READING[id]) ? BEST_READING[id] : null;
-    assert.equal(bestReading(id, "harpsichordSampled")?.id ?? null, d344, id);
-    assert.equal(bestReading(id)?.id ?? null, d344, id);
-  }
-  assert.equal(bestReading("bwv1080-14", "pianoSampled"), null, "no reading at all: none");
-  chooseReading("wtc1f02", "keller");
-  assert.equal(chosenReading("wtc1f02", "pianoSampled")?.id, "keller");
-  mem.clear();
-  // The label: the author's name in every language (a proper name).
-  assert.match(src("src/bench/HearSubject.tsx"), /chosenReading\(id, preset\(\)\.id\)/);
-});
-
-// ---- 1. The reading carries the dynamics ----
 
 test("D385: the reading's dynamics in every voice: pp −11 … ff +6.5 dB, terraced (I/2 bar 15: the alto's entry mf against the soprano's p subito), ramps and hairpins", () => {
   assert.deepEqual([LEVEL_DB.pp, LEVEL_DB.p, LEVEL_DB.mp, LEVEL_DB.mf, LEVEL_DB.f, LEVEL_DB.ff], [-11, -6.5, -3, 0, 3.5, 6.5]);
@@ -136,7 +117,7 @@ test("D385: the reading's dynamics in every voice: pp −11 … ff +6.5 dB, terr
   assert.ok(p.dynAt(0, (30 - 1) * f.barTicks) >= 6.5 - 1e-9);
   // Every note has its level; the plan is memoised by fugue.
   assert.equal(wholePlan(f, busoni("wtc1f02")), p);
-  assert.equal(wholePlan(f, readingsOf("wtc1f02")[0]), null, "a subject-only reading has no plan");
+  assert.equal(wholePlan(f, allReadingsOf("wtc1f02")[0]), null, "a subject-only reading has no plan");
 });
 
 test("D385: the band plays the reading's dynamics on the piano (and none on the harpsichord); the entry brought out where Busoni asks", () => {

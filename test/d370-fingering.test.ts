@@ -15,6 +15,7 @@ import { MECH_DEFAULTS } from "../src/bench/mechanics.ts";
 import { presetRow } from "../src/bench/lab/preset-table.ts";
 import type { LabPassage } from "../src/bench/lab/log.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
+import { allReadingsOf } from "./book-readings.ts";
 
 await loadExtras();
 
@@ -74,7 +75,7 @@ test("D370/D409: Invention 1 bars 1–2 (semiquavers joined, quavers detached, �
 test("D370: I/2's subject in each reading (and none): no join on one thumb; Bodky's as Glenn's playable; the mordent figures alternate", () => {
   const id = "wtc1f02";
   const e = [...fugueById(id).entries].filter((x) => !x.theme).sort((a, b) => a.on - b.on)[0];
-  for (const r of [null, ...readingsOf(id)]) {
+  for (const r of [null, ...allReadingsOf(id)]) {
     const ns = line(id, e.voice, 1, 3, tempoOf(id), r).slice(0, e.notes.length);
     const fs = planFingerings(ns, { overlap: 0.03 });
     sound(ns, fs, `I/2 ${r?.id ?? "none"}`);
@@ -89,7 +90,7 @@ test("D370: I/2's subject in each reading (and none): no join on one thumb; Bodk
 
 test("D370/D409: II/18 bars 1–4: every reading all joined, so the thumbs alternate (forced and right); with Bodky's leaps apart, the best alternates and one thumb on the leaps (Glenn's plan) is offered", () => {
   const id = "wtc2f18";
-  for (const r of [null, ...readingsOf(id)]) {
+  for (const r of [null, ...allReadingsOf(id)]) {
     const ns = line(id, 0, 1, 4, tempoOf(id), r);
     const fs = planFingerings(ns, { overlap: 0.03 });
     sound(ns, fs, `II/18 ${r?.id ?? "none"}`);
@@ -108,7 +109,7 @@ test("D370: every reading's subject in the 48: no plan joins on one thumb, none 
     const f = fugueById(id);
     const e = [...f.entries].filter((x) => !x.theme).sort((a, b) => a.on - b.on)[0];
     const spt = 60 / tempoOf(id) / f.tpq;
-    for (const r of readingsOf(id)) {
+    for (const r of allReadingsOf(id)) {
       const ns: PlanNote[] = e.notes.map((n, i) => ({ at: n[0] * spt, dur: n[1] * spt, step: n[3], join: r.notes[i]?.join ?? null, short: r.notes[i]?.short ?? null, accent: r.notes[i]?.accent ?? null }));
       sound(ns, planFingerings(ns, { overlap: 0.03 }), `${id} ${r.id}`);
     }

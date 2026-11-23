@@ -2,7 +2,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { BEST_READING, bestReading, NO_READING, readingsOf } from "../src/touch/readings.ts";
 import { FUGUES, fugueById, beatOf } from "../src/touch/fugue.ts";
 import { RULE_LEVELS, RULES } from "../src/bench/lite.ts";
 import { PT } from "../src/i18n/pt.ts";
@@ -11,27 +10,6 @@ import { BACKING_GROOVE, BACKING_LEVEL, BACKING_HIGHPASS_HZ, grooveHits, grooveN
 import { PIECE_SOUND, soundFor } from "../src/touch/piece-sound.ts";
 
 const book1 = FUGUES.filter((f) => f.book === 1).map((f) => f.id);
-
-test("D344: every Book I fugue has one chosen reading, among those the data hold for it (or none)", () => {
-  assert.equal(book1.length, 24);
-  for (const id of book1) {
-    const want = BEST_READING[id];
-    assert.ok(want, id);
-    if (want === NO_READING) assert.equal(bestReading(id), null, id);
-    else assert.equal(bestReading(id)?.id, want, `${id}: ${want} is one of ${readingsOf(id).map((r) => r.id)}`);
-  }
-});
-
-test("D344: the table of reasons names every Book I fugue and its reading", () => {
-  const md = readFileSync("docs/wtc/READINGS-CHOSEN.md", "utf8");
-  for (const id of book1) {
-    const n = Number(id.slice(-2));
-    const row = md.split("\n").find((l) => l.startsWith(`| I/${n} `));
-    assert.ok(row, `row for I/${n}`);
-    const want = BEST_READING[id];
-    assert.match(row!, new RegExp(want === NO_READING ? "NONE" : want.toUpperCase()), row);
-  }
-});
 
 test("D344: HOW TO PLAY in three levels; every line translated; the earlier lines all kept", () => {
   const l = RULE_LEVELS.ladder;
