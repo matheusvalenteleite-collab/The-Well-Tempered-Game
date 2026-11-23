@@ -238,7 +238,20 @@ function moreBachSounds(): Record<string, string> {
   out["bwv1079-ric6"] = "chamberOrgan";
   // D964: the Offering's canons and the Fuga canonica on the harpsichord (to be voiced by the Instruments session);
   // the trio sonata on SUPER 16-BIT as the concertos (D340's exception to D297): its flute, its violin, its cello on the bass alone.
-  for (const n of ["2", "3a", "3b", "3c", "3d", "3e", "4", "6", "7", "9"]) out[`bwv1079-${n}`] = "harpsichordSampled";
+  // D1045: voiced by the voice probe on every sound (closest pair, the harpsichord's in brackets), the loads spread, PSYCH and
+  // BOSSA NOVA (on 12 and 9 pieces) and the sampled-strings sounds (being replaced) left alone where another probed close.
+  Object.assign(out, {
+    "bwv1079-2": "bachBrass", // Canon perpetuus super Thema Regium: 2.29 (0.82)
+    "bwv1079-3a": "gameboy", // Canon cancrizans: 5.78 (0.45)
+    "bwv1079-3b": "vaudeville", // in unisono (Bach's two violins): 2.85 (0.87); STRING CONSORT 0.76, BAROQUE BAND 0.70
+    "bwv1079-3c": "salsa", // per motum contrarium: 3.83 (1.50)
+    "bwv1079-3d": "berlinSchool", // per augmentationem, contrario motu: 3.85 (0.69)
+    "bwv1079-3e": "abbeyRoad", // per tonos: 2.48 (1.20)
+    "bwv1079-4": "vaudeville", // Fuga canonica in Epidiapente: 3.43 (0.95)
+    "bwv1079-6": "bachBrass", // Canon a 2 (Quaerendo invenietis), low (D4 and C3 its voices' middles): 4.24 (0.89); JAZZ QUARTET 4.87 and SID 64 3.72 -35.1 and -34.4 LUFS whole on a phone, BACH BRASS -30.5
+    "bwv1079-7": "vocalSynth", // Canon a 4 (the old style, sung): 1.66 (0.52); SALSA 3.27 lost its tenor on both paths
+    "bwv1079-9": "chorinho", // Canon perpetuus (Bach's flute, violin and continuo): 2.28, its flute on top (0.79)
+  });
   for (const n of ["8a", "8b", "8c", "8d"]) out[`bwv1079-${n}`] = "super16";
   for (let b = 772; b <= 801; b++) out[`bwv${b}`] = "harpsichordSampled";
   for (let m = 1; m <= 3; m++) out[`bwv1043-${m}`] = "super16";
