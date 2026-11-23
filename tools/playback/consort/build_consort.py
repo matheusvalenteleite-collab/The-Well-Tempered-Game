@@ -1,4 +1,4 @@
-"""build_consort.py <TinySOL Strings dir> <out dir (public/samples)> [--dry]: D1011, STRING CONSORT's own violin and cello
+"""build_consort.py <TinySOL dir (its Strings/, Winds/)> <out dir (public/samples)> [--dry] [--only <set,...>]: D1011, STRING CONSORT's own violin and cello
 (violinSolo/, celloSolo/) from TinySOL (IRCAM, CC BY 4.0, zenodo.org/records/3685367), ordinario mf, a recording every two or
 three semitones (the violin G3-C#7: 17, the cello C2-D#5: 14; STRING CONSORT keeps them all, sound.ts slim.strides 2), so no note
 is read more than 1.5 semitones from a recording.
@@ -23,7 +23,16 @@ from fractions import Fraction
 src, out = sys.argv[1], sys.argv[2]
 DRY = "--dry" in sys.argv
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-SETS = {"violinSolo": ("Violin", "Vn", (55, 97)), "celloSolo": ("Violoncello", "Vc", (36, 75))}
+SETS = {"violinSolo": ("Strings/Violin", "Vn", (55, 97)), "celloSolo": ("Strings/Violoncello", "Vc", (36, 75)),
+        # D1031: BAROQUE BAND's oboe (TinySOL's, B3-G#6), in place of the VSCO 2 CE trial oboe there.
+        "oboeSolo": ("Winds/Oboe", "Ob", (58, 92))}
+# D1031: the steps a set's recordings may take (semitones): the oboe's 3 or 4, so BAROQUE BAND's slim (BAND_SLIM: a recording every third
+# semitone at least) keeps every one (every 2 or 3 would be thinned to 3-5 apart; every 3 exactly costs 0.9 MB more).
+STEPS = {"oboeSolo": (3, 4)}
+# D1031: and a recording whose made loop dips at its join (loopdip, dB over 2) at this a dB, the oboe's (a steady tone, no vibrato to
+# hide it: F4 dipped 6 dB at 3.46 s into a held note); the strings' vibrato blurs the join.
+LOOPDIP_COST = {"oboeSolo": 1.0}
+ONLY = sys.argv[sys.argv.index("--only") + 1].split(",") if "--only" in sys.argv else list(SETS)
 # The violin's onset quickened (attack): TinySOL's violin at mf takes 110-300 ms to half its held level and 180-470 ms to 90 %
 # (the VSO2 violin it replaces 5-70 and 20-140): a fugue's quick notes on it were soft-edged and blurred into the viola (TinySOL's
 # too, as slow). Its rise brought up to a 60 ms ramp to the held level (a gain under the 30 ms envelope, at most +9 dB, gone by
@@ -41,6 +50,8 @@ RIPPLE_COST = 0.1
 ENGINE_DB = {
     "violinSolo": {"G3": -0.8, "As3": -0.7, "C4": -0.8, "D4": -1.8, "F4": -0.9, "Gs4": -0.0, "B4": -0.3, "Cs5": -0.4, "E5": 0.1, "G5": -0.5, "A5": 0.5, "C6": 1.6, "Ds6": 0.4, "Fs6": 0.2, "Gs6": 2.1, "As6": 1.3, "Cs7": 2.6},
     "celloSolo": {"C2": 1.4, "Ds2": 1.6, "Fs2": 2.9, "A2": 0.6, "C3": 1.5, "Ds3": 0.4, "Fs3": 0.7, "A3": 0.1, "C4": -1.0, "Ds4": -1.5, "Fs4": -2.2, "A4": -0.7, "C5": -3.7, "Ds5": 0.0},
+    # D1031 (BAROQUE BAND, II/16's oboe, the same scale)
+    "oboeSolo": {"As3": -0.2, "Cs4": -1.1, "E4": -0.7, "Gs4": 0.2, "B4": -0.6, "Ds5": -0.9, "Fs5": -0.5, "A5": -0.6, "C6": 0.7, "E6": 1.2, "Gs6": 2.5},
 }
 LEN, FADE = 4.5, 0.3
 
@@ -142,17 +153,26 @@ def prepare(f, mi, ramp=None):
     h = int(0.02 * sr)
     e = 20 * np.log10(np.sqrt((y[int(0.8 * sr):int(0.8 * sr) + (int(3 * sr) // h) * h].reshape(-1, h) ** 2).mean(1)) + 1e-9)
     ripple = float(np.percentile(e, 95) - np.percentile(e, 5))
-    return dict(ripple=ripple, y=y, sr=sr, cents=round(float(cents), 1), left=round(float(left), 1), bright=float(bright), start=float(start), held=float(held), file=os.path.basename(f))
+    # D1031: the made loop's join as sampled.ts bakes it (its last 0.25 s faded, equal power, into the 0.25 s before its start):
+    # a steady tone (the oboe's) whose two stretches meet out of phase dips there, by as much as the phase is off
+    a0, a1, xf = int(1.4 * sr), int(3.6 * sr), int(0.25 * sr)
+    w = np.linspace(0, np.pi / 2, xf)
+    j = y[a1 - xf:a1] * np.cos(w) + y[a0 - xf:a0] * np.sin(w)
+    fr = lambda v: 20 * np.log10(np.sqrt((v[:len(v) // h * h].reshape(-1, h) ** 2).mean(1)) + 1e-9)
+    loopdip = float(np.median(fr(y[a0:a1])) - fr(j).min())
+    return dict(ripple=ripple, loopdip=loopdip, y=y, sr=sr, cents=round(float(cents), 1), left=round(float(left), 1), bright=float(bright), start=float(start), held=float(held), file=os.path.basename(f))
 
 
 report = {}
 for folder, (inst, ab, pitches) in SETS.items():
+    if folder not in ONLY:
+        continue
     cands = {}
     for f in glob.glob(f"{src}/{inst}/ordinario/{ab}-ord-*-mf-*.wav"):
-        m = re.match(ab + r"-ord-([A-G]#?\d)-mf-(\d)c-(\w+)\.wav", os.path.basename(f))
+        m = re.match(ab + r"-ord-([A-G]#?\d)-mf-(?:(\d)c|N)-(\w+)\.wav", os.path.basename(f))
         mi = midi_of(m.group(1))
         if pitches[0] <= mi <= pitches[1] and "R" not in m.group(3):
-            cands.setdefault(mi, []).append((int(m.group(2)), f))
+            cands.setdefault(mi, []).append((int(m.group(2) or 0), f))
     lo, hi = pitches
     missing = [p for p in (lo, hi) if p not in cands]
     assert not missing, (folder, missing)
@@ -162,7 +182,7 @@ for folder, (inst, ab, pitches) in SETS.items():
     best = {(lo, j): (0.001 * j, None) for j in range(len(info[lo]))}
     for p in range(lo + 1, hi + 1):
         for j, nb in enumerate(info.get(p, [])):
-            prev = [(best[(q, i)][0] + abs(nb["bright"] - info[q][i]["bright"]) + STEP_COST + RIPPLE_COST * max(0, nb["ripple"] - 3) + LEAN.get(folder, 0) * nb["bright"], (q, i)) for q in (p - 2, p - 3) for i in range(len(info.get(q, []))) if (q, i) in best]
+            prev = [(best[(q, i)][0] + abs(nb["bright"] - info[q][i]["bright"]) + STEP_COST + RIPPLE_COST * max(0, nb["ripple"] - 3) + LEAN.get(folder, 0) * nb["bright"] + LOOPDIP_COST.get(folder, 0) * max(0, nb["loopdip"] - 2), (q, i)) for q in [p - d for d in STEPS.get(folder, (2, 3))] for i in range(len(info.get(q, []))) if (q, i) in best]
             if prev:
                 c, k = min(prev)
                 best[(p, j)] = (c + 0.001 * j, k)
@@ -186,7 +206,7 @@ for folder, (inst, ab, pitches) in SETS.items():
             sf.write(tmp, y, n["sr"], subtype="PCM_16")
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", tmp, "-ac", "1", "-ar", "44100", "-codec:a", "libmp3lame", "-b:a", "80k", os.path.join(out, folder, fname(p) + ".mp3")], check=True)
             os.remove(tmp)
-        rows[fname(p)] = dict(file=n["file"], cents=n["cents"], left=n["left"], bright=round(n["bright"], 2), start=round(n["start"], 1), held=round(n["held"], 1), trim=round(20 * np.log10(gains[p] * g), 1), ripple=round(n["ripple"], 1))
+        rows[fname(p)] = dict(file=n["file"], cents=n["cents"], left=n["left"], bright=round(n["bright"], 2), start=round(n["start"], 1), held=round(n["held"], 1), trim=round(20 * np.log10(gains[p] * g), 1), ripple=round(n["ripple"], 1), loopdip=round(n["loopdip"], 1))
         print(folder, fname(p), json.dumps(rows[fname(p)]))
     report[folder] = rows
 print(json.dumps(report))
