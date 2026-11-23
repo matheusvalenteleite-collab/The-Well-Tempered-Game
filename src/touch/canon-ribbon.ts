@@ -17,7 +17,7 @@
  */
 import type { TouchFugue } from "./fugue.ts";
 import { tempoOf } from "./tempi.ts";
-import { CANONS, echoPairs, type EchoGeo, type EchoNote, type EchoPair } from "./canon-echo.ts";
+import { CANONS, CRAB, echoPairs, type EchoGeo, type EchoNote, type EchoPair } from "./canon-echo.ts";
 
 /* ---------- the setting ---------- */
 export type CanonsMode = "morph" | "off";
@@ -50,6 +50,8 @@ export interface Shape {
   A: EchoNote[];
   T: EchoNote[];
   contrary: boolean;
+  /** D977 (prototype): a crab canon's shape: it turns about a vertical axis as it drops (time reversed). */
+  retro?: boolean;
   /** The block's slide in staff steps, and the leader group's centre line (steps). */
   dS: number;
   c: number;
@@ -81,6 +83,8 @@ export function ribbonShapes(f: TouchFugue): Shape[] {
   const pairs = echoPairs(f);
   const shapes: Shape[] = [];
   spec.legs.forEach((L, li) => {
+    // D977 (prototype): a crab canon's shapes fly only with ?fm=crab (crabmid draws the time mirror instead)
+    if (L.retro && !CRAB.has("crab")) return;
     const run = pairs.filter((p) => p.leg === li);
     if (!run.length) return;
     // a structural point: the first leg, or a leg that changes the canon's name (a new leader); else it carries on
@@ -122,7 +126,11 @@ export function ribbonShapes(f: TouchFugue): Shape[] {
     }
     for (const s of segs) parts.push({ list: s, big: false });
     // every segment flies (D971: no thinning)
-    for (const part of parts) shapes.push(shape(f, li, part.list, part.big, L.contrary, part.big ? 2.5 * q : flight));
+    for (const part of parts) {
+      const sh = shape(f, li, part.list, part.big, L.contrary, part.big ? 2.5 * q : flight);
+      if (L.retro) sh.retro = true;
+      shapes.push(sh);
+    }
   });
   shapes.sort((a, b) => a.start - b.start);
   memo.set(f, shapes);
@@ -190,7 +198,7 @@ function place(s: Shape, i: number, ph: Phase, k: EchoGeo): Place {
  * tab), holds about a beat, then drops onto the follower's notes, turning over in contrary motion, its colour going from
  * the leader's to the follower's in step.
  */
-export const isFar = (s: Shape, k: { now: number; t0: number }) => s.tA0 < s.start - (k.now - k.t0);
+export const isFar = (s: Shape, k: { now: number; t0: number }) => !!s.retro || s.tA0 < s.start - (k.now - k.t0);
 /** A far shape's appearing: from a beat and a quarter before its flight. */
 const farFrom = (s: Shape, q: number) => s.fly - 1.25 * q;
 function placeFar(s: Shape, i: number, ph: Phase, k: EchoGeo, top: number): Place {
@@ -206,8 +214,16 @@ function placeFar(s: Shape, i: number, ph: Phase, k: EchoGeo, top: number): Plac
     ey = cE + (ey - cE) * c;
     h *= Math.max(0.4, Math.abs(c));
   }
-  const x = k.xOf(b.on);
-  return { x, w: Math.max(2, k.xOf(b.on + b.dur) - x - 1), y: ey + (k.yOf(b.step) + k.bh / 2 - ey) * u, h };
+  const x = k.xOf(b.on), w = Math.max(2, k.xOf(b.on + b.dur) - x - 1);
+  if (s.retro) {
+    // D977: the contour first in the leader's order (the target span read forwards), then turned about its vertical
+    // centre line as it drops, each note's centre folding through the half-turn to its place backwards
+    let T0 = Infinity, T1 = -Infinity;
+    for (const n of s.T) (T0 = Math.min(T0, n.on)), (T1 = Math.max(T1, n.on + n.dur));
+    const xc = (k.xOf(T0) + k.xOf(T1)) / 2, cs = k.xOf(T0 + T1 - b.on - b.dur / 2), cx = xc + (cs - xc) * Math.cos(Math.PI * u);
+    return { x: cx - w / 2, w: Math.max(1, w * Math.max(0.35, Math.abs(Math.cos(Math.PI * u)))), y: ey + (k.yOf(b.step) + k.bh / 2 - ey) * u, h };
+  }
+  return { x, w, y: ey + (k.yOf(b.step) + k.bh / 2 - ey) * u, h };
 }
 /**
  * A shape's colour at a phase: the leader's ink to the follower's (each shape is one leader voice into one follower voice),
@@ -220,7 +236,8 @@ export const colourOf = (s: Shape, ph: Phase, k: EchoGeo) => mix(k.ink(s.A[0].vo
 export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGeo, pass: "under" | "over" | "both" = "both") {
   if (canonsMode() === "off") return;
   const shapes = ribbonShapes(f);
-  if (!shapes.length) return;
+  // (D977: a crab canon's time mirror needs no shapes)
+  if (!shapes.length && !(CRAB.has("crabmid") && CANONS[f.id]?.legs.some((L) => L.retro))) return;
   const q = f.tpq;
   g.save();
   // "under": the veil and the flying copies (under the player's notes); "over": the landing flare alone, an
@@ -293,6 +310,35 @@ export function paintCanon(g: CanvasRenderingContext2D, f: TouchFugue, k: EchoGe
         g.fillStyle = "#ffffff";
         g.fillRect(x1, y, Math.max(2, x2 - x1 - 1), k.bh);
       }
+    }
+  }
+  // D977 (prototype, ?fm=crabmid): a crab canon's time mirror: as the piece's middle passes, a soft gold axis at it, and
+  // the forwards voice's notes near it reflected through it as outlines, landing on the backwards voice's notes (the same
+  // notes, mirrored), fading in and out over two bars on either side.
+  const retro = CANONS[f.id]?.legs.find((L) => L.retro);
+  if (retro && CRAB.has("crabmid") && under) {
+    const mid = retro.delay / 2, xm = k.xOf(mid), dist = Math.abs(k.now - mid) / k.barTicks;
+    const a = Math.max(0, 1 - Math.max(0, dist - 1) / 1.5);
+    if (a > 0 && xm > -4 && xm < k.w + 4) {
+      g.fillStyle = "#f3d26b";
+      g.globalAlpha = 0.14 * a;
+      g.fillRect(Math.round(xm) - 4, 0, 9, k.h);
+      g.globalAlpha = 0.75 * a;
+      g.fillRect(Math.round(xm), 0, 1, k.h);
+      // the reflection: each forwards note within the view mirrored through the axis, its outline in the leader's ink
+      // easing out to its mirror place as the axis nears the playhead
+      const u = ease(1 - Math.min(1, dist));
+      for (const v of retro.dux)
+        for (const [on, dur, , step] of f.voices[v] ?? []) {
+          const x1 = k.xOf(on), x2 = k.xOf(on + dur);
+          if (x2 < 0 || x1 > k.w) continue;
+          const r1 = k.xOf(2 * mid - on - dur), r2 = k.xOf(2 * mid - on);
+          const mx1 = x1 + (r1 - x1) * u, mw = Math.max(2, x2 - x1 + (r2 - r1 - (x2 - x1)) * u - 1);
+          g.strokeStyle = mix(k.ink(v), k.ink(retro.comes[0]), u);
+          g.lineWidth = 1;
+          g.globalAlpha = 0.7 * a;
+          g.strokeRect(mx1 - 0.5, k.yOf(step) - 0.5, mw + 1, k.bh + 1);
+        }
     }
   }
   // D972 (the owner: "We don't need tags … They're just cluttering"): no words in play; the leg's label is data only.

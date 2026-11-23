@@ -41,13 +41,28 @@ export interface CanonLeg {
   scale?: number;
   /** D976: matched by MIDI, not staff step (a chromatic canon: the exact mirror, a transposition through the keys). */
   chroma?: boolean;
+  /** D977 (prototype): a crab canon: the follower is the leader backwards, the note [on, on + dur] answered at [end - on - dur, end - on] (`delay` is the end). */
+  retro?: boolean;
 }
+
+/**
+ * D977 (prototype, the board: "cancrizans: prototype only"): `?fm=crab` (the copy turns about a vertical axis: time
+ * reversed) and `?fm=crabmid` (the piece's midpoint drawn as the time mirror, the forwards notes reflected through it) on
+ * play.html's address; without them the crab canon has no ribbon.
+ */
+export const CRAB: ReadonlySet<string> = (() => {
+  try {
+    return new Set((new URLSearchParams(globalThis.location?.search ?? "").get("fm") ?? "").split(",").filter((x) => x.startsWith("crab")));
+  } catch {
+    return new Set();
+  }
+})();
 
 export interface CanonSpec {
   legs: readonly CanonLeg[];
 }
 
-const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string, more: { scale?: number; chroma?: boolean } = {}): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label, ...more });
+const leg = (from: number, to: number, dux: number[], comes: number[], delay: number, contrary: boolean, steps: number, label: string, more: { scale?: number; chroma?: boolean; retro?: boolean } = {}): CanonLeg => ({ from, to, dux, comes, delay, contrary, steps, label, ...more });
 
 // D908: Variations 6, 12, 15, 21 and 24 hold their second canonic line whole in voice 1 (more-bach.ts joinCanon), its
 // bass in voice 2: the legs that read it across voices 1 and 2 read voice 1.
@@ -140,6 +155,9 @@ export const CANONS: Readonly<Record<string, CanonSpec>> = {
       leg(61, 76, [0], [1], 15360, true, 151, "CANON IN CONTRARY MOTION · THE LAST ROUND", { chroma: true }),
     ],
   },
+  // D977 (prototype, behind ?fm=crab / crabmid): Canon a 2 cancrizans: the second line is the first backwards at the
+  // unison, mirrored about the piece's middle (every note's end and its answer's start sum to the piece's length, 18 bars).
+  ...(CRAB.size ? { "bwv1079-3a": { legs: [leg(1, 19, [0], [1], 138240, false, 0, "CANON CANCRIZANS", { retro: true })] } } : {}),
   // Invention 8: canonic in its opening (bars 1-7) and its return (bars 26-29) only, a bar later, an octave below.
   bwv779: {
     legs: [
@@ -186,7 +204,8 @@ export function echoPairs(f: TouchFugue): EchoPair[] {
         if (on < t0 || on >= t1) continue;
         // D976: by MIDI for a chromatic canon; the follower's onset scaled for an augmentation
         const want = L.contrary ? L.steps - (L.chroma ? midi : step) : (L.chroma ? midi : step) + L.steps;
-        const b = (at.get(Math.round(on * (L.scale ?? 1)) + L.delay) ?? []).find((n) => (L.chroma ? n.midi : n.step) === want);
+        const at0 = L.retro ? L.delay - on - dur : Math.round(on * (L.scale ?? 1)) + L.delay;
+        const b = (at.get(at0) ?? []).find((n) => (L.chroma ? n.midi : n.step) === want && (!L.retro || n.dur === dur));
         if (b) out.push({ a: { on, dur, midi, step, voice: v }, b, leg: li, flies: false });
       }
   });
