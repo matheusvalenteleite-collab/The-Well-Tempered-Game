@@ -78,7 +78,8 @@ export interface SelectionProps {
   setLang?: (l: Lang) => void;
   tutorial?: { done: number; of: number; start: () => void };
   /** D680 (design studio): BASICS with Glenn, the first of three tutorials, in the TUTORIAL slot; glowing while a beginner. D1004: for every player. */
-  basics?: { beginner: boolean; start: () => void };
+  /** D1005: `soon`, the INTERMEDIATE and ADVANCED rows (UNDER CONSTRUCTION): the developer view only. */
+  basics?: { beginner: boolean; start: () => void; soon?: boolean };
   /** TOOLS, once unlocked. */
   beside?: ReactNode;
   /** The piece last opened this visit (D295): back from it, it stays chosen. */
@@ -167,6 +168,7 @@ export function Selection(p: SelectionProps) {
               </span>
               <span className="sel-tut-go">▶ {tr("BEGIN")}</span>
             </button>
+            {p.basics.soon && (
             <div className="sel-basics-later" aria-label={tr("UNDER CONSTRUCTION")}>
               {["INTERMEDIATE", "ADVANCED"].map((w) => (
                 <span key={w} className="sel-basics-soon" aria-disabled="true">
@@ -175,6 +177,7 @@ export function Selection(p: SelectionProps) {
                 </span>
               ))}
             </div>
+            )}
             {/* D1004: the old tutorial (THE MANUAL), out of the game since D868, still reachable in the developer view. */}
             {tutorial && (
               <button type="button" id="card-tutorial-old" className="sel-basics-old" onClick={tutorial.start}>

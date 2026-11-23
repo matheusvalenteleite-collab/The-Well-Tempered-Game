@@ -15,7 +15,7 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 
 test("BASICS for every player; the old tutorial the developer view's alone", () => {
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /basics=\{\{ beginner: beginner\(lite\.best\), start: \(\) => basicsAct\(0\) \}\}/);
+  assert.match(app, /basics=\{\{ beginner: beginner\(lite\.best\), start: \(\) => basicsAct\(0\), soon: unlocked\(\) \}\}/);
   assert.match(app, /tutorial=\{unlocked\(\) \? \{ \.\.\.manualProgress\(readManual\(\)\), start: \(\) => startManual\(\) \} : undefined\}/);
   const sel = src("src/bench/Selection.tsx");
   assert.match(sel, /const first = \(!!tutorial \|\| !!p\.basics\) && liteFirstVisit\(beaten, tutorial\?\.done \?\? 0\);/);
