@@ -1,0 +1,90 @@
+{
+ "psych": {
+  "piece": "wtc1f20",
+  "sound": "krautrock",
+  "player": 2,
+  "fromBar": 39,
+  "patch": "k2Fuzz (rockGuitar2)",
+  "ornaments": 6,
+  "notes": 42,
+  "same_notes_and_times": true,
+  "gesture_lu": {
+   "before": 5.9,
+   "after": -0.3
+  },
+  "pitch_median_abs_cents": {
+   "before": 2.2,
+   "after": 11.2
+  },
+  "pitch_max_abs_cents": {
+   "before": 19.9,
+   "after": 100.6
+  }
+ },
+ "bossa": {
+  "piece": "wtc1f01",
+  "sound": "bossaNova",
+  "player": 2,
+  "fromBar": 22,
+  "patch": "b2Guitar (bossaGuitar)",
+  "ornaments": 13,
+  "notes": 66,
+  "same_notes_and_times": true,
+  "gesture_lu": {
+   "before": 8.5,
+   "after": -0.1
+  },
+  "pitch_median_abs_cents": {
+   "before": 3.6,
+   "after": 4.7
+  },
+  "pitch_max_abs_cents": {
+   "before": 31.7,
+   "after": 34.0
+  }
+ },
+ "chorinho": {
+  "piece": "wtc2f01",
+  "sound": "chorinho",
+  "player": 1,
+  "fromBar": 60,
+  "patch": "c2Bandolim (rockGuitar)",
+  "ornaments": 8,
+  "notes": 52,
+  "same_notes_and_times": true,
+  "gesture_lu": {
+   "before": 4.6,
+   "after": 0.1
+  },
+  "pitch_median_abs_cents": {
+   "before": 5.1,
+   "after": 4.9
+  },
+  "pitch_max_abs_cents": {
+   "before": 22.6,
+   "after": 35.1
+  }
+ },
+ "seven2": {
+  "piece": "wtc2p01",
+  "sound": "chorinho",
+  "player": 2,
+  "fromBar": 28,
+  "patch": "c27 (choroGuitar)",
+  "ornaments": 7,
+  "notes": 46,
+  "same_notes_and_times": true,
+  "gesture_lu": {
+   "before": 3.3,
+   "after": -0.7
+  },
+  "pitch_median_abs_cents": {
+   "before": 1.5,
+   "after": 1.6
+  },
+  "pitch_max_abs_cents": {
+   "before": 5.4,
+   "after": 7.0
+  }
+ }
+}
