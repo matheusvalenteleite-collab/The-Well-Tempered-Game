@@ -1341,6 +1341,8 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .basics2-go, .basics2-skip { min-height: 36px; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 8px; cursor: pointer; }
 .basics2-go { color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; }
 .basics2-skip { color: var(--tg-fg); background: transparent; border: 1px solid #78789f; }
+/* D1004: the old tutorial, a small link under BASICS (developer view only). */
+.sel-basics-old { display: block; margin-top: 6px; padding: 6px 8px; min-height: 32px; width: 100%; text-align: left; font-size: 10px !important; line-height: 1.2 !important; letter-spacing: 0.08em; color: var(--tg-dim, #a59c88); background: transparent; border: 1px dashed currentColor; border-radius: 2px; cursor: pointer; }
 .basics2-cliplayer { cursor: pointer; }
 /* D991: the clip loops until touched; TOUCH TO PLAY over its empty top, breathing (1.6 s: slower than once a second). */
 .basics2-clipwrap { position: relative; display: inline-block; }

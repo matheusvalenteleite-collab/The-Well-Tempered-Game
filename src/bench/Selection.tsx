@@ -77,8 +77,9 @@ export interface SelectionProps {
   settings: () => void;
   setLang?: (l: Lang) => void;
   tutorial?: { done: number; of: number; start: () => void };
-  /** D680 (design studio): BASICS with Glenn, the first of three tutorials (the developer view only for now), in the TUTORIAL slot; glowing while a beginner. */
-  basics?: { beginner: boolean; start: () => void };
+  /** D680 (design studio): BASICS with Glenn, the first of three tutorials, in the TUTORIAL slot; glowing while a beginner. D1004: for every player. */
+  /** D1005: `soon`, the INTERMEDIATE and ADVANCED rows (UNDER CONSTRUCTION): the developer view only. */
+  basics?: { beginner: boolean; start: () => void; soon?: boolean };
   /** TOOLS, once unlocked. */
   beside?: ReactNode;
   /** The piece last opened this visit (D295): back from it, it stays chosen. */
@@ -129,7 +130,8 @@ export function Selection(p: SelectionProps) {
   }, [tab, aofReady]);
   const pick = (t: LiteTab) => (setTab(t), storeTab(t), t === "II" && p.bookTwo?.());
   const won = new Set(beaten);
-  const first = !!tutorial && liteFirstVisit(beaten, tutorial.done);
+  // D1004: a first visit (nothing played, no lesson done) with BASICS too, not only with the old tutorial (now the developer view's).
+  const first = (!!tutorial || !!p.basics) && liteFirstVisit(beaten, tutorial?.done ?? 0);
   // The first visit: the right column says where to start until a tile is tapped.
   const [chosen, setChosen] = useState(!first || !!p.current);
   const grid = gridTab(tab) && (!extraTab(tab) || aofReady);
@@ -166,6 +168,7 @@ export function Selection(p: SelectionProps) {
               </span>
               <span className="sel-tut-go">▶ {tr("BEGIN")}</span>
             </button>
+            {p.basics.soon && (
             <div className="sel-basics-later" aria-label={tr("UNDER CONSTRUCTION")}>
               {["INTERMEDIATE", "ADVANCED"].map((w) => (
                 <span key={w} className="sel-basics-soon" aria-disabled="true">
@@ -174,6 +177,13 @@ export function Selection(p: SelectionProps) {
                 </span>
               ))}
             </div>
+            )}
+            {/* D1004: the old tutorial (THE MANUAL), out of the game since D868, still reachable in the developer view. */}
+            {tutorial && (
+              <button type="button" id="card-tutorial-old" className="sel-basics-old" onClick={tutorial.start}>
+                {tr("OLD TUTORIAL")} · {tutorial.done}/{tutorial.of}
+              </button>
+            )}
           </div>
         )}
         {tutorial && !p.basics && (
