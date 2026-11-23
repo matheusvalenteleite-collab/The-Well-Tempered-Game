@@ -7,8 +7,8 @@ what the owner is asked to decide. The import comes after the owner's review.
 ## The sources
 
 - **The source: PDMX** (the public-domain MuseScore dataset the Goldberg comes from; Zenodo, DOI
-  10.5281/zenodo.15571083). It holds a complete set of the Offering from one encoder, "BWV 1079 Musical Offering …
-  (A = 415 Hz)", **CC0**: every canon in its solution, the Fuga canonica and the four sonata movements. CC0 is better
+  10.5281/zenodo.15571083; the dataset CC BY 4.0). It holds a complete set of the Offering from one encoder, MuseScore
+  user "verits99" ("BWV 1079 Musical Offering … (A = 415 Hz)", MuseScore scores 230326–238991), **CC0**: every canon in its solution, the Fuga canonica and the four sonata movements. CC0 is better
   than Knuth (CC BY-NC-SA) and Rodrigues (CC BY-SA), and it comes as notes, not a picture.
   - The set is written a semitone low, so that it sounds at baroque pitch: C minor written as B minor. Read up a
     semitone and a letter, Bach's notes and spellings come back. A few spellings come back enharmonic (G♭ where the
@@ -30,7 +30,7 @@ what the owner is asked to decide. The import comes after the owner's review.
 
 | # | canon | lines | rule check | against Rodrigues's resolution | to decide |
 |---|---|---|---|---|---|
-| 1 | Canon a 2 [cancrizans] | 2 (the line, and itself backwards) | **100%** (89/89), crab | Rodrigues: both lines at the same pitch. PDMX (harpsichord file) has the second an octave lower. | Put back at the unison (an octave, no note changed). |
+| 1 | Canon a 2 [cancrizans] | 2 (the line, and itself backwards) | **100%** (89/89), crab | Rodrigues: both lines at the same pitch. verits99's set has no separate cancrizans; the file used is Roland Bouman's (MuseScore 143009, CC0, harpsichord), which has the second line an octave lower. | Put back at the unison (an octave, no note changed). |
 | 2 | Canon a 2 violini in unisono | 3 (two violins; the royal theme in the bass) | **100%** (220/220), unison, 1 bar later | same entry and interval | how many rounds (PDMX 33 bars, Rodrigues about 18) |
 | 3 | Canon a 2 per motum contrarium | 3 (the theme; the canon pair) | **100%**, contrary motion, half a bar later | same | rounds (PDMX 16, Rodrigues about 9) |
 | 4 | Canon a 2 per augmentationem, contrario motu | 3 (the theme, ornamented; the canon pair) | **100%** (168/168), augmentation by contrary motion | same | rounds (PDMX 37, Rodrigues about 21) |
@@ -92,4 +92,4 @@ After the owner's answers, the import is about a day:
 - the checks: the rule per canon in a test, Sapp for the trio, Rodrigues read for the junctions and the entries of
   Nos. 6 and 8;
 - the analysis, tempi and sounds as for the other MORE BACH pieces;
-- the credits: "PDMX (Long et al.), the Musical Offering set · CC0".
+- the credits: "MuseScore users verits99 and Roland Bouman, via PDMX · CC0".
