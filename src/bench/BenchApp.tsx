@@ -2532,7 +2532,9 @@ export function BenchApp() {
           // D868: the tutorial taken out of the game (the owner: "Eliminate tutorial from game"); kept in the developer view (ricercar), Glenn's Part 1 with it.
           tutorial={unlocked() ? { ...manualProgress(readManual()), start: () => startManual() } : undefined}
           // D686 (design studio): BASICS v2, the owner's plan, in the old TUTORIAL slot, the developer view only for now; glowing while a beginner (no B or better yet).
-          basics={unlocked() ? { beginner: beginner(lite.best), start: () => basicsAct(0) } : undefined}
+          // D1004 (the owner: "add it to main game for all players"): BASICS in the TUTORIAL slot for everyone; D1005: its
+          // INTERMEDIATE and ADVANCED (under construction) in the developer view only.
+          basics={{ beginner: beginner(lite.best), start: () => basicsAct(0), soon: unlocked() }}
           // D441, the Glenn pilot: LEARN, Glenn's film of the piece.
           learn={glennShown() ? (id: string) => (stopHearing(), setFilm(id)) : undefined}
           // D442, the Glenn pilot: every prelude open, each fugue opened by finishing its prelude.

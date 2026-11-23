@@ -109,6 +109,9 @@ export const PERIOD: Record<string, Bake> = {
   // STRING CONSORT's alone: the VSO2 violin and the Freesound cello above stay the other sounds' (BAROQUE BAND, ORCHESTRA & ORGAN, ...).
   consortViolinSolo: { folder: "violinSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
   consortCelloSolo: { folder: "celloSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D1031 (provisional), BAROQUE BAND's oboe (build_consort.py, as D1011's strings): TinySOL's oboe, ordinario mf, every three or
+  // four semitones A#3-G#6 (11: BAROQUE BAND's slim keeps every one; no note read more than 2 semitones from one), retuned and levelled when built, held on the made loop; in place of VSCO 2 CE's trial oboe (ZELENKA's stays).
+  baroqueOboe: { folder: "oboeSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
   // D512, the consort's articulation stops (consort-stops.ts): VSCO 2 CE's spiccato and pizzicato (the solo violin's, the
   // viola and cello sections'), their louder layer (v2), at the consort's fidelity, played through (no loop: short notes).
   consortViolinSpicc: { folder: "violinStac", rate: 32000, lp: 11000, bits: 16 },
@@ -202,6 +205,7 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   // D365 (measured as the cello's: autocorrelation over 1-3 s; tools/playback/viola/build_viola.py).
   // D1011: build_consort.py's notes, each retuned to its name by resampling (within half a cent after, measured over 1-3 s).
   violinSolo: zeroCents("violinSolo"),
+  oboeSolo: zeroCents("oboeSolo"),
   celloSolo: zeroCents("celloSolo"),
   violaSolo: { C3: -2.5, D3: -7.8, E3: -0.5, Fs3: 1.3, Gs3: -2.6, As3: -5.7, C4: -3.1, D4: 0.2, E4: -2.2, Fs4: -1.5, Gs4: 1.7, As4: -8.7, C5: -5.9, D5: -1.8, E5: 1.1, Fs5: -0.2, Gs5: 2.2, As5: -0.7, C6: -5.6, D6: -2.5 },
   harp: { A2: -3.7, A4: -9.6, A6: -18.7, B1: -14.5, B3: -12, B5: -8.3, C3: -2.7, C5: -10.4, D2: -4.8, D4: -12.4, D6: -7.7, D7: -8, E1: -16.5, E3: -4.4, E5: -11.5, F2: -7.2, F4: -0.7, F6: -5.8, F7: 0, G1: -21.4, G3: -8, G5: -6.7 },
@@ -286,6 +290,7 @@ const SHORT: Record<string, Record<string, number>> = {
   choirAahs: Object.fromEntries((SAMPLE_MANIFEST.choirAahs?.notes ?? []).map((n) => [n, 3.08])),
   // D1011: build_consort.py's notes, every one 4.5 s.
   violinSolo: allOf("violinSolo", 4.5),
+  oboeSolo: allOf("oboeSolo", 4.5),
   celloSolo: allOf("celloSolo", 4.5),
   // D547: build_altoflute.py's notes, every one 4.3 s.
   altoFlute: allOf("altoFlute", 4.3),
@@ -555,7 +560,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "consortViolinSolo" | "consortCelloSolo" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "consortViolinSolo" | "consortCelloSolo" | "baroqueOboe" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -707,6 +712,9 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // note 0.5 s, the engine on a phone: at 2.2 the violin B3-B5 1.7 dB over the VSO2 violin, the cello C2-E4 1.4 dB under the old).
   consortViolinSolo: { set: "consortViolinSolo", plucked: false, gain: 1.8 },
   consortCelloSolo: { extend: { up: 5 }, set: "consortCelloSolo", plucked: false, gain: 2.6 },
+  // D1031: BAROQUE BAND's oboe (TinySOL), read past its compass 5 under (as far as a line needs: D633) and 4 over; its gain the
+  // trial oboe's level over C4-D6 (a chromatic scale of 0.5 s notes through the engine on a phone: 0.9 dB under at 2.2).
+  baroqueOboe: { extend: { down: 5 }, set: "baroqueOboe", plucked: false, gain: 2.45, maxShift: 4 },
   // D512, the consort's stops (consort-stops.ts): spiccato and pizzicato, the louder layer (v2), each dying away by itself
   // and damped at the written end; retuned 2-3 semitones at most (recorded every minor or major third), then an octave
   // nearer. Gains measured against the arco (DECISIONS D512: the same phrase, the voice alone, through the phone model too).

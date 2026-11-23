@@ -818,6 +818,13 @@ const GOLDBERG_CREDIT = "THE OPEN GOLDBERG VARIATIONS SCORE (WERNER SCHWEER, KIM
  * each piece's own bars (as the file counts them, both endings) and voices (GOLDBERG_TABLE's order).
  */
 const GOLDBERG_FIXES: Record<number, NonNullable<Spec["fixes"]>> = {
+  // D963: bar 11, the canon's two lines exchanged by the layers (found by the canon-rule checker, D962): the leader's
+  // bar (a rest, A4 held, B4 A4 G4 F♯4 …) in the second line, the follower's (E5 F♯5 G5 … D♯5, the leader's bar 10 a bar
+  // later) in the first. Each given back to its own line; no note changed (Mutopia's typesetting writes them so).
+  3: [
+    { voice: 0, bar: 11, at: "0", until: "3/2", toVoice: 1, chord: true },
+    ...["A4", "B4", "G4", "F#4"].map((pitch) => ({ voice: 1, bar: 11, at: "0", until: "3/2", pitch, toVoice: 0 })),
+  ],
   // The second ending's C5 the C♯5 held from bar 15 (the Bach-Gesellschaft's tie; the 1741 print's arcs there mark the endings).
   4: [
     { voice: 0, bar: 17, at: "0", from: "C5", to: "C#5" },

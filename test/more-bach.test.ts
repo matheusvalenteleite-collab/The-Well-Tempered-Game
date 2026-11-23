@@ -107,27 +107,30 @@ test("D340: the concerto offers the two solo violins only; a chorale its soprano
   assert.equal(defaultVoice(ch, voicesFrom(ch, 0)), 0);
 });
 
-test("D340: CHORALES: Sapp's 370, four voices each, every fermata held a beat longer than written, the band waiting after it", () => {
+test("D340, D1006: CHORALES: Sapp's 370, four voices each; the final fermata and the Stollen's close held a beat longer than written, the band waiting after them; the others in time with a breath", () => {
   assert.equal(CHORALES.length, 370);
   assert.ok(!CHORALES.some((f) => f.id === "chor150"), "no. 150 is not four-part (omitted upstream)");
   for (const f of CHORALES) {
     assert.equal(f.voices.length, 4, f.id);
     assert.ok(f.voices.every((v) => v.length > 5), f.id);
-    assert.ok(f.fermatas && f.fermatas.length >= 2 && f.bandTime === "waits", `${f.id}: fermatas`);
+    assert.ok(f.fermatas && f.fermatas.length >= 1 && f.fermatas.length <= 2 && f.bandTime === "waits", `${f.id}: fermatas`);
     assert.ok(MORE_TEMPO[f.id] && tempoOf(f.id) >= 50 && tempoOf(f.id) <= 90, `${f.id}: tempo`);
     assert.ok(f.credit?.includes("CC BY-NC-SA 4.0"));
   }
-  // No. 1 (BWV 269, 3/4): six fermatas; after the first (the half note A4 of bar 4, written at 5/2 whole notes) the music resumes a beat late.
+  // No. 1 (BWV 269, 3/4, A A B): six fermatas as written, two held. The first (the half note A4 of bar 4, written at 5/2
+  // whole notes) now in time: its note let go an eighth of a beat early (a breath), the music going on at 12 quarters.
   const f = fugueById("chor001");
   const beat = beatOf(f).ticks;
-  assert.equal(f.fermatas!.length, 6);
+  assert.equal(f.fermatas!.length, 2);
   const sop = f.voices[0];
   const ferm = sop.find((n) => n[0] === 10 * f.tpq)!;
   assert.equal(ferm[2], 69);
-  assert.equal(ferm[1], 2 * f.tpq + beat, "the fermata's half note held a beat more");
-  assert.equal(f.fermatas![0], 12 * f.tpq + beat);
+  assert.equal(ferm[1], 2 * f.tpq - beat / 8, "a breath, not a hold");
+  assert.ok(sop.some((n) => n[0] === 12 * f.tpq), "the music goes on in time");
+  // The Stollen closes at 21 quarters (section B): held a beat; the music goes on a beat late.
+  assert.equal(f.fermatas![0], 21 * f.tpq + beat);
   assert.ok(sop.some((n) => n[0] === f.fermatas![0]), "the next note where the music goes on");
-  // The band's wait points (D328's WAITS) fall on the player's first note after each fermata.
+  // The band's wait points (D328's WAITS) fall on the player's first note after each held fermata.
   const waits = waitPoints(sop.map((n) => ({ on: n[0] })) as never, f.fermatas!.map((on) => ({ on })), { from: 0, until: f.length, beat, barTicks: f.barTicks, endsPiece: true });
   for (const t of f.fermatas!.filter((t) => t < f.length)) assert.ok(waits.some((w) => w.tick === t), `a wait at ${t}`);
 });
