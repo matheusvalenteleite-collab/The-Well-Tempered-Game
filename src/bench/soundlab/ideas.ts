@@ -52,7 +52,6 @@ export const IDEAS: readonly Idea[] = [
   I("switchboard-house", "own", "wtc2f03", "sid64", "house", 1, "C-sharp major on the SID chip with a 909 under it."),
   I("machine-idm", "own", "wtc2f04", "gameboy", "idm", 1, "A 12/16 perpetual motion on the handheld, glitched: the displaced kicks find the compound beat."),
   I("masquerade-bebop", "own", "wtc2f12", "jazzQuartet", "bebop", 1, "F minor 2/4 for the quartet, with the ride quick and the bombs off the beat."),
-  I("sea-swell", "own", "wtc2f18", "fluteHarp", "swell", 1, "The G-sharp minor 6/8 flowing on alto flute, harp and cello, mallets and cymbal swells."),
   I("lastdance-synth", "own", "wtc2f24", "analog", "arcade", 1, "The 3/8 passepied on Carlos's analog voices, bouncing on an arcade's chip kit."),
   I("coronation-march", "own", "wtc1f05", "bachBrass", "march", 1, "The French overture's dotted rhythm on a march snare: rudiments, flams, rolls into the entries."),
   I("belltower-march", "own", "wtc2f05", "bachBrass", "march", 1, "The D major alla breve from a tower: the bass drum on the strong beats, the snare on the subject."),

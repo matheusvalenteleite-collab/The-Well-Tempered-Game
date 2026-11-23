@@ -969,12 +969,7 @@ export const BAND_CHAINS = {
     bus: [{ kind: "eq", bands: BRASS_HIP }, { kind: "eq", bands: BRASS_CLEAR }, { kind: "echo", ...BRASS_EARLY }, { kind: "comp", model: "la2a", threshold: -10 }, { kind: "gain", db: -3.4 }],
     reverb: { ir: "chamber", seconds: 1.8, phoneSeconds: 1.6, rt60: 1.95, predelay: 0.04, hp: 280, lp: 4200, brightness: 0.3, level: 0.52, phoneLevel: 0.385 },
   },
-  // A 1970s Archiv / Telefunken analog trio recording: close, the reeds' edge softened a touch, warm tape, a small room.
-  oboeTrio: {
-    band: "oboeTrio",
-    bus: [{ kind: "eq", bands: [{ type: "peaking", hz: 3200, db: -1.5, q: 1 }, { type: "lowshelf", hz: 180, db: 1 }] }, { kind: "tape", drive: 1.2, rolloff: 13000 }],
-    reverb: { ir: "chamber", seconds: 1.2, phoneSeconds: 0.8, rt60: 1.05, predelay: 0.014, hp: 140, lp: 6500, brightness: 0.4, level: 0.3, phoneLevel: 0.23 },
-  },
+  // (D1037: ZELENKA TRIO's Archiv chain withdrawn with it; the chamber reverb stays, VAUDEVILLE's.)
   // (D890: PET SOUNDS' Gold Star chain withdrawn with it; the goldStar66 era and the goldStar reverb stay, engine features.)
 } as const satisfies Record<string, ChainSpec>;
 export type ChainBand = keyof typeof BAND_CHAINS;

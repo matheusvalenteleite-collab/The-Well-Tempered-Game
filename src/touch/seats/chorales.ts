@@ -9,9 +9,6 @@ export const SEATS: Readonly<Record<string, Readonly<Record<string, Partial<Reco
   baroqueBand: {
     chor133: { 4: [["bandViolin", -0.2, 1.11], ["bandViola", -0.04, 0.85], ["bandViola", 0.16, 1.32], ["bandCello", 0.05]] },
   },
-  oboeTrio: {
-    chor133: { 4: [["trioOboe1", -0.2], ["trioHarpsi", 0.2], ["trioBassoon", 0.1], ["trioCello", -0.02]] },
-  },
   vaudeville: {
     chor197: { 4: [["vdClarinet", -0.16], ["vdClarinet", 0.14], ["vdBassoon", 0.06], ["vdTuba", -0.04]] },
   },

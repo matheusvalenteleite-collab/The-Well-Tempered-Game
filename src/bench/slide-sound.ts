@@ -126,9 +126,8 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
   // D521: BOSSA NOVA's, likewise: the flutist's slur, the guitarist's quick ornament (a plucked grace), the bassist's slide, the piano's.
   if (presetId === "bossaNova") return patch?.sample === "trialFlute" ? "flute" : patch?.sample === "bossaGuitar" ? "plucked" : patch?.sample === "jazzBass" ? "bass" : "piano";
   // D588: VAUDEVILLE's the player's instrument's own: the xylophone's quick grace (a mallet's), the clarinet's and the bassoon's
-  // reed, the bass trombone's lip. D589: FLUTE & HARP's the flutist's slur, the harpist's plucked grace, the strings' bow.
+  // reed, the bass trombone's lip. (D589: FLUTE & HARP's withdrawn, D1037.)
   if (presetId === "vaudeville") return patch?.sample === "vaudXylo" ? "mallet" : patch?.sample === "brassBass" ? "brass" : "reed";
-  if (presetId === "fluteHarp") return patch?.sample === "seaHarp" ? "plucked" : patch?.sample === "consortViola" || patch?.sample === "consortCello" ? "bowed" : "flute";
   switch (presetId) {
     case "orchestraOrgan": // D590: the strings carry the lines (the winds and the organ join them by stage)
       return "bowed";
@@ -151,8 +150,6 @@ export function slideFamily(presetId: string, patch?: Patch | null): SlideFamily
       return "voice";
     case "traverso":
       return "flute";
-    case "oboeTrio": // D504: ZELENKA TRIO's reeds (glenn.ts touchFamily "strings": Patch.bow as a tongue)
-      return "reed";
     case "gameboy":
       return "slide8";
     case "analog":

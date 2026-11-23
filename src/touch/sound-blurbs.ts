@@ -36,11 +36,6 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     pt: "Violinos, oboé, viola, violoncelo e cravo; num salão",
     es: "Violines, oboe, viola, violonchelo y clave; en una sala",
   },
-  oboeTrio: {
-    en: "Two oboes, bassoon, cello and harpsichord, in a small room",
-    pt: "Dois oboés, fagote, violoncelo e cravo, numa sala pequena",
-    es: "Dos oboes, fagot, violonchelo y clave, en una sala pequeña",
-  },
   bachBrass: {
     en: "Brass choir: trumpets, horn, trombones, in a church",
     pt: "Metais: trompetes, trompa e trombones, numa igreja",
@@ -80,11 +75,6 @@ const BLURBS: Readonly<Record<string, Readonly<Record<BlurbLang, string>>>> = {
     en: "Pit band: xylophone, clarinet, bassoon, bass trombone",
     pt: "Banda de teatro: xilofone, clarinete, fagote, trombone",
     es: "Banda de foso: xilófono, clarinete, fagot, trombón bajo",
-  },
-  fluteHarp: {
-    en: "Alto flute, harp, viola and cello, in a hall",
-    pt: "Flauta contralto, harpa, viola e violoncelo, num salão",
-    es: "Flauta contralto, arpa, viola y violonchelo, en una sala",
   },
   orchestraOrgan: {
     en: "String quartet, then winds, horn and organ, in a church",
@@ -152,7 +142,7 @@ export function soundBlurb(soundId: string, lang: BlurbLang = "en"): string {
  */
 export const AUDITION_SOUNDS: readonly string[] = [
   "harpsichordSampled", "pianoSampled", "chamberOrgan",
-  "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "vaudeville", "fluteHarp", "orchestraOrgan",
+  "stringConsort", "baroqueBand", "bachBrass", "jazzQuartet", "salsa", "chorinho", "abbeyRoad", "krautrock", "bossaNova", "vaudeville", "orchestraOrgan",
   "chip", "gameboy", "super16", "sid64",
   "analog", "berlinSchool", "tomita",
   "vocalSynth", "soloVoices",

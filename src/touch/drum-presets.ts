@@ -68,7 +68,7 @@ export const CONSOLE_SOUNDS: ReadonlySet<string> = new Set(["chip", "gameboy", "
 /** The synthesizers: an analog drum machine first. */
 export const SYNTH_SOUNDS: ReadonlySet<string> = new Set(["analog", "tomita", "vocalSynth"]);
 /** The church's, the court's and the chamber's sounds: the timpani (or the frame drums) first. */
-export const PERCUSSION_FIRST: ReadonlySet<string> = new Set(["harpsichordSampled", "chamberOrgan", "organSampled", "clavichord", "lute", "traverso", "soloVoices", "stringConsort", "baroqueBand", "oboeTrio", "bachBrass", "trialWinds"]);
+export const PERCUSSION_FIRST: ReadonlySet<string> = new Set(["harpsichordSampled", "chamberOrgan", "organSampled", "clavichord", "lute", "traverso", "soloVoices", "stringConsort", "baroqueBand", "bachBrass", "trialWinds"]);
 
 /** The beat (s) from which the acoustic kit is brushes (a largo), and under which sticks rock (a quick beat). */
 export const BRUSH_BEAT_S = 1.3;

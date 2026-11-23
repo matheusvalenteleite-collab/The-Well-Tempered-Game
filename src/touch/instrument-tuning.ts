@@ -32,7 +32,6 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   // D430: BAROQUE BAND as the consort (its harpsichord with it).
   baroqueBand: { id: "vallotti", a: 415 },
   // D504: ZELENKA TRIO at chamber pitch (A = 415, Vallotti, as the baroque band).
-  oboeTrio: { id: "vallotti", a: 415 },
   // D502: BACH BRASS as the band (Kammerton: a baroque brass choir at A = 415).
   bachBrass: { id: "vallotti", a: 415 },
   // D503: JAZZ QUARTET: a vibraphone and a modern grand, tuned equal at A = 440.
@@ -47,7 +46,6 @@ export const INSTRUMENT_TUNING: Readonly<Record<string, TuningAt>> = {
   // D524: PET SOUNDS: a 1966 Hollywood session, equal at A = 440.
   // D588, D589: VAUDEVILLE (a 1930s pit band) and FLUTE & HARP (Debussy's trio's instruments): modern, equal at A = 440.
   vaudeville: { id: "equal", a: 440 },
-  fluteHarp: { id: "equal", a: 440 },
   // D590: ORCHESTRA & ORGAN: the strings, the winds and the church's organ at A = 440, equal (a modern orchestra with its organ).
   orchestraOrgan: { id: "equal", a: 440 },
 };

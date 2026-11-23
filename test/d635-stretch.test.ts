@@ -34,9 +34,7 @@ const ALLOWED: readonly { sound: string; inst: string; notes: number; max: numbe
   // in 17 of the 48 (D632 gave it away in 8 already). VSCO's xylophone has no lower recording; the vibraphone is another
   // instrument.
   { sound: "vaudeville", inst: "vaudXylo", notes: 82, max: 9, why: "the band's own colour on its top line" },
-  // ZELENKA TRIO: the alto on the bassoon in I/3, II/1, II/12 and II/21 (D632: its line A#2-E3 at its lowest) reaches G#5-A#5 once each,
-  // over the bassoon's D5; the only seat that covers both ends is the harpsichord, which would cost the trio an oboe line.
-  { sound: "oboeTrio", inst: "trioBassoon", notes: 4, max: 8, why: "one note a fugue; the harpsichord on a reed line is not the trio" },
+  // (D1037: ZELENKA TRIO withdrawn, its bassoon's entry with it.)
   // ORCHESTRA & ORGAN's stage doublings (stage.ts) follow their line: the second violin's oboe at its E3 (I/16, I/20, II/5:
   // under the oboe's A#3, its lowest note on the instrument too), the viola's horn at I/19's B5 (over the horn's F5).
   { sound: "orchestraOrgan", inst: "trialOboe", notes: 5, max: 6, why: "a stage doubling past the oboe's compass; the violin plays the line" },

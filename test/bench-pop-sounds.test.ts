@@ -9,7 +9,7 @@ const { POP_SOUNDS } = await import("../src/bench/PlayPop.tsx");
 
 test("D292, D297, D302, D304: the friends' pop-up offers the players' sounds (the five, then the ten new presets), in their order", () => {
   assert.deepEqual(POP_SOUNDS.map(([id]) => id), PRESETS.map((p) => p.id));
-  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "SID 64", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "ZELENKA TRIO", "BACH BRASS", "JAZZ QUARTET", "SALSA", "CHORINHO", "ABBEY ROAD", "PSYCH", "BOSSA NOVA", "BERLIN SCHOOL", "VAUDEVILLE", "FLUTE & HARP", "ORCHESTRA & ORGAN"]);
+  assert.deepEqual(POP_SOUNDS.map(([, name]) => name), ["CLASSIC CHIP", "GAME BOY", "HARPSICHORD", "PIANO", "SWITCHED-ON", "SUPER 16-BIT", "SID 64", "PIPE ORGAN", "VOCAL SYNTH", "SOLO VOICES", "TOMITA", "STRING CONSORT", "BAROQUE BAND", "BACH BRASS", "JAZZ QUARTET", "SALSA", "CHORINHO", "ABBEY ROAD", "PSYCH", "BOSSA NOVA", "BERLIN SCHOOL", "VAUDEVILLE", "ORCHESTRA & ORGAN"]);
 });
 
 test("D246: every piece has its own sound, a real preset; the player's choice for a piece wins", async () => {
@@ -40,18 +40,18 @@ test("D246: the pop-up's row holds the piece's own sound, marked", async () => {
   const { popSounds } = await import("../src/bench/PlayPop.tsx");
   // D292: every piece's own sound is among the five: the row is always the five, the piece's own marked.
   const p4 = popSounds("wtc1p04");
-  assert.equal(p4.length, 25, "D890: PET SOUNDS, TRACKER, MEGA FM withdrawn; D586-D590: the setups' four; D524: PET SOUNDS; D521: BOSSA NOVA; D304: the five and the ten; D365: and STRING CONSORT and LUTE; D430: BAROQUE BAND; D501: CLAVICHORD; D504: ZELENKA TRIO; D502: BACH BRASS; D503: JAZZ QUARTET; D510: LUTE, CLAVICHORD, NOCTURNE 32-BIT withdrawn; D520: SALSA; D522: CHORINHO; D523: ABBEY ROAD; D525: KRAUTROCK");
+  assert.equal(p4.length, 23, "D1037: FLUTE & HARP, ZELENKA TRIO withdrawn; D890: PET SOUNDS, TRACKER, MEGA FM withdrawn; D586-D590: the setups' four; D524: PET SOUNDS; D521: BOSSA NOVA; D304: the five and the ten; D365: and STRING CONSORT and LUTE; D430: BAROQUE BAND; D501: CLAVICHORD; D504: ZELENKA TRIO; D502: BACH BRASS; D503: JAZZ QUARTET; D510: LUTE, CLAVICHORD, NOCTURNE 32-BIT withdrawn; D520: SALSA; D522: CHORINHO; D523: ABBEY ROAD; D525: KRAUTROCK");
   // D980: a ready prelude opens on its fugue's sound (I/4's STRING CONSORT, THE CROSS).
   assert.deepEqual(p4.filter(([, , own]) => own).map(([id]) => id), [PIECE_SOUND.wtc1f04]);
   // D355: a fugue's own sound (I/22: SOLO VOICES) marked.
   const antico = popSounds("wtc1f22");
-  assert.equal(antico.length, 25);
+  assert.equal(antico.length, 23);
   assert.equal(antico[0][0], "chip", "the row in its order");
   assert.deepEqual(antico.filter(([, , own]) => own).map(([id]) => id), ["soloVoices"]);
   assert.ok(antico.every(([id]) => id !== "organSampled"));
   // D980: I/1's prelude on its fugue's sound (THE CANON).
   const harp = popSounds("wtc1p01");
-  assert.equal(harp.length, 25);
+  assert.equal(harp.length, 23);
   assert.deepEqual(harp.filter(([, , own]) => own).map(([id]) => id), [PIECE_SOUND.wtc1f01]);
   // D997: Book II's too, on its fugue's sound (II/1's).
   assert.deepEqual(popSounds("wtc2p01").filter(([, , own]) => own).map(([id]) => id), [PIECE_SOUND.wtc2f01]);

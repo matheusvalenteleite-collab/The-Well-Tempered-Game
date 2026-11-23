@@ -137,7 +137,7 @@ const OWN_SOUND: Readonly<Record<string, string>> = {
   wtc1p12: "chip",
   wtc1f12: "vocalSynth",
   wtc1p13: "harpsichordSampled",
-  wtc1f13: "oboeTrio",
+  wtc1f13: "abbeyRoad", // D1037: ZELENKA TRIO withdrawn; by the voice probe (1.75 → 2.94), PSYCH and BOSSA NOVA left alone
   wtc1p14: "harpsichordSampled",
   wtc1f14: "jazzQuartet",
   wtc1p15: "chip",
@@ -145,7 +145,7 @@ const OWN_SOUND: Readonly<Record<string, string>> = {
   wtc1p16: "chip",
   wtc1f16: "abbeyRoad",
   wtc1p17: "chip",
-  wtc1f17: "fluteHarp",
+  wtc1f17: "super16", // D1037: FLUTE & HARP withdrawn; by the voice probe (1.57 → 1.91), D893's runner-up
   wtc1p18: "harpsichordSampled",
   wtc1f18: "pianoSampled",
   wtc1p19: "harpsichordSampled",
@@ -196,7 +196,7 @@ const OWN_SOUND: Readonly<Record<string, string>> = {
   wtc2p17: "chip",
   wtc2f17: "chip",
   wtc2p18: "harpsichordSampled",
-  wtc2f18: "fluteHarp",
+  wtc2f18: "tomita", // D1037: FLUTE & HARP withdrawn; by the voice probe (2.11 → 2.25), held voices in the space echo
   wtc2p19: "harpsichordSampled",
   wtc2f19: "super16",
   wtc2p20: "harpsichordSampled",
@@ -206,7 +206,7 @@ const OWN_SOUND: Readonly<Record<string, string>> = {
   wtc2p22: "chip",
   wtc2f22: "krautrock",
   wtc2p23: "chip",
-  wtc2f23: "oboeTrio",
+  wtc2f23: "berlinSchool", // D1037: ZELENKA TRIO withdrawn; by the voice probe (0.93 → 3.18)
   wtc2p24: "harpsichordSampled",
   wtc2f24: "analog",
   // The Art of Fugue (D708: Contrapunctus 14 on PET SOUNDS; D893: on TOMITA; the rest of the cycle in the D355 block below)
@@ -283,11 +283,11 @@ function moreBachSounds(): Record<string, string> {
     "bwv779": "analog",
     "bwv780": "berlinSchool",
     "bwv781": "gameboy",
-    "bwv782": "oboeTrio",
+    "bwv782": "harpsichordSampled", // D1037: ZELENKA TRIO withdrawn (colour-plans/more.ts WHY)
     "bwv783": "jazzQuartet",
     "bwv784": "harpsichordSampled",
     "bwv785": "analog",
-    "bwv786": "oboeTrio",
+    "bwv786": "vocalSynth", // D1037: ZELENKA TRIO withdrawn (colour-plans/more.ts WHY)
     "bwv787": "super16",
     "bwv788": "tomita",
     "bwv789": "krautrock",
@@ -308,8 +308,8 @@ function moreBachSounds(): Record<string, string> {
     "bwv803": "gameboy",
     "bwv804": "jazzQuartet",
     "bwv805": "krautrock",
-    // D753: the Chromatic Fugue (D771: FLUTE & HARP by the voices' distinctness; colour-plans/more.ts WHY).
-    "bwv903-2": "fluteHarp",
+    // D753: the Chromatic Fugue (D771: FLUTE & HARP by the voices' distinctness; D1037: FLUTE & HARP withdrawn, ABBEY ROAD; colour-plans/more.ts WHY).
+    "bwv903-2": "abbeyRoad",
     // D754: the Albinoni Fugue (D779: STRING CONSORT by the voices' distinctness and its alto's low B on a phone; colour-plans/more.ts WHY).
     "bwv951": "stringConsort",
     // D755: the C minor Fantasia and Fugue (D782: by the voices' distinctness among the kept sounds, the Fantasia's left hand on the piano, D781; colour-plans/more.ts WHY).

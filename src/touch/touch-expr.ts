@@ -43,7 +43,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   baroqueBand: "singers",
   // D504: ZELENKA TRIO a wind's: the breath's attack (the soft side a round start on the softer layer, the strong
   // side a firm, reedy one, brighter) and a held note's swell (BREATH_DB, its brightness, oboe II's vibrato).
-  oboeTrio: "winds",
   // TRIALS (instruments-trials): the bands of held instruments as the consort (a bow's or the breath's pressure,
   // the messa); the jazz quartet as the piano (the touch's three zones: their dynamics).
   trialWinds: "singers",
@@ -70,7 +69,6 @@ export const TOUCH_KINDS: Readonly<Record<string, TouchKind>> = {
   // strings, the brassiness on the bass trombone); D590 ORCHESTRA & ORGAN as the consort (a bow's pressure, the messa).
   berlinSchool: "synth",
   vaudeville: "band",
-  fluteHarp: "band",
   orchestraOrgan: "singers",
 };
 /** D520/D522: the family a band instrument's touch is (by its recordings). */
@@ -230,13 +228,11 @@ export const TOUCH_LEVEL_DB: Readonly<Record<string, readonly [soft: number, str
   soloVoices: [-4.5, 2.5],
   stringConsort: [-3.5, 1.5],
   baroqueBand: [-3.5, 1.5],
-  oboeTrio: [-3, 2],
   // BACH BRASS's brassiness and its own level (BRASS_LEVEL_DB) a little more on the soft side.
   bachBrass: [-1, 0.5],
   // D586-D590 (the new setups' sounds, by their families' kin: SWITCHED-ON's filter, CHORINHO's band, STRING CONSORT's bow).
   berlinSchool: [-4, 3],
   vaudeville: [-2, 2],
-  fluteHarp: [-2, 2],
   orchestraOrgan: [-3.5, 1.5],
 };
 /** D511: the player's landing's level (dB) on a preset at strength x (0 soft .. 1 strong). */

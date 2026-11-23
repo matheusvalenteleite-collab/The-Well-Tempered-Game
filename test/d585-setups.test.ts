@@ -25,7 +25,8 @@ import { ES } from "../src/i18n/es.ts";
 
 const ctxOf = installFakeAudio(0, true);
 
-const NEW = ["berlinSchool", "vaudeville", "fluteHarp", "orchestraOrgan"] as const;
+// D1037: FLUTE & HARP withdrawn (D589 its setup).
+const NEW = ["berlinSchool", "vaudeville", "orchestraOrgan"] as const;
 
 test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set them (the brief's table)", () => {
   const want: Record<string, [string, string]> = {
@@ -37,7 +38,7 @@ test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set th
     wtc1f15: ["berlinSchool", "scoreSynth"], // D893-D894: MEGA FM withdrawn; its other pick, the synth kit; D910: BERLIN SCHOOL (the owner: electronic)
     wtc2f24: ["analog", "arcade"],
     wtc1f19: ["vaudeville", "stooges"],
-    wtc2f18: ["fluteHarp", "swell"],
+    wtc2f18: ["tomita", "swell"], // D1037: FLUTE & HARP withdrawn; the sea's swell kept on TOMITA
     // D594, D596: I/24 then on SID 64 with SYNTH KIT's staged build (the owner: "too slow and boring … change its instrument").
     wtc1f24: ["sid64", "scoreSynth"],
     wtc1f20: ["krautrock", "liebezeit"],
@@ -48,9 +49,9 @@ test("D585-D590: the fugues' own sounds and drums as the owner's verdicts set th
     assert.equal(PIECE_SOUND[id], sound, id);
     assert.equal(FUGUE_STYLES[id], style, id);
   }
-  // I/13 unchanged (the owner: keep its default).
-  assert.equal(PIECE_SOUND.wtc1f13, "oboeTrio");
-  assert.equal(FUGUE_STYLES.wtc1f13, undefined);
+  // I/13 unchanged (the owner: keep its default); D1037: ZELENKA TRIO withdrawn, I/13 on ABBEY ROAD with no drums.
+  assert.equal(PIECE_SOUND.wtc1f13, "abbeyRoad");
+  assert.equal(FUGUE_STYLES.wtc1f13, "none");
   // Every fugue's own style plays (or its stand-in, until the drums session's lands); every stand-in a style.
   for (const id of Object.keys(FUGUE_STYLES)) assert.ok(isStyle(fugueStyle(id)), id);
   for (const s of Object.values(FUGUE_STYLE_STANDIN)) assert.ok(isStyle(s), s);
@@ -60,7 +61,7 @@ test("D585: the fugue's own drums on its own sound only; on any other sound the 
   assert.equal(homeFor("wtc1f01", "pianoSampled"), fugueStyle("wtc1f01"));
   assert.equal(homeFor("wtc1f01", "pianoSampled"), "lofi");
   assert.equal(homeFor("wtc1f01", "chamberOrgan"), homeStyleFor("chamberOrgan"));
-  assert.equal(homeFor("wtc1f13", "oboeTrio"), homeStyleFor("oboeTrio"));
+  assert.equal(homeFor("wtc1f13", "baroqueBand"), homeStyleFor("baroqueBand"));
   const m = drumMenuFor("wtc2f12", "jazzQuartet");
   assert.equal(m[0].id, HOME_ID);
   assert.equal(m[0].style, "bebop");
@@ -92,10 +93,9 @@ test("D586-D590: the four new sounds offered, named in every language, credited 
   }
   // BERLIN SCHOOL synthesized (no recordings, no credit); the others' recordings credited.
   assert.ok(!presetById("berlinSchool").slots!.some((s) => PATCHES[s].sample));
-  for (const id of ["vaudeville", "fluteHarp", "orchestraOrgan"]) assert.ok((creditFor(id) ?? "").length > 40, id);
+  for (const id of ["vaudeville", "orchestraOrgan"]) assert.ok((creditFor(id) ?? "").length > 40, id);
   // The new recordings' sets: the xylophone and the harp (VSO2's, CC BY 3.0, credited in LICENSES.txt), struck and plucked.
   assert.equal(SAMPLED.vaudXylo.plucked, true);
-  assert.equal(SAMPLED.seaHarp.plucked, true);
   const lic = readFileSync(new URL("../public/samples/LICENSES.txt", import.meta.url), "utf8");
   assert.ok(/xylophone\//.test(lic) && /harp\//.test(lic));
 });

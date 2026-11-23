@@ -1,6 +1,6 @@
 /**
  * D549-D552, the classic four rebuilt (JAZZ QUARTET, BAROQUE BAND, BACH BRASS, ZELENKA TRIO; D560: promoted in their
- * originals' place): their instruments kept (the owner likes them), each its study's chain (band-fx.ts BAND_CHAINS) with the
+ * originals' place; D1037: ZELENKA TRIO withdrawn): their instruments kept (the owner likes them), each its study's chain (band-fx.ts BAND_CHAINS) with the
  * return calibrated to the original's room, the layers they keep (Slim.keep) real layers of their instruments, within the budget.
  */
 import { test } from "node:test";
@@ -11,13 +11,12 @@ import { PIECE_SOUND } from "../src/touch/piece-sound.ts";
 import { SAMPLED } from "../src/touch/sampled.ts";
 import { BAND_SLIM, PATCHES, PRESETS, presetById, type PatchId } from "../src/touch/sound.ts";
 
-const CLASSIC = ["jazzQuartet", "baroqueBand", "bachBrass", "oboeTrio"] as const;
+const CLASSIC = ["jazzQuartet", "baroqueBand", "bachBrass"] as const;
 /** The four's instruments as D430-D504 seated them (the slots), kept. */
 const SLOTS: Record<(typeof CLASSIC)[number], readonly PatchId[]> = {
   jazzQuartet: ["jqVibes", "jqPiano", "jqPiano", "jqPiano", "jqBass"],
   baroqueBand: ["bandViolin", "bandViolin", "bandOboe", "bandViola", "bandCello"],
   bachBrass: ["bachTrumpet", "bachTrumpet", "bachHorn", "bachTrombone", "bachBass"],
-  oboeTrio: ["trioOboe1", "trioOboe2", "trioHarpsi", "trioBassoon", "trioCello"],
 };
 
 test("D549-D552: each keeps its instruments, its chain the study's", () => {
@@ -27,7 +26,6 @@ test("D549-D552: each keeps its instruments, its chain the study's", () => {
     assert.deepEqual(p.slots, SLOTS[band], band);
     assert.equal(p.chain, BAND_CHAINS[band]);
   }
-  assert.ok(presetById("oboeTrio").alts?.[3]);
 });
 
 test("D549: JAZZ QUARTET's vibraphone in its chain's lane, the piano's inner voices spread by register", () => {
@@ -56,7 +54,6 @@ test("D549, D552: the layers each keeps are its instruments' own, and it stays w
   assert.ok(presetById("jazzQuartet").slim?.keep?.includes("jazzVibesHard"));
   // D560: the grand's soft layer would take JAZZ QUARTET over 25 MB (27.0): one layer of piano in it.
   assert.ok(!presetById("jazzQuartet").slim?.keep?.includes("grandSoft"));
-  assert.ok(presetById("oboeTrio").slim?.keep?.includes("trioOboe1Short"));
 });
 
 test("D549-D552: each chain's room returns at most as much as the original's (calibrated levels), a phone's less", () => {

@@ -60,7 +60,6 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   // D430: the trials' BAROQUE BAND, offered (D433: BLEEPS AND BLOOPS retired).
   ["baroqueBand", "BAROQUE BAND"],
   // D504: ZELENKA TRIO, two oboes, the bassoon and a continuo that enters where the music asks.
-  ["oboeTrio", "ZELENKA TRIO"],
   // D502: the trials' BACH BRASS, remade and offered.
   ["bachBrass", "BACH BRASS"],
   // D503: JAZZ QUARTET (the trials' jazz band remade, with its brushes).
@@ -79,7 +78,6 @@ export const POP_SOUNDS: readonly [id: string, name: string][] = [
   // D586-D590: the setups' new sounds (BERLIN SCHOOL's synthesizers; VAUDEVILLE's pit band; FLUTE & HARP; ORCHESTRA & ORGAN, staged).
   ["berlinSchool", "BERLIN SCHOOL"],
   ["vaudeville", "VAUDEVILLE"],
-  ["fluteHarp", "FLUTE & HARP"],
   ["orchestraOrgan", "ORCHESTRA & ORGAN"],
 ];
 

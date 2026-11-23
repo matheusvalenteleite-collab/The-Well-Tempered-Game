@@ -31,11 +31,11 @@ const SOUNDS: Record<string, [string, string]> = {
   bwv779: ["analog", "chip"],
   bwv780: ["berlinSchool", "swell"],
   bwv781: ["gameboy", "chip"],
-  bwv782: ["oboeTrio", "swell"],
+  bwv782: ["harpsichordSampled", "swell"], // D1037: ZELENKA TRIO withdrawn
   bwv783: ["jazzQuartet", "brushes"],
   bwv784: ["harpsichordSampled", "brushes"],
   bwv785: ["analog", "chip"],
-  bwv786: ["oboeTrio", "triphop"],
+  bwv786: ["vocalSynth", "triphop"], // D1037: ZELENKA TRIO withdrawn
   bwv787: ["super16", "lofi"],
   bwv788: ["tomita", "brushes"],
   bwv789: ["krautrock", "motorik"],
@@ -59,7 +59,7 @@ test("D731: each Invention and Sinfonia on its own sound, varied (at most two pi
   for (const [id, [s]] of Object.entries(SOUNDS)) {
     assert.equal(PIECE_SOUND[id], s, id);
     assert.equal(COLOURS[id].sound, s, id);
-    assert.ok(/^D(731|893): .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy), `${id}: why`);
+    assert.ok(/^D(731|893|1037): .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy), `${id}: why`);
     assert.ok(COLOURS[id].plans[s]?.length, `${id}: a colour plan on its sound`);
     (uses.get(s) ?? uses.set(s, []).get(s)!).push(id);
   }
@@ -113,15 +113,15 @@ test("D741, D744: the Four Duets on four sounds (none shared within the group), 
   }
 });
 
-test("D771, D774: the Chromatic Fugue on FLUTE & HARP (a sound then serving fewer than three pieces), its reason and plan; its drums (D894: none)", async () => {
+test("D771, D774: the Chromatic Fugue (D1037: on ABBEY ROAD, FLUTE & HARP withdrawn), its reason and plan; its drums (D894: none)", async () => {
   const id = "bwv903-2";
-  assert.equal(PIECE_SOUND[id], "fluteHarp");
-  assert.equal(COLOURS[id].sound, "fluteHarp");
-  assert.ok(/^D771: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
-  assert.ok(COLOURS[id].plans.fluteHarp?.length);
+  assert.equal(PIECE_SOUND[id], "abbeyRoad");
+  assert.equal(COLOURS[id].sound, "abbeyRoad");
+  assert.ok(/^D1037: .+closest pair \d\.\d\d/.test(COLOURS[id].soundWhy));
+  assert.ok(COLOURS[id].plans.abbeyRoad?.length);
   // D891, D894: the timpani withdrawn; calm (2.5 notes a second): no drums.
   assert.equal(FUGUE_STYLES[id], "none");
-  assert.equal(homeFor(id, "fluteHarp"), "none");
+  assert.equal(homeFor(id, "abbeyRoad"), "none");
 });
 
 test("D779: the Albinoni Fugue on STRING CONSORT (fewer than three pieces then), its reason and plan; its drums (D894: none)", async () => {

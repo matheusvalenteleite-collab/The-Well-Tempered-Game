@@ -146,8 +146,6 @@ export const PERIOD: Record<string, Bake> = {
   trioOboe1: { folder: "trioOboe", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP },
   trioOboe1Mf: { folder: "trioOboeMf", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP },
   trioOboe1Short: { folder: "trioOboeShort", rate: 32000, lp: 11000, bits: 16 },
-  trioOboe2Soft: { folder: "oboeSoft", rate: 32000, lp: 11000, bits: 16, loop: true },
-  trioOboe2Short: { folder: "oboeStac", rate: 32000, lp: 11000, bits: 16 },
   trioBassoon: { folder: "trioBassoon", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP, floor: 50 },
   trioBassoonMf: { folder: "trioBassoonMf", rate: 32000, lp: 11000, bits: 16, loop: TRIO_LOOP, floor: 50 },
   trioBassoonShort: { folder: "trioBassoonShort", rate: 32000, lp: 11000, bits: 16, floor: 50 },
@@ -174,9 +172,7 @@ export const PERIOD: Record<string, Bake> = {
   bossaAltoFlute: { folder: "altoFlute", rate: 32000, lp: 11000, bits: 16, loop: true },
   bossaSax: { folder: "sax", rate: 32000, lp: 11000, bits: 16, loop: true },
   // D588, VAUDEVILLE: VSCO 2 CE's xylophone (xylophone/, the Lab's, CC BY 3.0: every fourth or fifth, G4-C8), struck; D589,
-  // FLUTE & HARP: VSCO 2 CE's concert harp (harp/, the Lab's, CC BY 3.0: every third or so, E1-F7), plucked; at full fidelity as the consort's.
   vaudXylo: { folder: "xylophone", rate: 32000, lp: 11000, bits: 16 },
-  seaHarp: { folder: "harp", rate: 32000, lp: 11000, bits: 16 },
 };
 /**
  * D297: a period set's notes are kept at this share of the decoded rate (22.05 or 24 kHz, a rate every
@@ -249,8 +245,6 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   trioBassoon: zeroCents("trioBassoon"),
   trioBassoonMf: zeroCents("trioBassoonMf"),
   trioBassoonShort: zeroCents("trioBassoonShort"),
-  oboeSoft: { As3: 1.5, D4: -0.1, F4: 0.1, As4: -0.5, D5: 1.3, F5: 2.0, As5: 1.7, D6: -3.2, F6: -2.5 },
-  oboeStac: { As3: -5.3, D4: 5.3, F4: -1.8, As4: -1.2, D5: 0, F5: 4.5, As5: 6.3, D6: 9.5, F6: 24.0 },
   // D512 (the louder layer, v2; autocorrelation searched within a semitone of each name: the spiccati over 40-180 ms
   // from the onset, the pizzicati over 60-300 ms, past the pluck's sharp start).
   violinStac: { A3: 0.4, A4: -0.9, A5: -8.2, A6: -0.2, C4: 3.2, C5: -0.2, C6: 2.2, C7: 0.4, E4: -9.5, E5: -1.3, E6: 0.5, G3: 5.6, G4: 0.8, G5: 1.2, G6: 0.3 },
@@ -296,8 +290,6 @@ const SHORT: Record<string, Record<string, number>> = {
   trioBassoon: allOf("trioBassoon", 3.4),
   trioBassoonMf: allOf("trioBassoonMf", 3.4),
   trioBassoonShort: allOf("trioBassoonShort", 0.5),
-  oboeSoft: allOf("oboeSoft", 4.5),
-  oboeStac: allOf("oboeStac", 0.6),
   // D512 (s, measured).
   violinStac: { A3: 0.8, A4: 0.8, A5: 0.8, A6: 0.702, C4: 0.755, C5: 0.604, C6: 0.453, C7: 0.8, E4: 0.8, E5: 0.8, E6: 0.8, G3: 0.8, G4: 0.8, G5: 0.627, G6: 0.8 },
   violinPizz: { A3: 1.5, A4: 1.5, A5: 0.917, C4: 1.347, C5: 0.685, E4: 1.5, E5: 1.5, G3: 1.5, G4: 1.004, G5: 0.755 },
@@ -555,7 +547,7 @@ export const TIMP_MIDIS: readonly number[] = [41, 47, 49, 52, 55];
 /** The folder of public/samples a set's files are in (D297: a period set's, its folder's; D514: a kit's, drums/<kit>; D523: the rock kit's). */
 export const folderOf = (set: string) => (set === ROCK_KIT_SET ? "drums/bigRusty" : (KIT_FOLDER[set as KitSet] ?? LAYER_SET[set]?.folder ?? PERIOD[set]?.folder ?? set));
 
-export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "consortViolinSolo" | "consortCelloSolo" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioOboe2" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "bossaAltoFlute" | "bossaSax" | "vaudXylo" | "seaHarp";
+export type SampledId = "harpsichord" | "organ" | "piano" | "violin16" | "flute16" | "harpsi16" | "strings16" | "bassoon16" | "consortViolinSpicc" | "consortViolaSpicc" | "consortCelloSpicc" | "consortViolinPizz" | "consortViolaPizz" | "consortCelloPizz" | "voiceS" | "voiceA" | "voiceT" | "voiceB" | "choirAah" | "organPedal" | "organPleno" | "cello16" | "consortViolin" | "consortViola" | "consortCello" | "consortViolinSolo" | "consortCelloSolo" | "trialOboe" | "trialFlute" | "trialClarinet" | "trialHorn" | "trialBassoon" | "trialTrumpet" | "trialTrombone" | "trialBassPizz" | "trioOboe1" | "trioBassoon" | "brassTrumpet" | "brassHorn" | "brassTrombone" | "brassBass" | "brassTrumpetMf" | "brassTromboneMf" | "brassTrumpetMute" | "jazzVibes" | "jazzBass" | "choroGuitar" | "rockGuitar" | "rockGuitar2" | "rockBass" | "bossaGuitar" | "bossaAltoFlute" | "bossaSax" | "vaudXylo";
 
 export interface SampledInstrument {
   /** The recordings (a folder of public/samples). */
@@ -732,8 +724,7 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // soft side on the mezzoforte (oboe II: VSCO's soft) layer, its loudness evened with the loud one's when built and
   // brought 1.5 dB under it here, so the layer is the colour and the level the reading's; short notes their own.
   trioOboe1: { extend: { down: 5 }, set: "trioOboe1", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe1Mf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe1Short", under: TRIO_SHORT_S } },
-  trioOboe2: { extend: { down: 5 }, set: "trialOboe", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioOboe2Soft", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioOboe2Short", under: TRIO_SHORT_S } },
-  trioBassoon: { extend: { up: 8, down: 3 }, set: "trioBassoon", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioBassoonMf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioBassoonShort", under: TRIO_SHORT_S } },
+  trioBassoon: { extend: { up: 5, down: 3 }, set: "trioBassoon", plucked: false, gain: 2.2, maxShift: 2, soft: { set: "trioBassoonMf", below: TRIO_SOFT_BELOW, gain: TRIO_SOFT_GAIN }, short: { set: "trioBassoonShort", under: TRIO_SHORT_S } },
   // D502, BACH BRASS (every minor third: 1.5 semitones at most to the nearest). `maxShift` (D405) 3 past the compass,
   // then an octave nearer: the trumpet under C#3 and over E6, the horn under D2 and over G#5, the trombone under C#2 and
   // over D#5, the bass under G1 and over A#4 (the folds: test/d502-brass.test.ts).
@@ -778,9 +769,6 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // up to 6 semitones below its lowest recording (G4: the soprano's C#4 at most; the bar's pitch, darker and longer, a marimba's
   // kin), else within the nearest's fourth; a harder stroke a little brighter (velTone).
   vaudXylo: { extend: { down: 9 }, set: "vaudXylo", plucked: true, gain: 2.2, pedal: { short: 0.16, shortTau: 0.04, tau: 0.12 }, velTone: { perDb: 0.5, hz: 3000, min: -2.5, max: 2.5 }, maxShift: 6 },
-  // D589, FLUTE & HARP's harp: plucked, the strings left to ring a little past the written end (the harpist's hand damps late:
-  // `pedal`'s longer tau), retuned 2 semitones at most (recorded every third: 1.5 to the nearest), then an octave nearer.
-  seaHarp: { extend: { down: 4 }, set: "seaHarp", plucked: true, gain: 2.2, pedal: { short: 0.25, shortTau: 0.08, tau: 0.25 }, velTone: { perDb: 0.4, hz: 2000, min: -2, max: 2 }, maxShift: 3 },
 };
 /** D357: at most this far into a recorded pipe's speech (s). */
 export const SPEAK_MAX = 0.12;

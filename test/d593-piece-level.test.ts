@@ -113,11 +113,12 @@ test("D738: the Inventions' and Sinfonias' levels: on their own sounds, a phone'
   const inv = (id: string) => /^bwv(7[789]\d|80[01])$/.test(id) && +id.slice(3) >= 772;
   const all = PRESETS.flatMap((p) => Object.keys(p.levels ?? {}).filter(inv).map((id) => [id, p.id] as const));
   // D890, D896: four moved to new sounds; Invention 15 raised, Invention 13 and Sinfonia 5 lowered on theirs.
+  // D1037: Invention 15 on VOCAL SYNTH (within 1 LU, no row), Invention 11 lowered on the harpsichord.
   assert.equal(all.length, 15);
   for (const [id, snd] of all) {
     assert.equal(PIECE_SOUND[id], snd, `${id}: its own sound`);
     const up = 20 * Math.log10(pieceLevel(snd, id, true));
-    const lowered = id === "bwv784" || id === "bwv791";
+    const lowered = id === "bwv784" || id === "bwv791" || id === "bwv782";
     assert.ok(lowered ? up <= -1 && up >= -1.5 : up >= 0.9 && up <= 4, `${id}: ${up.toFixed(1)} dB on a phone`);
     assert.equal(pieceLevel(snd, id, false), 1, `${id}: the computer path as it was`);
   }
@@ -134,9 +135,8 @@ test("D747: the Four Duets' levels: on their own sounds, a phone's only, 1-4 dB"
   }
 });
 
-test("D777: the Chromatic Fugue's level: FLUTE & HARP, a phone's only, about 1.2 dB", () => {
-  const up = 20 * Math.log10(pieceLevel("fluteHarp", "bwv903-2", true));
-  assert.equal(PIECE_SOUND["bwv903-2"], "fluteHarp");
-  assert.ok(up >= 1 && up <= 4, `${up.toFixed(1)} dB`);
-  assert.equal(pieceLevel("fluteHarp", "bwv903-2", false), 1);
+test("D777: the Chromatic Fugue's level (D1037: on ABBEY ROAD, FLUTE & HARP withdrawn: -27.8 LUFS on the phone model, within 1 LU: no row)", () => {
+  assert.equal(PIECE_SOUND["bwv903-2"], "abbeyRoad");
+  assert.equal(pieceLevel("abbeyRoad", "bwv903-2", true), 1);
+  assert.equal(pieceLevel("abbeyRoad", "bwv903-2", false), 1);
 });

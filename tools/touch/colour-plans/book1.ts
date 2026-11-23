@@ -335,8 +335,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f13: {
-    sound: "oboeTrio",
-    soundWhy: "Euphonious, soft and gently flowing (Keller), the 'little brook' of water figures (Bodky): D504's ZELENKA TRIO, two oboes of different breath in conversation and the bassoon, the continuo at the bass's entries, the cadences and the close.",
+    // D1037: ABBEY ROAD (was ZELENKA TRIO, withdrawn).
+    sound: "abbeyRoad",
+    soundWhy: "D1037: euphonious, soft and gently flowing (Keller), the 'little brook' of water figures (Bodky): ABBEY ROAD's Moog, Leslie guitar and flatwound bass, three colours for three lines, no drums (the voice probe's closest pair 2.94 against ZELENKA TRIO's 1.75; KRAUTROCK's 3.84, BERLIN SCHOOL's 3.59 and BOSSA NOVA's 3.00 higher, their loads kept).",
     character: "Exposition 1-7, then 7-23 and 23-35 (Ledbetter); episodes 7-11, 12-15, 17-20, 22-28.",
     plans: {
       tomita: [
@@ -351,6 +352,7 @@ export const BOOK1: Record<string, PieceColours> = {
       ],
       chamberOrgan: [at(1, OFLUTE, "Soft and flowing: the flutes throughout.")],
       vocalSynth: [at(7, { open: 0.3 }, "The episodes on a closed vowel."), at(23, OWN, "The third section open again.")],
+      abbeyRoad: [at(7, { tone: -1.5 }, "The water figures of the middle section (from 7) a shade softer."), at(23, OWN, "The third section (Ledbetter, from 23)."), at(E("wtc1f13", 31), { room: 0.12 }, "The last entry and the close in more of the room.")],
     },
   },
   wtc1f14: {
@@ -412,9 +414,9 @@ export const BOOK1: Record<string, PieceColours> = {
     },
   },
   wtc1f17: {
-    // D893: FLUTE & HARP (was PET SOUNDS, withdrawn: D890).
-    sound: "fluteHarp",
-    soundWhy: "D893: 'noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, four voices on FLUTE & HARP's alto flute, harp, viola and cello in a hall, the slow lines sustained (the voice probe's closest pair 1.94 against PET SOUNDS' 0.87; SUPER 16-BIT's 2.18 near, its alto a harpsichord's pluck); no drums.",
+    // D893: FLUTE & HARP (was PET SOUNDS, withdrawn: D890); D1037: SUPER 16-BIT (FLUTE & HARP withdrawn).
+    sound: "super16",
+    soundWhy: "D1037: 'noble and warm … solemnly slow' (Keller): A flat major in 4/4 at a crotchet of 54, four voices on SUPER 16-BIT's violin, harpsichord, strings and bassoon in the SPC echo; no drums (the voice probe's closest pair 1.91 against FLUTE & HARP's 1.57; BERLIN SCHOOL's 2.87 and SALSA's 2.26 higher, BERLIN SCHOOL given II/23, SALSA's tres a pluck in a slow fugue; TOMITA's 1.73 given II/18).",
     character: "A solo at 8-9 and episodes 11-12, 14-15, 19-20 (Ledbetter), a cadence in E♭ (23), the reprise 27-35.",
     plans: {
       chamberOrgan: [
@@ -427,6 +429,7 @@ export const BOOK1: Record<string, PieceColours> = {
       ],
       harpsichordSampled: [at(1, H84, "8′+4′."), at(8, H8, "The solo and episode 8-10."), at(E("wtc1f17", 10), H84, "The entry."), at(27, HFULL, "The reprise: the manuals coupled.")],
       soloVoices: [at(27, { room: 0.15 }, "Choral (Keller): the reprise in more of the hall.")],
+      super16: [at(8, { room: 0.18 }, "The solo bars 8-9 (Ledbetter) and the episode in the SPC's echo."), at(E("wtc1f17", 10), OWN, "Dry again for the tenor's entry (10)."), at(27, { room: 0.12 }, "The reprise (27-35) a little further into the echo.")],
     },
   },
   wtc1f18: {

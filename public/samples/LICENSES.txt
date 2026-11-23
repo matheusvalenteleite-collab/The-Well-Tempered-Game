@@ -125,7 +125,8 @@ violinSolo/ celloSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent
          each note's level evened (K-weighted, and measured through the game's engine); the loudest peak at -1 dBFS;
          mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/consort/build_consort.py.
 
-D504, the touch game's ZELENKA TRIO (two oboes, the bassoon; its continuo the cello/ and harpsichord/ above):
+D504, the touch game's ZELENKA TRIO (two oboes, the bassoon; its continuo the cello/ and harpsichord/ above; D1037: the sound withdrawn,
+these recordings kept: the oboe BWV 54's layered alto on SUPER 16-BIT, the bassoon VAUDEVILLE's and SUPER 16-BIT's lowest notes):
 trioOboe/ trioOboeMf/ trioOboeShort/ trioBassoon/ trioBassoonMf/ trioBassoonShort/   University of Iowa Electronic Music Studios,
          Musical Instrument Samples (theremin.music.uiowa.edu/MIS.html): oboe and bassoon. "These recordings may be downloaded and
          used for any projects, without restrictions." The 2012-2014 chromatic fortissimo singles (oboe Bb3-Ab6, bassoon Bb1-D5,
@@ -136,11 +137,8 @@ trioOboe/ trioOboeMf/ trioOboeShort/ trioBassoon/ trioBassoonMf/ trioBassoonShor
          mezzoforte layer at the fortissimo's loudness; short notes (*Short) the first 0.5 s of the same sustains, held 90 ms
          then falling (60 ms); one gain per instrument, the loudest peak at -1 dBFS; mono 44.1 kHz 64 kbit/s MP3. The
          pianissimo files left out (the bassoon's 49 dB of noise, its pitch drifting by up to 33 cents).
-oboeSoft/ oboeStac/   VS Chamber Orchestra 2: Community Edition, Versilian Studios: Oboe, vibrato, soft layer (Woodwinds/Oboe/Vib
-         *_v1), and staccato (Woodwinds/Oboe/Stacc *_v2_rr1; D5 *_v1_rr1). CC0 1.0. Source: https://github.com/sgossner/VSCO-2-CE
-         Changed: mono; onset kept 1 ms before the attack; the soft layer 4.5 s with a 0.3 s fade, the staccato 0.6 s; each note's
-         steady loudness (the staccato's first 0.15 s) matched to the loud layer's (oboe/) note; mono 44.1 kHz 64 kbit/s MP3.
-         Script for both: tools/playback/trio/build_trio.py.
+(D1037: oboeSoft/ and oboeStac/, ZELENKA TRIO's second oboe's soft and short layers, removed with it; trioOboe/ stays for BWV 54's alto,
+         trioBassoon/ for VAUDEVILLE and SUPER 16-BIT.)
 D502, the touch game's BACH BRASS (two dynamic layers each: the folder, the forte; the folder with P, the piano):
 brassTrumpet/ brassTrumpetP/ brassHorn/ brassHornP/ brassTrombone/ brassTromboneP/ brassBass/ brassBassP/
          University of Iowa Electronic Music Studios, Musical Instrument Samples (Lawrence Fritts; theremin.music.uiowa.edu/MIS.html):

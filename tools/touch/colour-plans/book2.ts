@@ -216,16 +216,15 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f18: {
-    // D589: FLUTE & HARP (was JAZZ QUARTET, D510: the owner, "you've turned one of my favorite fugues into this mess").
-    sound: "fluteHarp",
-    soundWhy: "D589 (the owner: \"let's try something different … flow like the sea. It's beautiful but also not overly assuming\"): galant, 'not exceeding mf' (Keller), 143 bars of 6/8 in G♯ minor: Debussy's trio's colours, the alto flute on top, the harp's ringing strings on the middle voice, the cello on the bass, in a dark hall; with DRUMS on, mallets on the toms and the cymbal's swells, the snare at a few structural moments only.",
+    // D589: FLUTE & HARP (was JAZZ QUARTET, D510: the owner, "you've turned one of my favorite fugues into this mess"); D1037: TOMITA (FLUTE & HARP withdrawn).
+    sound: "tomita",
+    soundWhy: "D1037 (D589, the owner: \"flow like the sea. It's beautiful but also not overly assuming\"): galant, 'not exceeding mf' (Keller), 143 bars of 6/8 in G♯ minor: TOMITA's whistle, flute and bass, held voices in the space echo; with DRUMS on, the sea's swell kept (the voice probe's closest pair 2.25 against FLUTE & HARP's 2.11; KRAUTROCK's 4.45, BOSSA NOVA's 3.99, VAUDEVILLE's 3.60 a xylophone, BERLIN SCHOOL's 3.16 and ABBEY ROAD's 3.08 higher, their loads kept or plucked in a slow fugue).",
     character: "Section 1 on the first subject (1-61), section 2 on the second (61-97), the double fugue (97-143) (Ledbetter); Bodky's 8″ (pp), 8′ (p), 8″+4″ (f) by section.",
     plans: {
       pianoSampled: [at(1, { layer: "soft" }, "Bodky's pp and p (1-97): the soft layer."), at(97, OWN, "The double fugue (97) in the full tone.")],
       harpsichordSampled: [at(1, HLUTE, "Bodky's softest register for the first section: here the buff."), at(61.625, H8, "Bodky: 8′ for the second subject (61⅝)."), at(97, H84, "Bodky: 8″+4″ for both subjects (97).")],
       chamberOrgan: [at(1, OFLUTE, "The flutes for the two single fugues."), at(97, OPRIN, "The double fugue on the principals.")],
       tomita: [at(61.625, { room: 0.15 }, "The second subject in the space echo."), at(97, OWN, "Closer for the double fugue.")],
-      fluteHarp: [at(61.625, { tone: -1.5 }, "D589: the second subject (61⅝, Bodky's p) a shade darker."), at(97, OWN, "The double fugue (97) in the full colour."), at(135, { room: 0.26 }, "The final entries (135-143) further into the hall.")],
     },
   },
   wtc2f19: {
@@ -272,11 +271,13 @@ export const BOOK2: Record<string, PieceColours> = {
     },
   },
   wtc2f23: {
-    sound: "oboeTrio",
-    soundWhy: "'Quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: D504's ZELENKA TRIO, two oboes of different breath, the bassoon and the cello, each long note shaded by the reeds' swell, the harpsichord joining at the bass's entries, the stretto and the close.",
+    // D1037: BERLIN SCHOOL (was ZELENKA TRIO, withdrawn).
+    sound: "berlinSchool",
+    soundWhy: "D1037: 'quietly flowing, singing; gentle euphony' (Keller), a double fugue in long notes: BERLIN SCHOOL's lead, sequencer, string machine and bass, the long notes held in the space, no drums (the voice probe's closest pair 3.18 against ZELENKA TRIO's 0.93; SALSA's 2.26 next; VOCAL SYNTH's 0.67, under ZELENKA's, not taken).",
     character: "The second subject from 27; a long episode 63-75 (claims); Bodky's ff and f spans; a pedal on E (94-95).",
     plans: {
       tomita: [at(63, { room: 0.2 }, "The long episode 63-75 in the space echo."), at(E("wtc2f23", 75), OWN, "The bass's entry (75).")],
+      berlinSchool: [at(63, { tone: -2 }, "The long episode 63-75 veiled (the filters' tone down)."), at(E("wtc2f23", 75), OWN, "The bass's entry (75): open."), at(94, { tone: 2, room: 0.12 }, "The pedal on E (94-95) to the close: bright, in more of the room.")],
       harpsichordSampled: [at(1, HFULL, "Bodky: his full work minus the 8′ (here the coupled manuals)."), at(28, H84, "8″+4″ (28)."), at(49, HFULL, "Full (49)."), at(60, H84, "8″+4″ (60)."), at(86, HFULL, "Full (86).")],
       chamberOrgan: [at(1, OPRIN, "The principals."), at(28, OFLUTE, "The flutes (Bodky's lighter 28-49)."), at(49, OPRIN, "The principals."), at(60, OFLUTE, "The flutes (60-86)."), at(86, OPRIN, "The principals."), at(94, OFONDS, "The pedal on E (94-95): the foundations, gentle (Keller).")],
     },

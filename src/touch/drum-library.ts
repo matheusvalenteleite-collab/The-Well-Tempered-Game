@@ -167,7 +167,6 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   stringConsort: ["frame", "ballad"],
   // D891: BAROQUE BAND's timpani withdrawn: Lully's side drum its HOME.
   baroqueBand: ["military", "castanets", "janissary", "frame"],
-  oboeTrio: ["frame", "castanets", "baiao"],
   // D567: the owner: "The Janissary drum is boring and shitty, I hate it. A more march-like preset would work better":
   // MARCH is BACH BRASS's HOME, the Janissaries out of its family (still in the library).
   bachBrass: ["march", "military", "frame"],
@@ -177,7 +176,6 @@ export const SOUND_STYLES: Readonly<Record<string, readonly StyleId[]>> = {
   // cymbal washes (its SWELL likewise); ORCHESTRA & ORGAN the timpani and the field drums.
   berlinSchool: ["scoreSynth", "machine", "techno", "idm", "linn"],
   vaudeville: ["stooges", "frame", "castanets"],
-  fluteHarp: ["swell", "brushes", "psych", "jazzWaltz"],
   orchestraOrgan: ["march", "frame"],
 };
 /**
@@ -233,7 +231,13 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc2f04: "idm",
   wtc2f05: "march",
   wtc2f12: "bebop",
-  wtc2f18: "swell",
+  wtc2f18: "swell", // D1037: on TOMITA (FLUTE & HARP withdrawn): the sea's swell kept
+  // D1037: its prelude keeps the swell it had as FLUTE & HARP's HOME (TOMITA's would be trip-hop).
+  wtc2p18: "swell",
+  // D1037: ZELENKA TRIO withdrawn: I/13 on ABBEY ROAD and II/23 on BERLIN SCHOOL, both calm (the busiest voice 2.65 and 1.48
+  // notes a second): no drums (their preludes with them, by world), as D894 for the slow fugues.
+  wtc1f13: NO_DRUMS,
+  wtc2f23: NO_DRUMS,
   // D603: II/6 (the owner: the drums "don't fit … it wants something energetic and dancey"): HOUSE 909, four on the floor at
   // 106 (its eighth's pulse), its hats on the music's straight semiquavers: 82% of its strokes on the score's own onsets
   // (BREAKBEAT 46%, IDM 39%, ARCADE 47%), 5.2 strokes a second against the chip kit's 2.7.
@@ -282,11 +286,11 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   bwv779: "chip", // Carlos's F major in 3/4: the chip kit, an electronic kit read from the score (the drum machines' grids do not fit 3/4; SYNTH KIT's roll at b. 34 stood 1.4 LU over the band, D601)
   bwv780: "swell", // slow and chromatic: washes at the arrivals, no beat
   bwv781: "chip", // the 9/8 gigue on GAME BOY: its own kit
-  bwv782: "swell", // D894: on ZELENKA TRIO (D893), slow: its washes kept, 100 %
+  bwv782: "swell", // D894: on ZELENKA TRIO (D893), slow: its washes kept, 100 %; D1037: kept on the harpsichord
   bwv783: "brushes", // the pastoral 12/8 on JAZZ QUARTET: its brushes
   bwv784: "brushes", // D894: on the harpsichord (D893): the brushes of its family, 100 %
   bwv785: "chip", // Carlos's B♭ on SWITCHED-ON: the chip kit, an electronic kit read from the score (MACHINE's fill stood within 1 dB of the band by D601's model)
-  bwv786: "triphop", // D894: on ZELENKA TRIO (D893): its trip-hop kept, 97 % (its family's frame and castanets do not fit 4/4)
+  bwv786: "triphop", // D894: on ZELENKA TRIO (D893): its trip-hop kept, 97 % (its family's frame and castanets do not fit 4/4); D1037: kept on VOCAL SYNTH
   bwv787: "lofi", // SUPER 16-BIT's own, 76 a minute (68-92)
   bwv788: "brushes", // the lilting 12/8 on TOMITA: brushes (its machines' grids do not fit 12/8)
   bwv789: "motorik", // the walking trio on KRAUTROCK: its own drummer
@@ -324,7 +328,7 @@ export const FUGUE_STYLES: Readonly<Record<string, string>> = {
   wtc2f15: "castanets", // on ABBEY ROAD (D893), 3/8: its own pick, the castanets, 100 % (ABBEY ROAD's own does not fit 3/8; PSYCH's pulse out of its band)
   wtc2f16: NO_DRUMS, // BAROQUE BAND, calm (2.3 notes a second)
   wtc2f21: NO_DRUMS, // BAROQUE BAND, calm (2.1)
-  wtc1f17: NO_DRUMS, // on FLUTE & HARP (D893), solemnly slow
+  wtc1f17: NO_DRUMS, // on FLUTE & HARP (D893), solemnly slow; D1037: on SUPER 16-BIT, still none
   // D902: the Goldberg Variations, a keyboard work kept close to it: no drums on any (D892's NO DRUMS), on whatever sound.
   "bwv988-00": NO_DRUMS,
   "bwv988-01": NO_DRUMS,

@@ -48,14 +48,12 @@ export const SUBS: Readonly<Record<string, Partial<Record<PatchId, { near: reado
   abbeyRoad: { a2Guitar: { near: ["a2Trumpet"] }, a2Trumpet: { near: ["a2Guitar"] } },
   // (D637: II/2's tenor down to C2, past the viola, on the band's cello: two cellos, as STRING CONSORT's low viola, D632.)
   baroqueBand: { bandOboe: { near: ["bandViola"] }, bandViolin: { near: ["bandViola"] }, bandViola: { near: ["bandViolin", "bandOboe"], stretch: ["bandCello"] } },
-  oboeTrio: { trioOboe1: { near: ["trioOboe2"], far: ["trioHarpsi"] }, trioOboe2: { near: ["trioBassoon"] }, trioBassoon: { near: ["trioOboe2"] } },
   bachBrass: { bachHorn: { near: ["bachTrumpet"] }, bachTrombone: { near: ["bachHorn", "bachTrumpet"] }, bachTrumpet: { near: ["bachHorn", "bachTrombone"] }, bachTrumpetMute: { near: ["bachTrumpet"] } },
   // JAZZ QUARTET: the vibraphone stays the lead (traded only, never replaced: the band's one voice of its own).
   jazzQuartet: {},
   chorinho: { c2Flute: { near: ["c2Clarinet", "c2Bandolim"] }, c2Clarinet: { near: ["c2Flute", "c2Bandolim"] }, c2Bandolim: { near: ["c2Cavaco"] } },
   bossaNova: { b2Flute: { near: ["b2Sax", "b2Guitar"] }, b2Sax: { near: ["b2Flute", "b2Guitar"] } },
   vaudeville: { vdXylo: { near: [], far: ["vdClarinet"] }, vdClarinet: { near: ["vdBassoon"] } },
-  fluteHarp: { seaFlute: { near: ["seaViola"], far: ["seaHarp"] }, seaViola: { near: ["seaHarp"] } },
   orchestraOrgan: { orViolin1: { near: ["orViola"] }, orViolin2: { near: ["orViola"] }, orViola: { near: ["orCello", "orViolin2"] } },
   stringConsort: { consViolin: { near: ["consViola"] }, consViola: { near: ["consCello", "consViolin"] } },
   trialWinds: { trialOboe: { near: ["trialClarinet"] }, trialFlute: { near: ["trialOboe", "trialClarinet"] }, trialClarinet: { near: ["trialOboe", "trialHorn", "trialBassoon"] } },

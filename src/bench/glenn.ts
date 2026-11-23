@@ -77,7 +77,7 @@ export function exprFamily(presetId: string): ExprFamily {
   if (presetId === "chamberOrgan" || presetId === "organSampled") return "organ";
   // D430: BAROQUE BAND as the consort (its strings bowed, its oboe tongued: Patch.bow).
   // D504: ZELENKA TRIO likewise (its reeds tongued, its continuo cello bowed: Patch.bow); D502: BACH BRASS (tongued: BRASS_TONGUE).
-  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "oboeTrio" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
+  if (presetId === "stringConsort" || presetId === "baroqueBand" || presetId === "trialWinds" || presetId === "bachBrass") return "bowed";
   // TRIALS: the struck and plucked bands as the plucked keyboards (one player's over-legato); D501: CLAVICHORD too (D510: withdrawn).
   // D503: JAZZ QUARTET (the trials' jazz band remade): struck and plucked, one player's over-legato.
   if (presetId === "jazzQuartet") return "plucked";
@@ -90,7 +90,7 @@ export function exprFamily(presetId: string): ExprFamily {
   // D588: VAUDEVILLE on top its xylophone (struck: one player's over-legato); D589 FLUTE & HARP its flute and D590 ORCHESTRA
   // & ORGAN its strings on top (tongued and bowed: Patch.bow), as the consort.
   if (presetId === "vaudeville") return "plucked";
-  if (presetId === "fluteHarp" || presetId === "orchestraOrgan") return "bowed";
+  if (presetId === "orchestraOrgan") return "bowed";
   if (presetId === "vocalSynth" || presetId === "soloVoices" || presetId === "traverso") return "sung";
   return "synth";
 }
@@ -264,8 +264,6 @@ const TOUCH_FAMILIES: Readonly<Record<string, TouchFamily>> = {
   stringConsort: "strings",
   // D430: BAROQUE BAND as the consort; its oboe's Patch.bow a tongue (sound.ts WIND_TONGUE).
   baroqueBand: "strings",
-  // D504: ZELENKA TRIO as the strings (Patch.bow as a tongue, TRIO_TONGUE): a JOIN a soft new tongue (TRIO_JOIN), SET-AND-RELEASE the slur.
-  oboeTrio: "strings",
   // TRIALS: the winds and brass as the strings (Patch.bow as a tongue, sound.ts WIND_TONGUE): a JOIN a soft new tongue, SET-AND-RELEASE the legato (slur).
   trialWinds: "strings",
   // D502: BACH BRASS: a JOIN re-tongued (BRASS_TONGUE.change), SET-AND-RELEASE the slur (the legato tongue), the SLIDE its lip slur.
