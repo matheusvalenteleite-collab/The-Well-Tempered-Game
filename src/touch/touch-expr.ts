@@ -468,7 +468,7 @@ export function dutyGain(w0: number, w: Duty, start: Duty): number {
  * the shelf's own loudness taken back by BOW_DB against it (measured: at +1 dB of level the shelf added 1.2 LU on the phone
  * model; at -1.5 the gesture 0.0 LU): timbre, not level, on the player's voice (D508).
  */
-export const BOWED_SAMPLES: ReadonlySet<string> = new Set(["consortViolin", "consortViola", "consortCello", "consortViolinSolo", "consortCelloSolo"]);
+export const BOWED_SAMPLES: ReadonlySet<string> = new Set(["consortViolin", "consortViola", "consortCello", "consortViolinSolo", "consortCelloSolo", "consortViolinSoft"]);
 export const BOW_DB = -1.5;
 export const BOW_TONE_DB = 4;
 export const bowGain = (s: number) => 10 ** ((BOW_DB * clampS(s)) / 20);
