@@ -77,8 +77,6 @@ export interface OtherNote {
   voice: number;
   /** D363: a band-only voice's note (TouchFugue.bandVoices), `voice` its parent's: the band's whoever plays the parent. */
   band?: true;
-  /** D862, TWO HANDS: a written note of a played hand the game plays for the player (a chord's other notes, a quick note between): drawn faint. */
-  aid?: true;
 }
 
 /**
