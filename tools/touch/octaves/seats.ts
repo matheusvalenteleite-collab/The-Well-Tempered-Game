@@ -35,7 +35,7 @@ type Slot = readonly [PatchId, number, number?];
  * D1000: II/1's prelude on CHORINHO, the 7-string's bass 1.41 (+3 dB: its held pedal no longer lost on a phone, its trim at
  * the cap); II/16's prelude on BAROQUE BAND, the tenor's cello 1.07 (1.32 before, -1.8 dB), so the alto is heard beside it.
  * D1031: I/9's oboe seat 1.12 (0.79 before): BAROQUE BAND's TinySOL oboe even over its compass (the VSCO oboe's top was 14 dB up
- * from G#5); at 0.79 the player's oboe sat 3.1 LU under the mix on the phone model, at 1.12 2.3 (the band's own trims, build.ts).
+ * from G#5): with D934's trims the player's oboe 1.3 LU under the mix on the phone model again (D934's).
  */
 export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 1.12 }, wtc2p16: { 2: 1.07 } }, chorinho: { wtc2p01: { 2: 1.41 } } };
 /** Semitones past the reach a near substitute may miss by and still take the seat (its set extended that far: II/10's C3 on the trumpet, E3's recording read 4 down). */
