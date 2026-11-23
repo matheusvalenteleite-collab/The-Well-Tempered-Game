@@ -158,7 +158,7 @@ export const OCTAVE_SEATS: Readonly<Record<string, Readonly<Record<string, Parti
     wtc2f04: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2f10: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2f15: { 3: [["c2Clarinet", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
-    wtc2p01: { 3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04, 1.41]] },
+    wtc2p01: { 3: [["c2Flute", -0.16], ["c2Bandolim", 0.12], ["vdBassoon", -0.04, 1]] },
     wtc2p05: { 3: [["c2Cavaco", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
     wtc2p09: { 3: [["c2Cavaco", -0.16], ["c2Bandolim", 0.12], ["c27", -0.04]] },
   },

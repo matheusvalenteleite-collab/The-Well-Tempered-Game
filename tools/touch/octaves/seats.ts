@@ -33,11 +33,17 @@ type Slot = readonly [PatchId, number, number?];
  * oboe on I/9's top line (the violin's seat, 1.11) measured 7.9 dB over the violin and 5.9 over the cello on the phone
  * model, the band's trims lifting the others 5.5 dB to it (the whole -20.8 LUFS, into the limiter); 0.79 (-3 dB: still the top, the balance kept; sound.ts levels the rest).
  * D1000: II/1's prelude on CHORINHO, the 7-string's bass 1.41 (+3 dB: its held pedal no longer lost on a phone, its trim at
- * the cap); II/16's prelude on BAROQUE BAND, the tenor's cello 1.07 (1.32 before, -1.8 dB), so the alto is heard beside it.
+ * the cap); D1041: back to 1 (0 dB), the seat the bassoon's now (SEAT_PATCHES); II/16's prelude on BAROQUE BAND, the tenor's cello 1.07 (1.32 before, -1.8 dB), so the alto is heard beside it.
  * D1031: I/9's oboe seat 1.12 (0.79 before): BAROQUE BAND's TinySOL oboe even over its compass (the VSCO oboe's top was 14 dB up
  * from G#5): with D934's trims the player's oboe 1.3 LU under the mix on the phone model again (D934's).
  */
-export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 1.12 }, wtc2p16: { 2: 1.07 } }, chorinho: { wtc2p01: { 2: 1.41 } } };
+/**
+ * D1041: a seat's instrument where the piece asks for another than the band's own (by voice): II/1's prelude on CHORINHO, its
+ * opening C pedal (about 11 s, the 7-string's plucked C2 and C3 dying away, lost on a phone even at D1000's +3 dB) on a
+ * sustaining bass, the bassoon (VAUDEVILLE's, trioBassoon: C2 within its compass), the same notes and durations.
+ */
+export const SEAT_PATCHES: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, PatchId>>>>>> = { chorinho: { wtc2p01: { 2: "vdBassoon" } } };
+export const SEAT_LEVELS: Readonly<Record<string, Readonly<Record<string, Readonly<Record<number, number>>>>>> = { baroqueBand: { wtc1f09: { 0: 1.12 }, wtc2p16: { 2: 1.07 } }, chorinho: { wtc2p01: { 2: 1 } } };
 /** Semitones past the reach a near substitute may miss by and still take the seat (its set extended that far: II/10's C3 on the trumpet, E3's recording read 4 down). */
 export const NEAR_TOL = 1;
 /** Semitones past the reach the own instrument may miss by before a far substitute is weighed. */
@@ -205,7 +211,7 @@ export function seatsFor(sound: string) {
     for (let v = 0; v < count; v++) {
       const seat = seatOf(v);
       const line = lines[v];
-      const pick = picks[v];
+      const pick = SEAT_PATCHES[sound]?.[f.id]?.[v] ?? picks[v];
       if (pick !== seat[0]) {
         changed = true;
         const lo = Math.min(...line);
@@ -216,7 +222,7 @@ export function seatsFor(sound: string) {
       slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
     // D1000: a piece SEAT_LEVELS names keeps its row even where no seat moved (its level the only change).
-    if (changed || SEAT_LEVELS[sound]?.[f.id]) out[f.id] = { [count]: slots };
+    if (changed || SEAT_LEVELS[sound]?.[f.id] || SEAT_PATCHES[sound]?.[f.id]) out[f.id] = { [count]: slots };
   }
   setPieceLayout(null);
   return { seats: out, log };
@@ -337,6 +343,8 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
         // (Its own kept where none does better on the stretch; D850: on the reach alone, where none reaches further without stretching.)
         if (st > 0 ? best[0] >= st : best[0] > 0 || pastReach(pick, line) > 0) pick = seat[0];
       }
+      // D1041: a seat the piece gives another instrument (SEAT_PATCHES).
+      pick = SEAT_PATCHES[sound]?.[f.id]?.[v] ?? pick;
       if (pick !== seat[0]) {
         changed = true;
         log.push(`${sound} ${f.id} v${v} (${nameOfMidi(Math.min(...line))}-${nameOfMidi(Math.max(...line))}): ${seat[0]} (${st} stretched) → ${pick} (${partsStretch(pick, line, staged)})`);
@@ -345,7 +353,7 @@ export function seatsForPieces(sound: string, pieces: readonly TouchFugue[]) {
       slots.push(lv !== undefined ? [pick, seat[1], lv] : [pick, seat[1]]);
     }
     // D1000: a piece SEAT_LEVELS names keeps its row even where no seat moved (its level the only change).
-    if (changed || SEAT_LEVELS[sound]?.[f.id]) out[f.id] = { [count]: slots };
+    if (changed || SEAT_LEVELS[sound]?.[f.id] || SEAT_PATCHES[sound]?.[f.id]) out[f.id] = { [count]: slots };
   }
   setPieceLayout(null);
   return { seats: out, log };
