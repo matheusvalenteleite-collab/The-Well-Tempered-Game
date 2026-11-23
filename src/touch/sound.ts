@@ -2394,6 +2394,25 @@ for (const [sid, lv] of Object.entries(F906_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };
 }
+/**
+ * D1045: the Musical Offering's canons, Fuga canonica and trio sonata the same way (D645's mix with the lift, the phone model,
+ * against the 48's median, -27.95): those more than 1 LU off brought nearer, a phone's only: the Canon super Thema Regium (-29.5)
+ * and the Fuga canonica (-29.0) raised, the Canon a 2 (-30.5: its two voices low, D4 and C3) raised; per motum contrarium and
+ * per augmentationem (-26.8) lowered; the Canon a 4 (-24.4) and the trio sonata's four (-26.0, -25.8, -26.3, -26.3) lowered by
+ * D715's 1.5 dB at most. The others within 1 LU.
+ */
+export const MO_LEVELS: Readonly<Record<string, Readonly<Record<string, { phoneGain: number }>>>> = {
+  bachBrass: { "bwv1079-2": { phoneGain: 1.2 }, "bwv1079-6": { phoneGain: 1.34 } },
+  salsa: { "bwv1079-3c": { phoneGain: 0.88 } },
+  berlinSchool: { "bwv1079-3d": { phoneGain: 0.88 } },
+  vaudeville: { "bwv1079-4": { phoneGain: 1.13 } },
+  vocalSynth: { "bwv1079-7": { phoneGain: 0.85 } },
+  super16: { "bwv1079-8a": { phoneGain: 0.85 }, "bwv1079-8b": { phoneGain: 0.85 }, "bwv1079-8c": { phoneGain: 0.85 }, "bwv1079-8d": { phoneGain: 0.85 } },
+};
+for (const [sid, lv] of Object.entries(MO_LEVELS)) {
+  const p = PRESETS.find((x) => x.id === sid)!;
+  p.levels = { ...(p.levels ?? {}), ...lv };
+}
 for (const [sid, lv] of Object.entries(F903_LEVELS)) {
   const p = PRESETS.find((x) => x.id === sid)!;
   p.levels = { ...(p.levels ?? {}), ...lv };
