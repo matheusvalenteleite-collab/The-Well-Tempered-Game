@@ -218,6 +218,17 @@ export const homeStyleFor = (sound: string): StyleId => SOUND_STYLES[sound]?.[0]
  * change here.
  */
 export const FUGUE_STYLES: Readonly<Record<string, string>> = {
+  // D1045: the Musical Offering's canons and the Fuga canonica, all calm (the busiest voice 0.9-2.8 notes a second): no drums (D894).
+  "bwv1079-2": NO_DRUMS,
+  "bwv1079-3a": NO_DRUMS,
+  "bwv1079-3b": NO_DRUMS,
+  "bwv1079-3c": NO_DRUMS,
+  "bwv1079-3d": NO_DRUMS,
+  "bwv1079-3e": NO_DRUMS,
+  "bwv1079-4": NO_DRUMS,
+  "bwv1079-6": NO_DRUMS,
+  "bwv1079-7": NO_DRUMS,
+  "bwv1079-9": NO_DRUMS,
   // D999: II/20's prelude on ANALOG: ARCADE (II/24's own on the same sound), not the sound's 808, whose last-chord accent
   // (held at chip.ts ACCENT_MAX, a grid style: no TWEAKS) sits right on D601's 1 dB margin under the band (0.0 dB inside).
   wtc2p20: "arcade",
