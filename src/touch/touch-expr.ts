@@ -423,7 +423,56 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
 // ---- Holding sideways: the sustain ----
 
 /** How a held note answers a sideways move: none (a struck string, an organ's steady wind), a swell (messa di voce), the vibrato's depth, a filter sweep (wah), the tremolo's speed. */
-export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "breath" | "swell";
+export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "breath" | "swell" | "bow" | "finger" | "duty";
+
+/**
+ * D1014, THE GUITARIST'S FINGER VIBRATO (hold "finger"): a held note on a fretted, plucked string (GUITAR_SAMPLES: PSYCH's
+ * clean and fuzz guitars, ABBEY ROAD's guitar, CHORINHO's bandolim, cavaquinho and seven-string, SALSA's tres, BOSSA NOVA's
+ * guitar) swayed either way across its bar shakes the string: a vibrato of up to GUITAR_VIB.cents at GUITAR_VIB.rate,
+ * symmetric about the written pitch (the note's mean within 1.4 cents, measured); still, the plain pluck (none of it).
+ */
+export const GUITAR_SAMPLES: ReadonlySet<string> = new Set(["rockGuitar", "rockGuitar2", "choroGuitar", "bossaGuitar"]);
+export const GUITAR_VIB = { cents: 24, rate: 5.6 } as const;
+/** D1014: the finger vibrato's depth (cents) at sustain value s (either way). */
+export const fingerVib = (s: number) => GUITAR_VIB.cents * Math.abs(clampS(s));
+/**
+ * D1015, GAME BOY'S DUTY STEP (hold "duty"): a held pulse (gbLead, gbHarm, gbThin) swayed rewrites its duty as the
+ * console's register is written: from the landing's width (pulseWidth: the soft side the square, the strong the 12.5%)
+ * a step at each third the thumb crosses, the RMS kept (pulseRms) and each width's own loudness on the phone model taken
+ * back (DUTY_TRIM_DB, measured: gbLead, gbHarm and gbThin each at the three widths, C4-C6, the phone model: at equal RMS the
+ * 12.5% pulse +3.1 LU, the square -1.9 LU over the 25%, the three patches within 0.1);
+ * the patch's own vibrato as it was (the sway no longer deepens it on a pulse: GAME BOY's wave and saw keep "vibrato").
+ */
+const PULSES: ReadonlySet<Wave> = new Set<Wave>(["pulse12", "pulse25", "pulse50"]);
+export const DUTY_TRIM_DB: Readonly<Record<Duty, number>> = { pulse12: -3.1, pulse25: 0, pulse50: 1.9 };
+/** The pulse widths, thin to square (the strong side to the soft). */
+const DUTIES = ["pulse12", "pulse25", "pulse50"] as const;
+export type Duty = (typeof DUTIES)[number];
+/**
+ * D1015: the wave a held pulse plays once its thumb has moved `s` from a landing of strength `x0`: the wave it began on
+ * (`start`: the landing's, or the reading's step of it, sound.ts dutyStep) moved one width for each third of the bar crossed.
+ */
+export function dutyWaveAt(start: Duty, x0: number, s: number): Duty {
+  const at = (x: number) => DUTIES.indexOf(pulseWave(pulseWidth(1 - clamp01(x))));
+  const k = DUTIES.indexOf(start) + at(x0 + HOLD_SPAN * clampS(s)) - at(x0);
+  return DUTIES[Math.max(0, Math.min(2, k))];
+}
+/** D1015: the gain (a factor on the oscillator's own) a pulse of width w0 as patched takes playing `w`, begun on `start`. */
+export function dutyGain(w0: number, w: Duty, start: Duty): number {
+  return (pulseRms(w0) / pulseRms(widthOf(w) ?? w0)) * 10 ** ((DUTY_TRIM_DB[w] - DUTY_TRIM_DB[start]) / 20);
+}
+/**
+ * D1016, THE BOW'S CONTACT POINT (hold "bow", in place of the messa's ±MESSA_DB): a held bowed note (BOWED_SAMPLES: STRING
+ * CONSORT's violin, viola and cello; BAROQUE BAND's and ORCHESTRA & ORGAN's strings) swayed toward the strong side moves the
+ * bow toward the bridge (brighter: a high shelf up to BOW_TONE_DB), toward the soft side toward the fingerboard (darker),
+ * the shelf's own loudness taken back by BOW_DB against it (measured: at +1 dB of level the shelf added 1.2 LU on the phone
+ * model; at -1.5 the gesture 0.0 LU): timbre, not level, on the player's voice (D508).
+ */
+export const BOWED_SAMPLES: ReadonlySet<string> = new Set(["consortViolin", "consortViola", "consortCello", "consortViolinSolo", "consortCelloSolo"]);
+export const BOW_DB = -1.5;
+export const BOW_TONE_DB = 4;
+export const bowGain = (s: number) => 10 ** ((BOW_DB * clampS(s)) / 20);
+export const bowTone = (s: number) => BOW_TONE_DB * clampS(s);
 
 /** A sideways travel of this share of the bar's width is the full range (half the bar). */
 export const HOLD_SPAN = 0.5;
@@ -453,7 +502,7 @@ export const BLOOM_MOVE = 0.06;
 export const holdValue = (dx: number) => Math.max(-1, Math.min(1, dx / HOLD_SPAN));
 
 /** How a family's voice answers a held sideways move (`plucked`: a struck or plucked note: nothing to shape once struck). */
-export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): HoldMode {
+export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean, presetId?: string): HoldMode {
   switch (kind) {
     case "piano":
     case "harpsichord":
@@ -465,7 +514,7 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
       return "messa";
     // D512: a plucked consort note (PIZZICATO, SPICCATO) has nothing to swell once played.
     case "singers":
-      return plucked ? "none" : "messa";
+      return plucked ? "none" : pt?.sample && BOWED_SAMPLES.has(pt.sample) ? "bow" : "messa";
     case "winds":
       return plucked ? "none" : "breath";
     case "brass":
@@ -473,17 +522,22 @@ export function holdMode(kind: TouchKind, pt: Patch | null, plucked: boolean): H
     case "synth":
       return "wah";
     case "band": {
+      if (pt?.sample && GUITAR_SAMPLES.has(pt.sample)) return "finger";
       const fam = bandFamily(pt);
       return fam === "brass" ? "swell" : fam === "winds" ? (plucked ? "none" : "breath") : "none";
     }
     case "jazz":
       // D503: a held vibraphone note: its motor's speed (Patch.motor); the piano and the bass, struck: nothing. D521: a held
       // (wind) note, BOSSA NOVA's flute, PET SOUNDS' strings and horn: the breath's swell.
+      if (pt?.sample && GUITAR_SAMPLES.has(pt.sample)) return "finger";
       return pt?.motor ? "trem" : plucked ? "none" : "breath";
     case "bleeps":
       if (pt?.trem) return "trem";
       return plucked ? "none" : "vibrato";
     case "chip":
+      // D1015: GAME BOY's pulses step their duty (its wave and saw channels, and the other chips, the vibrato as before).
+      if (!plucked && presetId === "gameboy" && pt && !pt.pwm && pt.osc.some((o) => PULSES.has(o.wave))) return "duty";
+      return plucked ? "none" : "vibrato";
     case "console":
       return plucked ? "none" : "vibrato";
   }

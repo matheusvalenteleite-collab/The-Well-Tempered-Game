@@ -12,7 +12,7 @@ import { hz } from "./tuning.ts";
 import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
-import { BRIGHT_SPAN, breathGain, breathTone, breathVib, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
+import { BRIGHT_SPAN, breathGain, breathTone, breathVib, bowGain, bowTone, dutyGain, dutyWaveAt, fingerVib, type Duty, GUITAR_VIB, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
@@ -1787,7 +1787,7 @@ export class Chip {
     const l = kind === "organ" && isPedal(pt) ? (l0.tone ? { tone: l0.tone } : {}) : l0;
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
-    const q: Play = { ...p, hold: holdMode(kind, pt, plucked) };
+    const q: Play = { ...p, hold: holdMode(kind, pt, plucked, preset().id) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     // D511: the landing's level on every offered sound (TOUCH_LEVEL_DB), from where the thumb landed (`own`: not moved by the reading's tone).
     const tl = touchLevelDb(preset().id, own ?? TOUCH_NEUTRAL);
@@ -1857,7 +1857,7 @@ export class Chip {
   }
 
   /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
-  private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode } } {
+  private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; bowed?: boolean } {
     const ctx = this.ctx;
     let out = src;
     if (p.lp) {
@@ -1885,7 +1885,8 @@ export class Chip {
     }
     // D504: a wind's swell (touch-expr.ts "breath"): the level and, with it, the brightness (a high shelf).
     let breath: { gain: GainNode; shelf: BiquadFilterNode } | undefined;
-    if (p.hold === "breath") {
+    // D1016: the bow's contact point (touch-expr.ts "bow") on the breath's two nodes, its own ranges (touchShape).
+    if (p.hold === "breath" || p.hold === "bow") {
       const gain = bag.add(ctx.createGain());
       gain.gain.value = 1;
       const shelf = bag.add(ctx.createBiquadFilter());
@@ -1895,7 +1896,7 @@ export class Chip {
       out = out.connect(gain).connect(shelf);
       breath = { gain, shelf };
     }
-    return { out, messa, wah, breath };
+    return { out, messa, wah, breath, ...(p.hold === "bow" ? { bowed: true } : {}) };
   }
 
   /** D311: the player's vibrato (in place of the voice's own): `base` cents after `delay`, its depth then the thumb's (vibDepth). */
@@ -1917,7 +1918,7 @@ export class Chip {
   }
 
   /** D311: a held note's answer to the thumb's sideways move (Sounding.shape), from the parts it has. */
-  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number }; trem?: { lfo: OscillatorNode; rate: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; breathVib?: GainNode; swell?: boolean; blend?: { forte: GainNode; piano: GainNode; b0: number } }, live: () => boolean): (s: number) => void {
+  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number; finger?: boolean }; trem?: { lfo: OscillatorNode; rate: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; bowed?: boolean; breathVib?: GainNode; swell?: boolean; blend?: { forte: GainNode; piano: GainNode; b0: number } }, live: () => boolean): (s: number) => void {
     const ctx = this.ctx;
     return (s: number) => {
       if (!live()) return;
@@ -1930,8 +1931,8 @@ export class Chip {
         parts.blend.piano.gain.setTargetAtTime(mx.piano, now, TOUCH_TAU);
       }
       if (parts.breath) {
-        parts.breath.gain.gain.setTargetAtTime(breathGain(s), now, TOUCH_TAU);
-        parts.breath.shelf.gain.setTargetAtTime(breathTone(s), now, TOUCH_TAU);
+        parts.breath.gain.gain.setTargetAtTime(parts.bowed ? bowGain(s) : breathGain(s), now, TOUCH_TAU);
+        parts.breath.shelf.gain.setTargetAtTime(parts.bowed ? bowTone(s) : breathTone(s), now, TOUCH_TAU);
       }
       if (parts.breathVib) retarget(parts.breathVib.gain, breathVib(0, s), now);
       if (parts.wah) {
@@ -1939,7 +1940,7 @@ export class Chip {
         parts.wah.node.frequency.setTargetAtTime(w.hz, now, TOUCH_TAU);
         parts.wah.node.gain.setTargetAtTime(w.db, now, TOUCH_TAU);
       }
-      if (parts.vib) retarget(parts.vib.depth.gain, vibDepth(parts.vib.base, s), now);
+      if (parts.vib) retarget(parts.vib.depth.gain, parts.vib.finger ? fingerVib(s) : vibDepth(parts.vib.base, s), now);
       if (parts.trem) parts.trem.lfo.frequency.setTargetAtTime(tremRate(parts.trem.rate, s), now, TOUCH_TAU);
     };
   }
@@ -2911,7 +2912,9 @@ export class Chip {
       // the voice opening from the lowpass, and its level coming in (CONSONANTS.open, voiced).
     }
     // D311: the player's held recording: its vibrato's depth the thumb's (the patch's own the base).
-    const xvib = p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
+    // D1014: a held guitar's finger vibrato (touch-expr.ts "finger", plucked as it is): none until the thumb sways.
+    const finger = p.hold === "finger";
+    const xvib = finger ? this.touchVibrato(det, t, 0, 0, GUITAR_VIB.rate, bag, lfos) : p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
     // D504: a wind's swell held (touch-expr.ts "breath"): on a patch with a vibrato (oboe II), more of it as it swells (none at rest).
     const bvib = p.hold === "breath" && pt.vib && !plucked ? this.touchVibrato(det, t, 0, pt.vib.delay, pt.vib.rate, bag, lfos) : null;
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
@@ -3017,7 +3020,7 @@ export class Chip {
     let stopped = false;
     let cents = 0;
     let muffled = false;
-    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: finger ? 0 : (pt.vib?.depth ?? 0), finger } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
     const retune = (tc: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
@@ -3141,6 +3144,7 @@ export class Chip {
     const oscs: OscillatorNode[] = [];
     /** D297: the pulse-width sweeps (SID 64), stopped with the note. */
     const pwmLfos: OscillatorNode[] = [];
+    const duties: { n: OscillatorNode; g: GainNode; w0: number; gain: number; start: Duty; wave: Duty }[] = [];
     for (const o of pt.osc) {
       // D311: a pulse voice's width from the player's touch (GAME BOY's pulses), its loudness kept (pulseRms).
       const w0 = widthOf(o.wave);
@@ -3162,6 +3166,8 @@ export class Chip {
       }
       const g = bag.add(ctx.createGain());
       g.gain.value = (o.gain ?? 1) * (wave !== o.wave && w0 !== undefined ? pulseRms(w0) / pulseRms(widthOf(wave) ?? w0) : 1);
+      // D1015: GAME BOY's held pulse, its duty stepped by the thumb's sway (touch-expr.ts "duty"), its RMS kept as above.
+      if (p.hold === "duty" && w0 !== undefined && o.wave !== "square") duties.push({ n, g, w0, gain: o.gain ?? 1, start: pulseWave(widthOf(wave) ?? w0), wave: pulseWave(widthOf(wave) ?? w0) });
       if (pt.pwm && o.wave === "saw") {
         // D297, SID 64's pulse-width modulation: the sawtooth less itself `width` of a period later is a
         // pulse of that width (halved: within ±1); the delay swung by an LFO moves the width.
@@ -3410,7 +3416,8 @@ export class Chip {
       lfo.start(t);
     }
     // D311: the player's vibrato, its depth the thumb's (the patch's own the base).
-    const xvib = p.hold === "vibrato" ? this.touchVibrato(tuned.map((o) => o.detune), t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
+    // D1015: a duty-stepped pulse keeps the player's vibrato as it was, its depth no longer the thumb's (touch-expr.ts "duty").
+    const xvib = p.hold === "vibrato" || p.hold === "duty" ? this.touchVibrato(tuned.map((o) => o.detune), t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
     if (!xvib && pt.vib && end - t > pt.vib.delay + 0.1) {
       const lfo = bag.src(ctx.createOscillator());
       lfos.push(lfo);
@@ -3480,7 +3487,22 @@ export class Chip {
     for (const o of tuned) (o.start(t), halt(o, last));
     if (breath) (breath.start(t), halt(breath, last));
     let stopped = false;
-    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: xtrem }, () => !stopped) : undefined;
+    const shape0 = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: xtrem }, () => !stopped) : undefined;
+    // D1015: the duty step (the wave swapped as the console's duty register is written; the patch's own vibrato as it was).
+    const shape = duties.length
+      ? (s: number) => {
+          if (stopped) return;
+          // (The vibrato answers the move as a still thumb's would: at the patch's own depth, whatever the sway.)
+          shape0?.(0);
+          for (const d of duties) {
+            const w = dutyWaveAt(d.start, p.touch ?? TOUCH_NEUTRAL, s);
+            if (d.wave === w) continue;
+            d.wave = w;
+            d.n.setPeriodicWave(this.wave(w) as PeriodicWave);
+            d.g.gain.setValueAtTime(d.gain * dutyGain(d.w0, w, d.start), ctx.currentTime);
+          }
+        }
+      : shape0;
     return {
       shape,
       stop: (when = ctx.currentTime) => {

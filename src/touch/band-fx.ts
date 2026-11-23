@@ -829,6 +829,12 @@ export const KRAUT2_FUZZ_DB = 5;
  * 0.6, a resonance of 1.07, peaked about +1.4 dB at 7-9 kHz).
  */
 export const TOP_Q = 20 * Math.log10(Math.SQRT1_2);
+/**
+ * D1032: the clean guitar's lane (PSYCH's five-voice line-up, its middle voice, the player's when chosen) up to the fuzz's
+ * place: it sat 15-16 dB under the loudest voice as the band played it and as the player sounded it (raw, both paths; I/22
+ * b. 26 and I/4 b. 70, 60 s each), 10-12 dB under after the balance's caps (SOUND_LOUD's trim 6, the player's lift 4.4).
+ */
+export const KRAUT2_CLEAN_DB = 14;
 export const KRAUT2_TOP: EqBand[] = [{ type: "peaking", hz: 90, db: 1.5, q: 1 }, { type: "lowpass", hz: 9000, q: TOP_Q }];
 export const ABBEY2_BUS_THRESHOLD = -19;
 export const ABBEY2_MOOG_DB = 1.5;
@@ -861,7 +867,7 @@ export const BAND_CHAINS = {
       guitar: [{ kind: "gain", db: 22 }, { kind: "fuzz", drive: 6, tone: 2600, level: 0.06 }, { kind: "gain", db: KRAUT2_FUZZ_DB }, { kind: "place", pan: 0.4 }, { kind: "echo", time: 0.36, beats: 0.75, ...KRAUT_ECHO, pan: -0.6, wow: { rate: 0.55, depth: 0.0011 } }],
       // D575: the Minimoog-style lead (sound.ts k2Synth): a little presence, the tape, a little left (the organ's seat).
       synth: [{ kind: "eq", bands: [{ type: "peaking", hz: 1800, db: 1.5, q: 1 }, { type: "lowpass", hz: 7500, q: 0.6 }] }, { kind: "tape", drive: 1.3, rolloff: 9000 }, { kind: "place", pan: -0.3 }],
-      clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "place", pan: 0.55 }],
+      clean: [{ kind: "phaser", rate: 0.6, hz: 1100, sweep: 1800, mix: 0.5 }, { kind: "gain", db: KRAUT2_CLEAN_DB }, { kind: "place", pan: 0.55 }],
       mellotron: [{ kind: "tape", drive: 1.6, rolloff: 8000, wow: { rate: 0.6, depth: 0.0015 } }, { kind: "lofi", hp: 140, lp: 5500 }, { kind: "place", pan: 0.25 }],
     },
     // D931: no bus tape (its drive 1.8 after the 1176 shaved the band's transients) and the 1176 eased (KRAUT2_BUS_THRESHOLD):
