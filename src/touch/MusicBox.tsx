@@ -16,7 +16,6 @@ import { arpeggioSign, noteSigns, paintWholeArcs, paintWholeGuides, type WholeGe
 import { wholeLegend, type BoxMark, type WholeBox } from "./whole-marks.ts";
 import { STRONG_SIDE } from "./touch-expr.ts";
 import { paintVariant } from "./box-variants.ts";
-import { paintUi, uiActive } from "./ui/index.ts";
 import { useEffect, useRef, type MutableRefObject, type ReactNode } from "react";
 import type { LaneNote } from "./lanes.ts";
 import { fugueById } from "./fugue.ts";
@@ -303,7 +302,7 @@ export function MusicBox({ frame, hud, legend, children }: { frame: MutableRefOb
         // D415: the classic box runs under the translucent bars (the class lets bench.css widen the roll);
         // a picture drawn in its place (the sheet, an interface template) keeps the space between them.
         const box = el.parentElement;
-        const wide = !boxPainter && !uiActive();
+        const wide = !boxPainter;
         if (box && box.classList.contains("tg-box-wide") !== wide) box.classList.toggle("tg-box-wide", wide);
         const r = el.getBoundingClientRect();
         const b = box?.getBoundingClientRect();
@@ -345,8 +344,6 @@ export function setBoxPainter(p: BoxPainter | null) {
 
 function paint(c: HTMLCanvasElement, cssW: number, cssH: number, fr: Frame) {
   if (boxPainter?.(c, cssW, cssH, fr)) return;
-  // D228: the interface chosen (ui/index.ts: ⚙ INTERFACE, or `?ui=NAME`), unless CLASSIC.
-  if (paintUi(c, cssW, cssH, fr)) return;
   paintClassic(c, cssW, cssH, fr);
 }
 

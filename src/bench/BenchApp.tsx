@@ -39,10 +39,8 @@ import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type Displ
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
-import { uiActive, uiRows } from "../touch/ui/index.ts";
 import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
 import { MECH } from "./mechanics.ts";
-import { InterfaceFold } from "./InterfaceFold.tsx";
 import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
@@ -600,7 +598,7 @@ export function BenchApp() {
   // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
   // narrowed rarely and eased (not in a lesson: its range is its passage's already).
   const zoomBox = (start: number, tps: number) => {
-    const on = MECH.boxZoom === "auto" && !uiActive() && !BOXV && !sheetOn;
+    const on = MECH.boxZoom === "auto" && !BOXV && !sheetOn;
     const own = played.flatMap((v) => f.voices[v] ?? []).filter((n) => n[0] >= start && (!run || n[0] < run.until));
     const bars = !on ? (zoom?.bars ?? 3) : zoom ? Math.max(zoom.bars, Math.min(ZOOM.maxBars, aheadBars(f.barTicks, tps))) : chooseBars(own, f.barTicks, tps);
     const shown = run?.solo || kimiko ? own : everyNote(f);
@@ -1082,7 +1080,7 @@ export function BenchApp() {
     const fl = floorOf(r.height, boxFloor);
     const rh = r.height * (1 - fl);
     // D377: CLASSIC's rows exactly as drawn, the zoom's ease included (box-zoom.ts touchRows).
-    const other = uiRows(f.id, voice, range, rh) ?? (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null);
+    const other = (BOXV ? variantRows({ lo: range.lo, hi: range.hi, spill: stepRange(f), ranges: study.ranges, voice }, rh) : null);
     const geo = other ?? ladderGeometry(zv.lo, zv.hi, r.height, fl, zv.from, zv.mix);
     // D414: CLASSIC draws an altered note a third of a row off its row (D332): a slide aims at the block as drawn.
     const sig = other ? null : signatureOf(f.key);
@@ -2010,7 +2008,6 @@ export function BenchApp() {
           <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} own={kimiko ? undefined : PIECE_SOUND[f.id]} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
           <DisplayChoice value={display} set={setDisplay} piece={f} />
-          <InterfaceFold frame={frame.current} />
           <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
