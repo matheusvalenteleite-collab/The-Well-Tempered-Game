@@ -10,7 +10,7 @@
  * lifting to make a note sound is not taught.
  */
 import type { Results } from "../lessons.ts";
-import type { LensStats } from "../manual/lens.ts";
+import type { LensStats } from "./lens.ts";
 import "./exercises.ts";
 
 export type ClipId = "tap" | "up" | "down" | "same" | "leap" | "two" | "hold" | "lift" | "strong" | "legato" | "short" | "shake" | "slide";

@@ -18,7 +18,7 @@ test("D452: no text enlarged by iOS; no OPTIONS link; HOW TO PLAY under SETTINGS
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { Selection } = await import("../src/bench/Selection.tsx");
-  const html = renderToStaticMarkup(createElement(Selection, { piece: "wtc1f04", current: "wtc1f04", voice: 1, singing: [0, 1, 2, 3, 4], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, howTo: () => {}, beaten: [], tutorial: { done: 3, of: 12, start: () => {} } }));
+  const html = renderToStaticMarkup(createElement(Selection, { piece: "wtc1f04", current: "wtc1f04", voice: 1, singing: [0, 1, 2, 3, 4], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, howTo: () => {}, beaten: [] }));
   assert.doesNotMatch(html, /id="sel-options"/);
   assert.match(html, /id="lite-settings".*id="lite-howto"/s, "HOW TO PLAY after SETTINGS");
   assert.match(src("src/bench/BenchApp.tsx"), /id="settings-pistons"/);

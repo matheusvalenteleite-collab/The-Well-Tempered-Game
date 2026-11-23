@@ -18,13 +18,11 @@ import { parseStudy } from "../src/bench/lab/study.ts";
 import type { LabEvent } from "../src/bench/lab/events.ts";
 import { describe as lines } from "../src/bench/lab/describe.ts";
 import { freeLine, freeTally } from "../src/bench/free-summary.ts";
-import { anyLessonById, stagePassed, type Material } from "../src/bench/manual/lessons.ts";
-import { RETIRED } from "../src/bench/manual/retired.ts";
+import type { Material } from "./d342-sim.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import { setPreset } from "../src/touch/sound.ts";
-import { demoRun, gameFor, ROWS, tapperRun } from "./d342-sim.ts";
-import { playerRun } from "./d359-players.ts";
+import { demoRun, gameFor, ROWS } from "./d342-sim.ts";
 
 const LOGS_DIR = new URL("./fixtures/owner-2026-10-27/", import.meta.url);
 function ownerLogs(): { id: string; log: LabLog }[] {
@@ -230,41 +228,4 @@ test("D364: Herr Bach's manner APPOGGIATURA holds every place over half its note
   assert.equal(x.right, x.of);
   // Prepared but lifted on time: none.
   assert.equal(demoRun(I22, "prepared").lens!.appo.made, 0);
-  assert.ok(anyLessonById("V.5"));
-});
-
-test("D364: THE MANUAL's V.5, the appoggiatura held over: after the four, no pass mark, I/22's falling chains; his demonstration holds every one over", () => {
-  const l = anyLessonById("V.5")!;
-  assert.deepEqual(RETIRED.filter((x) => x.part === "V").map((x) => x.id), ["V.1", "V.2", "V.3", "V.4", "V.5"]);
-  assert.equal(l.checks, undefined, "decision 3: passed by being played through");
-  assert.deepEqual(l.hear!.styles, ["prepared", "appoggiatura"], "listening first: on time, then held over");
-  assert.equal(l.sound, "piano", "the note after it softer: an instrument with dynamics");
-  assert.ok(l.before.length <= 2 && l.after.length <= 1 && l.stages.every((s) => s.say));
-  // The excerpts: three places (I/22 soprano I, bars 15–17), then five (soprano II, bars 63–67).
-  const want = [3, 5];
-  l.stages.forEach((st, k) => {
-    const held = demoRun(st.m, "appoggiatura").lens!;
-    assert.equal(held.appo.of, want[k], st.m.label);
-    assert.equal(held.appo.made, want[k], `${st.m.label}: his demonstration holds every one over`);
-    assert.equal(held.right, held.of);
-    assert.equal(demoRun(st.m, "prepared").lens!.appo.made, 0, "on time: none");
-    // A careful player striking each note in time makes none, and passes; so does a random tapper (no pass mark).
-    const careful = playerRun(st.m, { jitterMs: 15, hold: 0.8 }).lens!;
-    assert.equal(careful.appo.made, 0);
-    assert.ok(stagePassed(l, st.kind, careful, k) && stagePassed(l, st.kind, tapperRun(st.m, 7).lens!, k));
-  });
-  // Shown: how many, and how long against the textbook half; told: a comparison, never a pass.
-  const x = demoRun(l.stages[1].m, "appoggiatura").lens!;
-  assert.deepEqual(l.shown!(x).map((c) => [c.text, c.vars]), [
-    ["HELD OVER {n} OF {m}", { n: 5, m: 5 }],
-    ["HELD {p}% OF THE NOTE · THE TEXTBOOK: HALF", { p: 50 }],
-  ]);
-  assert.equal(l.told!(x)!.text, "Half the note, as my son teaches it.");
-  const at = (s: number) => l.told!({ ...x, appo: { of: 5, made: 1, short: 0, shares: [s] } })!.text;
-  assert.match(at(0.2), /^Short and light/);
-  assert.match(at(0.8), /^Long, and full of feeling/);
-  assert.match(l.told!({ ...x, appo: { of: 5, made: 0, short: 0, shares: [] } })!.text, /^None held over/);
-  // A player who rests prepared and holds over in their own way: each one counted.
-  const own = heldOverRun(l.stages[1].m, (k) => ({ 4: 0.6, 7: 0.3 })[k] ?? null);
-  assert.equal(prepWhat(own.evs, "appoggiatura"), 2);
 });

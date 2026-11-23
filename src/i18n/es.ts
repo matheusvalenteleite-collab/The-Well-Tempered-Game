@@ -3,18 +3,12 @@
  * fugue's subject), contrasujeto, stretto, legato, trino, mordente, grupeto, cadencia perfecta; the notes
  * in solfège (DO, RE, MI…, src/i18n/index.ts). Herr Bach keeps his German interjections (So., Recht.).
  */
-import { MANUAL_ES } from "./manual-es.ts";
-import { COURSE_ES } from "./course-es.ts";
-import { COURSE2_ES } from "./course2-es.ts";
+import { KEPT_ES } from "./kept-es.ts";
 import { BASICS_ES } from "./basics-es.ts";
 
 export const ES: Record<string, string> = {
-  // D342: THE MANUAL (manual-es.ts; this dictionary's own entries win).
-  ...MANUAL_ES,
-  // D373: THE TUTORIAL rebuilt (course-es.ts).
-  ...COURSE_ES,
-  // D379: Parts 4–6 rebuilt and the fugue track (course2-es.ts).
-  ...COURSE2_ES,
+  // D1050: what live screens kept of THE MANUAL's entries (kept-es.ts; this dictionary's own entries win).
+  ...KEPT_ES,
   // D680: BASICS (basics-es.ts).
   ...BASICS_ES,
   // The list
@@ -602,7 +596,6 @@ export const ES: Record<string, string> = {
   CONTINUE: "CONTINUAR",
   COLLECTIONS: "COLECCIONES",
   "J. S. BACH · THE WELL-TEMPERED CLAVIER": "J. S. BACH · EL CLAVE BIEN TEMPERADO",
-  "OLD TUTORIAL": "TUTORIAL ANTIGUO",
   "DRUMS": "BATERÍA",
   "ON": "ACTIVADA",
   "OFF": "DESACTIVADA",

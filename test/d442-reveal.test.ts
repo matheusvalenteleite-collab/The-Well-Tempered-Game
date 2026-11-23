@@ -12,9 +12,8 @@ import { barStart, fugueById } from "../src/touch/fugue.ts";
 import { reveal, REVEAL_I1, stepAtBar } from "../src/bench/reveal.ts";
 import { arcOf } from "../src/bench/arc.ts";
 import { stageMode } from "../src/bench/stages.ts";
-import { ex } from "../src/bench/manual/kit.ts";
 import { playerRun } from "./d359-players.ts";
-import { tapperRun } from "./d342-sim.ts";
+import { ex, tapperRun } from "./d342-sim.ts";
 
 const f = fugueById("wtc1p01");
 const inBar = (n: number, on: number) => on >= barStart(f, n) && on < barStart(f, n + 1);

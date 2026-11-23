@@ -23,7 +23,7 @@ test("D446: every card its level and its words inside the picture; no language p
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { Selection, shortPart } = await import("../src/bench/Selection.tsx");
-  const html = renderToStaticMarkup(createElement(Selection, { piece: "wtc1f02", voice: 1, singing: [0, 1, 2], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, setLang: () => {}, beaten: [], tutorial: { done: 3, of: 12, start: () => {} } }));
+  const html = renderToStaticMarkup(createElement(Selection, { piece: "wtc1f02", voice: 1, singing: [0, 1, 2], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, setLang: () => {}, beaten: [] }));
   assert.equal(html.match(/id="level-wtc1f\d\d"/g)?.length, 24, "a level on every card");
   assert.ok(/class="sel-pic"(?:(?!sel-tile-level).)*?<\/span>/s.test(html) && html.includes("sel-tile-words"), "the words on the picture");
   assert.doesNotMatch(html, /tb-lang-pick|sel-lang/);

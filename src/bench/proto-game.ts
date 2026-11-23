@@ -41,7 +41,7 @@ import { couleFill, couleTiming, exprFamily, GLENN, isKeyboard, joinedByEar, joi
 import { between, dragFamily, dragFill, fillNoteMs, glideAt, glideMs, scaleOfKey } from "./drag.ts";
 import type { LabEvent, LadderWhy, LegatoWhy } from "./lab/events.ts";
 import { findRuns, runTrend, type Run } from "./runs.ts";
-import type { LensStats } from "./manual/lens.ts";
+import type { LensStats } from "./basics/lens.ts";
 /** D247: the smallest row (CSS px) LADDER judges a touch by (the voice's range filled rows of about 18 to 24). */
 export const LADDER_ROW_MIN = 18;
 /** D314: a free ornament's sign rising from its note (a pale gold: a flourish, not a score). */

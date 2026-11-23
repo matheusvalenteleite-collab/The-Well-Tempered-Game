@@ -101,7 +101,7 @@ test("D494 (the owner's report): Bluetooth detected, then calibrated to wired 0 
 test("D494: play.html wires the warning before PLAY and the TUTORIAL; nothing is restored or retuned by itself", () => {
   const app = src("src/bench/BenchApp.tsx");
   assert.match(app, /if \(!warned && warnFirst\(\(\) => start\(true, true\)\)\) return;/, "PLAY, CONTINUE, NEXT");
-  assert.match(app, /if \(!warned && warnFirst\(\(\) => startManual\(true\)\)\) return;/, "the TUTORIAL");
+  // D1050: THE MANUAL (the TUTORIAL it warned before) deleted.
   assert.match(app, /<BtWarn/);
   assert.match(app, /settings=\{\(\) => \(setBtWarn\(null\), setPhase\(\{ kind: "settings" \}\), setCalib\(true\)\)\}/, "SETTINGS opens the calibration");
   assert.doesNotMatch(app, /driftOf|setRetuned|rememberRoute/, "no retune, nothing kept to give back");
