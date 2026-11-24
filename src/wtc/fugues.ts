@@ -5,7 +5,7 @@
  * countersubject, or Bach's free counterpoint where he keeps none). Times are in quarter notes:
  * the subject's from its first note, the answer's and the countersubject's from the answer's entry.
  */
-import data from "../../data/bach/wtc/fugues.json" with { type: "json" };
+import dataJson from "../../data/bach/wtc/fugues.json" with { type: "json" };
 import { parsePitch, type Step } from "../music/pitch.ts";
 
 export interface WtcNote {
@@ -44,7 +44,25 @@ const q = (r: string) => {
 };
 const notes = (xs: { pitch: string; at: string; dur: string }[]): WtcNote[] => xs.map((x) => ({ pitch: x.pitch, at: q(x.at), dur: q(x.dur) }));
 
-type Raw = (typeof data)["fugues"][number];
+/** One fugue as the JSON file gives it (hand-written: fugues.d.json.ts keeps tsc from inferring the file's type). */
+interface Raw {
+  id: string;
+  bwv: number;
+  book: number;
+  number: number;
+  key: string;
+  time?: string;
+  barQuarters: string;
+  phase: string;
+  answerAt: string;
+  answerAbove: boolean;
+  answerShift: number;
+  mutations: number[];
+  subject: { pitch: string; at: string; dur: string }[];
+  answer: { pitch: string; at: string; dur: string }[];
+  countersubject: { pitch: string; at: string; dur: string }[];
+}
+const data = dataJson as unknown as { fugues: Raw[] };
 const fromRaw = (r: Raw): WtcFugue => ({
   id: r.id,
   bwv: r.bwv,
