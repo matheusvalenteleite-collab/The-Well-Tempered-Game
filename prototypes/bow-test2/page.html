@@ -131,7 +131,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
   </div>
   <div id="tSet" class="overlay" hidden>
-    <div class="bar"><button id="setClose">Close</button></div>
+    <div class="bar"><button id="setClose">Close</button><button id="calCopy">Copy results</button><span id="calCopyMsg" class="rd"></span></div>
+    <textarea id="calSel" class="logbox" hidden readonly style="height:70px;flex:none"></textarea>
     <div class="setcols"><div id="setBody"></div><pre id="calRes"></pre></div>
   </div>
   <div id="diag" hidden>

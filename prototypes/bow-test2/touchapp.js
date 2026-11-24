@@ -328,6 +328,13 @@
   function openSettings() { $("calRes").textContent = calText(); $("tSet").hidden = false; }
   $("tSettings").onclick = openSettings;
   $("setClose").onclick = () => { $("tSet").hidden = true; };
+  $("calCopy").onclick = () => {
+    const ta = $("calSel");
+    ta.value = calText() + "\n\nRAW CALIBRATION (size px per tap, by area and kind; each tap: sizes seen in its first 400 ms)\n" +
+      ["left", "right"].map((side) => G.CLASSES.map((c) => `${side} ${c}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0)).join(">")).join("  ")).join("\n")).join("\n");
+    ta.hidden = false;
+    SH.copyText(ta, (m) => { $("calCopyMsg").textContent = m + ": paste it to Claude"; });
+  };
   $("calGo").onclick = calStart;
   $("calClear").onclick = () => { CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null }; try { localStorage.removeItem("touchcal"); } catch (e) { /* none */ } refit(); $("calRes").textContent = calText(); };
   $("setNeutral").onclick = $("tNeutral").onclick = () => { const n = tilt.setNeutral(); tlog("tilt neutral set " + JSON.stringify(n)); };
