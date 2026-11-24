@@ -1032,28 +1032,58 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
 
   /* ---------- tilt: gravity in, musical parameters out ---------- */
-  /* Roll = turning the phone like a steering wheel (about the screen's normal); pitch = tipping its top
-     edge away or toward you. Both from the gravity vector, relative to the neutral, so they do not depend
-     on Euler angles or on which way round landscape is. */
+  /* LEAN = the screen's angle to the horizontal: 0° flat face up, 90° upright facing you, below 0° tipped
+     past flat (top edge away and down), above 90° tipped past upright. Measured absolutely from gravity,
+     so the owner's natural hold (45°) is the centre by default and needs no "set neutral".
+     v = (centre − lean) / span: 0 at the centre, +1 at flat, −1 at upright (span 45°); flatter is positive.
+     ROLL = turning the phone like a steering wheel, relative to the neutral (set neutral).
+     The face-up direction of the sensor's z axis and the in-plane "down" are taken from the first reading
+     (the phone held, not lying flat), so the sign conventions of the browser do not matter. */
   class TiltReader {
-    constructor(emit) { this.emit = emit; this.g = null; this.neutral = null; this.roll = 0; this.pitch = 0; this.lastT = 0; }
-    angles(g) { return { phi: Math.atan2(g[0], g[1]) * 180 / Math.PI, theta: Math.atan2(g[2], Math.hypot(g[0], g[1])) * 180 / Math.PI }; }
-    setNeutral() { if (this.g) this.neutral = this.angles(this.g); return this.neutral; }
+    constructor(emit) { this.emit = emit; this.g = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; }
+    takeRef() {
+      const g = this.g, m = Math.hypot(g[0], g[1]);
+      if (m < 1) return false; // lying flat: wait for a held reading
+      this.ref = { s: Math.sign(g[2]) || 1, ux: g[0] / m, uy: g[1] / m };
+      return true;
+    }
+    leanOf(g) { const m = Math.hypot(g[0], g[1]), dot = g[0] * this.ref.ux + g[1] * this.ref.uy; return Math.atan2(Math.sign(dot || 1) * m, this.ref.s * g[2]) * 180 / Math.PI; }
+    setNeutral() { if (!this.g) return null; if (!this.ref) this.takeRef(); this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI; return this.ref ? { lean: this.leanOf(this.g), roll: 0 } : null; }
     feed(t, gx, gy, gz, P) {
       if (gx == null) return;
       const a = this.g ? 1 - Math.exp(-Math.max(0, t - this.lastT) / Math.max(1, P.tiltTau)) : 1;
       this.lastT = t;
       this.g = this.g ? this.g.map((v, i) => v + ([gx, gy, gz][i] - v) * a) : [gx, gy, gz];
-      if (!this.neutral) this.setNeutral();
-      const A = this.angles(this.g);
-      let roll = A.phi - this.neutral.phi; roll = ((roll + 540) % 360) - 180;
-      let pitch = A.theta - this.neutral.theta;
+      if (!this.ref && !this.takeRef()) return;
+      if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
+      let lean = this.leanOf(this.g);
+      if (P.invLean) lean = 2 * P.centreDeg - lean;
+      let roll = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
       if (P.invRoll) roll = -roll;
-      if (P.invPitch) pitch = -pitch;
-      this.roll = roll; this.pitch = pitch;
-      const shape = (x) => { const m = Math.max(0, Math.abs(x) - P.deadDeg); return Math.sign(x) * Math.min(1, m / Math.max(1, P.fullDeg - P.deadDeg)); };
-      const u = shape(roll), v = shape(pitch);
-      this.emit({ type: "tilt", t, bend: P.tiltMode === "bend" ? u * P.bendRange : 0, vib: P.tiltMode === "vibrato" ? Math.abs(u) * P.vibMax : 0, bright: v * P.pitchBright * 1200 });
+      this.lean = lean; this.roll = roll;
+      const v = Math.max(-1.6, Math.min(1.6, (P.centreDeg - lean) / P.spanDeg));
+      this.v = v;
+      // continuous uses: a small dead zone round the centre, and a little room past flat/upright (to ±1.2)
+      const dz = P.deadDeg / P.spanDeg;
+      const cont = Math.sign(v) * Math.min(1.2, Math.max(0, Math.abs(v) - dz) / (1 - dz));
+      // octave steps with hysteresis: +1 past `octStep1` of the way to flat, +2 past `octStep2`; mirrored to upright
+      const h = P.octHystDeg / P.spanDeg, S = [P.octStep1, P.octStep2];
+      const between = (k) => (k >= 0 ? S[k] : -S[-k - 1]); // the boundary between step k and k+1
+      let o = this.octave;
+      for (let k = 0; k < 4; k++) {
+        if (o < 2 && v >= between(o) + h / 2) o++;
+        else if (o > -2 && v <= between(o - 1) - h / 2) o--;
+        else break;
+      }
+      this.octave = P.leanMode === "octave" ? o : 0;
+      // breath: where v sits inside the current step (−0.5…+0.5 round its middle), like blowing harder toward the break
+      const mid = (k) => (k === 0 ? 0 : Math.sign(k) * (Math.abs(k) === 1 ? (P.octStep1 + P.octStep2) / 2 : P.octStep2 + 0.3));
+      this.breath = P.leanMode === "octave" ? Math.max(-0.6, Math.min(0.6, v - mid(this.octave))) : 0;
+      const ru = Math.sign(roll) * Math.min(1, Math.max(0, Math.abs(roll) - P.deadDeg) / Math.max(1, P.rollFullDeg - P.deadDeg));
+      this.emit({ type: "tilt", t, octave: this.octave,
+        bend: (P.leanMode === "bend" ? cont * P.bendRange : 0) + (P.rollMode === "bend" ? ru * P.bendRange : 0),
+        vib: P.rollMode === "vibrato" ? Math.abs(ru) * P.vibMax : 0,
+        bright: P.leanMode === "brightness" ? cont * P.leanBright * 1200 : P.leanMode === "octave" ? this.breath * P.breathBright : 0 });
     }
   }
 
@@ -1149,7 +1179,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   class TouchSound {
     constructor(ctx) {
-      this.ctx = ctx; this.voices = new Map();
+      this.ctx = ctx; this.voices = new Map(); this.oct = 0; // tilt's octave step (recorder-style overblowing)
       this.P = { ctDb: 4, ctBright: 0.6, ctTau: 80 };
       this.out = ctx.createGain(); this.out.gain.value = 0.5; this.out.connect(ctx.destination);
       const sr = ctx.sampleRate, nb = ctx.createBuffer(1, sr, sr), d = nb.getChannelData(0);
@@ -1167,7 +1197,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       const c = this.ctx, t = c.currentTime;
       if (ev.type === "onset") {
         this.stopVoice(ev.id, t);
-        const f = hz(ev.midi), lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain(), oscs = [];
+        const f = hz(ev.midi + 12 * this.oct), lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain(), oscs = [];
         lp.type = "lowpass"; env.gain.value = 0;
         this.tiltBright.connect(lp.detune);
         const osc = (type, ratio, det) => { const o = c.createOscillator(); o.type = type; o.frequency.value = f * ratio; o.detune.value = det; this.pitchMod(o); o.start(t); oscs.push([o, ratio]); return o; };
@@ -1186,22 +1216,27 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
           env.gain.setTargetAtTime(0.22, t, 0.004); env.gain.setTargetAtTime(0.13, t + 0.03, 0.25);
         }
         lp.connect(env); env.connect(expr); expr.connect(this.out);
-        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls });
+        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi });
       } else if (ev.type === "pitch") {
         const v = this.voices.get(ev.id); if (!v) return;
-        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi) * r, t, 0.01);
+        v.midi = ev.midi;
+        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * this.oct) * r, t, 0.01);
       } else if (ev.type === "contact") {
         const v = this.voices.get(ev.id); if (!v || v.cls === "flat") return;
         const d = ev.norm - ev.norm0, tau = this.P.ctTau / 1000;
         v.expr.gain.setTargetAtTime(Math.pow(10, (d * this.P.ctDb) / 20), t, tau);
         v.lp.detune.setTargetAtTime(d * this.P.ctBright * 1200, t, tau);
       } else if (ev.type === "tilt") {
+        if ((ev.octave || 0) !== this.oct) { // held notes jump with the octave, slurred (no new attack)
+          this.oct = ev.octave || 0;
+          for (const v of this.voices.values()) for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * this.oct) * r, t, 0.006);
+        }
         this.bend.offset.setTargetAtTime(ev.bend * 100, t, 0.02);
         this.vib.gain.setTargetAtTime(ev.vib, t, 0.03);
         this.tiltBright.offset.setTargetAtTime(ev.bright, t, 0.03);
       } else if (ev.type === "release") this.stopVoice(ev.id, t);
     }
-    resetTilt() { const t = this.ctx.currentTime; this.bend.offset.setTargetAtTime(0, t, 0.02); this.vib.gain.setTargetAtTime(0, t, 0.02); this.tiltBright.offset.setTargetAtTime(0, t, 0.02); }
+    resetTilt() { const t = this.ctx.currentTime; this.handle({ type: "tilt", octave: 0, bend: 0, vib: 0, bright: 0 }); this.bend.offset.setTargetAtTime(0, t, 0.02); this.vib.gain.setTargetAtTime(0, t, 0.02); this.tiltBright.offset.setTargetAtTime(0, t, 0.02); }
     stopVoice(id, t) {
       const v = this.voices.get(id); if (!v) return;
       this.voices.delete(id);
@@ -1266,7 +1301,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, tiltMode: "bend", bendRange: 2, vibMax: 50, fullDeg: 30, deadDeg: 3, tiltTau: 120, pitchBright: 1, invRoll: false, invPitch: false };
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
@@ -1533,15 +1569,22 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
-    ["tiltMode", "Roll controls", ["bend", "vibrato"]],
-    ["bendRange", "Bend at full roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
+    ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
+    ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
+    ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
+    ["octStep1", "Octave: first step at", 0.25, 0.95, 0.05, (v) => `${(v * 100).toFixed(0)}% of the way: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["octStep2", "Octave: second step at", 1, 1.5, 0.05, (v) => `${(v * 100).toFixed(0)}%: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["octHystDeg", "Octave: hysteresis", 0, 10, 0.5, (v) => v + "°"],
+    ["breathBright", "Octave: brightness within a step (breath)", 0, 1200, 25, (v) => "±" + Math.round(v / 2) + " cents"],
+    ["leanBright", "Brightness at full lean", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["deadDeg", "Dead zone round the centre", 0, 15, 0.5, (v) => v + "°"],
+    ["rollMode", "Roll (steering wheel) controls", ["off", "bend", "vibrato"]],
+    ["bendRange", "Bend at full lean / roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
     ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
-    ["pitchBright", "Pitch → brightness at full tilt", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
-    ["fullDeg", "Full effect at", 10, 60, 1, (v) => v + "°"],
-    ["deadDeg", "Dead zone", 0, 15, 0.5, (v) => v + "°"],
+    ["rollFullDeg", "Roll for full effect", 10, 60, 1, (v) => v + "°"],
     ["tiltTau", "Tilt smoothing", 10, 500, 5, (v) => v + " ms"],
+    ["invLean", "Invert lean"],
     ["invRoll", "Invert roll"],
-    ["invPitch", "Invert pitch"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -1549,6 +1592,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
+    if (k === "centreDeg" || k === "spanDeg") for (const q of ["octStep1", "octStep2"]) { const i = setInputs[q]; if (i) i.previousSibling.textContent = SET.find((d) => d[0] === q)[5](T[q]); }
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
   }
@@ -1577,7 +1621,12 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   };
   $("calGo").onclick = calStart;
   $("calClear").onclick = () => { CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null }; try { localStorage.removeItem("touchcal"); } catch (e) { /* none */ } refit(); $("calRes").textContent = calText(); };
-  $("setNeutral").onclick = $("tNeutral").onclick = () => { const n = tilt.setNeutral(); tlog("tilt neutral set " + JSON.stringify(n)); };
+  $("setNeutral").onclick = $("tNeutral").onclick = () => {
+    const n = tilt.setNeutral(); if (!n) return;
+    T.centreDeg = Math.max(20, Math.min(70, Math.round(n.lean)));
+    const r = setInputs.centreDeg; if (r) { r.value = T.centreDeg; r.oninput(); }
+    tlog("tilt neutral: centre " + T.centreDeg + "°, roll zeroed");
+  };
   $("tNeutral").hidden = !T.tiltOn;
 
   /* ---------- diagnostics text ---------- */
@@ -1640,9 +1689,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
           (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
           (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
-          (T.tiltOn ? `\nroll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (T.tiltOn ? `\nlean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
           (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
-        if (!$("tSet").hidden) $("tiltRd").textContent = ` roll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : " (no motion data)");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
       }
     }
     requestAnimationFrame(frame);

@@ -14,7 +14,7 @@
 
   class TouchSound {
     constructor(ctx) {
-      this.ctx = ctx; this.voices = new Map();
+      this.ctx = ctx; this.voices = new Map(); this.oct = 0; // tilt's octave step (recorder-style overblowing)
       this.P = { ctDb: 4, ctBright: 0.6, ctTau: 80 };
       this.out = ctx.createGain(); this.out.gain.value = 0.5; this.out.connect(ctx.destination);
       const sr = ctx.sampleRate, nb = ctx.createBuffer(1, sr, sr), d = nb.getChannelData(0);
@@ -32,7 +32,7 @@
       const c = this.ctx, t = c.currentTime;
       if (ev.type === "onset") {
         this.stopVoice(ev.id, t);
-        const f = hz(ev.midi), lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain(), oscs = [];
+        const f = hz(ev.midi + 12 * this.oct), lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain(), oscs = [];
         lp.type = "lowpass"; env.gain.value = 0;
         this.tiltBright.connect(lp.detune);
         const osc = (type, ratio, det) => { const o = c.createOscillator(); o.type = type; o.frequency.value = f * ratio; o.detune.value = det; this.pitchMod(o); o.start(t); oscs.push([o, ratio]); return o; };
@@ -51,22 +51,27 @@
           env.gain.setTargetAtTime(0.22, t, 0.004); env.gain.setTargetAtTime(0.13, t + 0.03, 0.25);
         }
         lp.connect(env); env.connect(expr); expr.connect(this.out);
-        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls });
+        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi });
       } else if (ev.type === "pitch") {
         const v = this.voices.get(ev.id); if (!v) return;
-        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi) * r, t, 0.01);
+        v.midi = ev.midi;
+        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * this.oct) * r, t, 0.01);
       } else if (ev.type === "contact") {
         const v = this.voices.get(ev.id); if (!v || v.cls === "flat") return;
         const d = ev.norm - ev.norm0, tau = this.P.ctTau / 1000;
         v.expr.gain.setTargetAtTime(Math.pow(10, (d * this.P.ctDb) / 20), t, tau);
         v.lp.detune.setTargetAtTime(d * this.P.ctBright * 1200, t, tau);
       } else if (ev.type === "tilt") {
+        if ((ev.octave || 0) !== this.oct) { // held notes jump with the octave, slurred (no new attack)
+          this.oct = ev.octave || 0;
+          for (const v of this.voices.values()) for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * this.oct) * r, t, 0.006);
+        }
         this.bend.offset.setTargetAtTime(ev.bend * 100, t, 0.02);
         this.vib.gain.setTargetAtTime(ev.vib, t, 0.03);
         this.tiltBright.offset.setTargetAtTime(ev.bright, t, 0.03);
       } else if (ev.type === "release") this.stopVoice(ev.id, t);
     }
-    resetTilt() { const t = this.ctx.currentTime; this.bend.offset.setTargetAtTime(0, t, 0.02); this.vib.gain.setTargetAtTime(0, t, 0.02); this.tiltBright.offset.setTargetAtTime(0, t, 0.02); }
+    resetTilt() { const t = this.ctx.currentTime; this.handle({ type: "tilt", octave: 0, bend: 0, vib: 0, bright: 0 }); this.bend.offset.setTargetAtTime(0, t, 0.02); this.vib.gain.setTargetAtTime(0, t, 0.02); this.tiltBright.offset.setTargetAtTime(0, t, 0.02); }
     stopVoice(id, t) {
       const v = this.voices.get(id); if (!v) return;
       this.voices.delete(id);

@@ -69,28 +69,58 @@
   }
 
   /* ---------- tilt: gravity in, musical parameters out ---------- */
-  /* Roll = turning the phone like a steering wheel (about the screen's normal); pitch = tipping its top
-     edge away or toward you. Both from the gravity vector, relative to the neutral, so they do not depend
-     on Euler angles or on which way round landscape is. */
+  /* LEAN = the screen's angle to the horizontal: 0° flat face up, 90° upright facing you, below 0° tipped
+     past flat (top edge away and down), above 90° tipped past upright. Measured absolutely from gravity,
+     so the owner's natural hold (45°) is the centre by default and needs no "set neutral".
+     v = (centre − lean) / span: 0 at the centre, +1 at flat, −1 at upright (span 45°); flatter is positive.
+     ROLL = turning the phone like a steering wheel, relative to the neutral (set neutral).
+     The face-up direction of the sensor's z axis and the in-plane "down" are taken from the first reading
+     (the phone held, not lying flat), so the sign conventions of the browser do not matter. */
   class TiltReader {
-    constructor(emit) { this.emit = emit; this.g = null; this.neutral = null; this.roll = 0; this.pitch = 0; this.lastT = 0; }
-    angles(g) { return { phi: Math.atan2(g[0], g[1]) * 180 / Math.PI, theta: Math.atan2(g[2], Math.hypot(g[0], g[1])) * 180 / Math.PI }; }
-    setNeutral() { if (this.g) this.neutral = this.angles(this.g); return this.neutral; }
+    constructor(emit) { this.emit = emit; this.g = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; }
+    takeRef() {
+      const g = this.g, m = Math.hypot(g[0], g[1]);
+      if (m < 1) return false; // lying flat: wait for a held reading
+      this.ref = { s: Math.sign(g[2]) || 1, ux: g[0] / m, uy: g[1] / m };
+      return true;
+    }
+    leanOf(g) { const m = Math.hypot(g[0], g[1]), dot = g[0] * this.ref.ux + g[1] * this.ref.uy; return Math.atan2(Math.sign(dot || 1) * m, this.ref.s * g[2]) * 180 / Math.PI; }
+    setNeutral() { if (!this.g) return null; if (!this.ref) this.takeRef(); this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI; return this.ref ? { lean: this.leanOf(this.g), roll: 0 } : null; }
     feed(t, gx, gy, gz, P) {
       if (gx == null) return;
       const a = this.g ? 1 - Math.exp(-Math.max(0, t - this.lastT) / Math.max(1, P.tiltTau)) : 1;
       this.lastT = t;
       this.g = this.g ? this.g.map((v, i) => v + ([gx, gy, gz][i] - v) * a) : [gx, gy, gz];
-      if (!this.neutral) this.setNeutral();
-      const A = this.angles(this.g);
-      let roll = A.phi - this.neutral.phi; roll = ((roll + 540) % 360) - 180;
-      let pitch = A.theta - this.neutral.theta;
+      if (!this.ref && !this.takeRef()) return;
+      if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
+      let lean = this.leanOf(this.g);
+      if (P.invLean) lean = 2 * P.centreDeg - lean;
+      let roll = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
       if (P.invRoll) roll = -roll;
-      if (P.invPitch) pitch = -pitch;
-      this.roll = roll; this.pitch = pitch;
-      const shape = (x) => { const m = Math.max(0, Math.abs(x) - P.deadDeg); return Math.sign(x) * Math.min(1, m / Math.max(1, P.fullDeg - P.deadDeg)); };
-      const u = shape(roll), v = shape(pitch);
-      this.emit({ type: "tilt", t, bend: P.tiltMode === "bend" ? u * P.bendRange : 0, vib: P.tiltMode === "vibrato" ? Math.abs(u) * P.vibMax : 0, bright: v * P.pitchBright * 1200 });
+      this.lean = lean; this.roll = roll;
+      const v = Math.max(-1.6, Math.min(1.6, (P.centreDeg - lean) / P.spanDeg));
+      this.v = v;
+      // continuous uses: a small dead zone round the centre, and a little room past flat/upright (to ±1.2)
+      const dz = P.deadDeg / P.spanDeg;
+      const cont = Math.sign(v) * Math.min(1.2, Math.max(0, Math.abs(v) - dz) / (1 - dz));
+      // octave steps with hysteresis: +1 past `octStep1` of the way to flat, +2 past `octStep2`; mirrored to upright
+      const h = P.octHystDeg / P.spanDeg, S = [P.octStep1, P.octStep2];
+      const between = (k) => (k >= 0 ? S[k] : -S[-k - 1]); // the boundary between step k and k+1
+      let o = this.octave;
+      for (let k = 0; k < 4; k++) {
+        if (o < 2 && v >= between(o) + h / 2) o++;
+        else if (o > -2 && v <= between(o - 1) - h / 2) o--;
+        else break;
+      }
+      this.octave = P.leanMode === "octave" ? o : 0;
+      // breath: where v sits inside the current step (−0.5…+0.5 round its middle), like blowing harder toward the break
+      const mid = (k) => (k === 0 ? 0 : Math.sign(k) * (Math.abs(k) === 1 ? (P.octStep1 + P.octStep2) / 2 : P.octStep2 + 0.3));
+      this.breath = P.leanMode === "octave" ? Math.max(-0.6, Math.min(0.6, v - mid(this.octave))) : 0;
+      const ru = Math.sign(roll) * Math.min(1, Math.max(0, Math.abs(roll) - P.deadDeg) / Math.max(1, P.rollFullDeg - P.deadDeg));
+      this.emit({ type: "tilt", t, octave: this.octave,
+        bend: (P.leanMode === "bend" ? cont * P.bendRange : 0) + (P.rollMode === "bend" ? ru * P.bendRange : 0),
+        vib: P.rollMode === "vibrato" ? Math.abs(ru) * P.vibMax : 0,
+        bright: P.leanMode === "brightness" ? cont * P.leanBright * 1200 : P.leanMode === "octave" ? this.breath * P.breathBright : 0 });
     }
   }
 

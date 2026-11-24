@@ -54,18 +54,52 @@ test("gesture layer: onset waits for the decision delay and carries the class", 
   assert.deepStrictEqual(evs.slice(3).map((e) => e.type + ":" + (e.cls || "")), ["onset:flat", "release:"]);
 });
 
-test("tilt: neutral, dead zone, full range, bend and vibrato", () => {
-  const P = { tiltMode: "bend", bendRange: 2, vibMax: 50, fullDeg: 30, deadDeg: 3, tiltTau: 1, pitchBright: 1, invRoll: false, invPitch: false };
-  const evs = []; const r = new G.TiltReader((e) => evs.push(e));
-  const grav = (rollDeg, leanDeg) => { const a = (82 + rollDeg) * Math.PI / 180, l = (-24 + leanDeg) * Math.PI / 180; return [Math.sin(a) * Math.cos(l) * 9.8, Math.cos(a) * Math.cos(l) * 9.8, Math.sin(l) * 9.8]; };
+function tiltRig(zSign = -1, extra = {}) {
+  const P = Object.assign({ leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 1, invLean: false, invRoll: false }, extra);
+  const evs = [], r = new G.TiltReader((e) => evs.push(e));
   let t = 0;
-  const feed = (roll, lean) => { const g = grav(roll, lean); r.feed((t += 20), g[0], g[1], g[2], P); return evs[evs.length - 1]; };
-  assert.ok(Math.abs(feed(0, 0).bend) < 1e-9, "first reading becomes neutral");
-  assert.ok(Math.abs(feed(2, 0).bend) < 1e-9, "inside the dead zone");
-  assert.ok(Math.abs(feed(30, 0).bend - 2) < 1e-3, "full roll = full bend");
-  assert.ok(Math.abs(feed(-16.5, 0).bend + 1) < 1e-3, "halfway (past the dead zone) = −1 semitone");
-  assert.ok(Math.abs(feed(0, 30).bright - 1200) < 1e-3, "full pitch tilt = +1 octave of brightness");
-  P.tiltMode = "vibrato";
-  const v = feed(30, 0); assert.ok(v.bend === 0 && Math.abs(v.vib - 50) < 1e-3);
-  P.invRoll = true; P.tiltMode = "bend"; assert.ok(feed(30, 0).bend < 0, "invert roll");
+  // gravity for a lean L (0 flat face up, 90 upright) and a roll R; zSign = the browser's sign for "face up"
+  const feed = (L, R = 0) => { const l = L * Math.PI / 180, q = R * Math.PI / 180, g = [Math.sin(l) * Math.cos(q) * 9.8, Math.sin(l) * Math.sin(q) * 9.8, zSign * Math.cos(l) * 9.8];
+    for (let i = 0; i < 3; i++) r.feed((t += 50), g[0], g[1], g[2], P); return { ...evs[evs.length - 1], lean: r.lean, v: r.v }; };
+  return { P, r, feed };
+}
+
+test("lean is absolute: 45° is the centre, whatever the browser's sign convention", () => {
+  for (const z of [-1, 1]) {
+    const { feed } = tiltRig(z);
+    feed(45);
+    for (const L of [45, 20, 0, -10, 90, 110]) assert.ok(Math.abs(feed(L).lean - L) < 0.01, `lean ${L} (z sign ${z})`);
+    assert.ok(Math.abs(feed(60, 25).lean - 60) < 0.01, "steering-wheel roll does not change the lean");
+  }
+});
+
+test("octave steps: +1 toward flat, −1 toward upright, ±2 past them, with hysteresis", () => {
+  const { feed } = tiltRig();
+  const oct = (L) => feed(L).octave;
+  assert.strictEqual(oct(45), 0);
+  assert.strictEqual(oct(30), 0);
+  assert.strictEqual(oct(20), 1, "past 22.5° (+hysteresis) → +1");
+  assert.strictEqual(oct(24), 1, "hysteresis holds +1 just above 22.5°");
+  assert.strictEqual(oct(27), 0, "back toward 45° → 0");
+  assert.strictEqual(oct(0), 1, "flat is still +1");
+  assert.strictEqual(oct(-15), 2, "past flat by ~13° → +2");
+  assert.strictEqual(oct(70), -1);
+  assert.strictEqual(oct(98), -1, "a little past upright is still −1");
+  assert.strictEqual(oct(105), -2, "past upright by ~13° → −2");
+  assert.strictEqual(oct(45), 0, "straight back to the centre");
+  assert.strictEqual(oct(-20), 2, "a fast tip from 45° to −20° lands on +2");
+});
+
+test("breath: brighter toward flat within a step; brightness mode spreads over 45° each way", () => {
+  const { feed } = tiltRig();
+  assert.ok(feed(35).bright > 0 && feed(55).bright < 0);
+  const b = tiltRig(-1, { leanMode: "brightness" });
+  b.feed(45);
+  assert.ok(Math.abs(b.feed(45).bright) < 1e-6);
+  assert.ok(Math.abs(b.feed(46).bright) < 1e-6, "inside the 3° dead zone");
+  assert.ok(Math.abs(b.feed(0).bright - 1200) < 1, "flat = full (+1 octave)");
+  assert.ok(Math.abs(b.feed(90).bright + 1200) < 1, "upright = full the other way");
+  const half = b.feed(22.5).bright; assert.ok(half > 500 && half < 700, "halfway = about half: " + half.toFixed(0));
+  assert.ok(Math.abs(b.feed(-20).bright - 1440) < 1, "a little room past flat, capped at 1.2×");
 });

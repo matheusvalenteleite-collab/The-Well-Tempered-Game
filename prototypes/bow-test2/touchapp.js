@@ -26,7 +26,8 @@
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, tiltMode: "bend", bendRange: 2, vibMax: 50, fullDeg: 30, deadDeg: 3, tiltTau: 120, pitchBright: 1, invRoll: false, invPitch: false };
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
@@ -293,15 +294,22 @@
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
-    ["tiltMode", "Roll controls", ["bend", "vibrato"]],
-    ["bendRange", "Bend at full roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
+    ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
+    ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
+    ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
+    ["octStep1", "Octave: first step at", 0.25, 0.95, 0.05, (v) => `${(v * 100).toFixed(0)}% of the way: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["octStep2", "Octave: second step at", 1, 1.5, 0.05, (v) => `${(v * 100).toFixed(0)}%: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["octHystDeg", "Octave: hysteresis", 0, 10, 0.5, (v) => v + "°"],
+    ["breathBright", "Octave: brightness within a step (breath)", 0, 1200, 25, (v) => "±" + Math.round(v / 2) + " cents"],
+    ["leanBright", "Brightness at full lean", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["deadDeg", "Dead zone round the centre", 0, 15, 0.5, (v) => v + "°"],
+    ["rollMode", "Roll (steering wheel) controls", ["off", "bend", "vibrato"]],
+    ["bendRange", "Bend at full lean / roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
     ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
-    ["pitchBright", "Pitch → brightness at full tilt", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
-    ["fullDeg", "Full effect at", 10, 60, 1, (v) => v + "°"],
-    ["deadDeg", "Dead zone", 0, 15, 0.5, (v) => v + "°"],
+    ["rollFullDeg", "Roll for full effect", 10, 60, 1, (v) => v + "°"],
     ["tiltTau", "Tilt smoothing", 10, 500, 5, (v) => v + " ms"],
+    ["invLean", "Invert lean"],
     ["invRoll", "Invert roll"],
-    ["invPitch", "Invert pitch"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -309,6 +317,7 @@
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
+    if (k === "centreDeg" || k === "spanDeg") for (const q of ["octStep1", "octStep2"]) { const i = setInputs[q]; if (i) i.previousSibling.textContent = SET.find((d) => d[0] === q)[5](T[q]); }
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
   }
@@ -337,7 +346,12 @@
   };
   $("calGo").onclick = calStart;
   $("calClear").onclick = () => { CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null }; try { localStorage.removeItem("touchcal"); } catch (e) { /* none */ } refit(); $("calRes").textContent = calText(); };
-  $("setNeutral").onclick = $("tNeutral").onclick = () => { const n = tilt.setNeutral(); tlog("tilt neutral set " + JSON.stringify(n)); };
+  $("setNeutral").onclick = $("tNeutral").onclick = () => {
+    const n = tilt.setNeutral(); if (!n) return;
+    T.centreDeg = Math.max(20, Math.min(70, Math.round(n.lean)));
+    const r = setInputs.centreDeg; if (r) { r.value = T.centreDeg; r.oninput(); }
+    tlog("tilt neutral: centre " + T.centreDeg + "°, roll zeroed");
+  };
   $("tNeutral").hidden = !T.tiltOn;
 
   /* ---------- diagnostics text ---------- */
@@ -400,9 +414,9 @@
         $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
           (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
           (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
-          (T.tiltOn ? `\nroll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (T.tiltOn ? `\nlean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
           (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
-        if (!$("tSet").hidden) $("tiltRd").textContent = ` roll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : " (no motion data)");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
       }
     }
     requestAnimationFrame(frame);

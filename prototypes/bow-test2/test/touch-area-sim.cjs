@@ -104,18 +104,28 @@ async function run(W, H) {
   check(ex.gain > 1.05 && ex.gain < 1.6 && ex.cents > 100, `held note pressed flatter: loudness ×${ex.gain.toFixed(2)} (+${(20 * Math.log10(ex.gain)).toFixed(1)} dB), brightness +${ex.cents.toFixed(0)} cents`);
   await touch("touchEnd", [[id, xR, yOf(g.R, 5)]], 60);
 
-  // FEATURE 2: tilt (simulated gravity; no motion sensor in a desktop browser)
+  // FEATURE 2: tilt (simulated gravity; no motion sensor in a desktop browser). Lean 45° = normal.
   await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = true; c.dispatchEvent(new Event("change")); });
-  const grav = (roll, lean) => { const a = (82 + roll) * Math.PI / 180, l = (-24 + lean) * Math.PI / 180; return { x: Math.sin(a) * Math.cos(l) * 9.8, y: Math.cos(a) * Math.cos(l) * 9.8, z: Math.sin(l) * 9.8 }; };
-  const motion = (g2, n) => page.evaluate(([g2, n]) => { for (let i = 0; i < n; i++) window.__touch.onMotion({ accelerationIncludingGravity: g2 }); }, [g2, n]);
-  await motion(grav(0, 0), 1);
-  await tapEl("#tNeutral");
-  id++; await touch("touchStart", [[id, xL, yOf(g.L, 7)]], 36);
-  for (let k = 0; k < 30; k++) { await motion(grav(30, 30), 1); await sleep(16); }
-  await sleep(250);
-  const tl = await page.evaluate(() => { const s = window.__touch.sound(); return { bend: s.bend.offset.value, bright: s.tiltBright.offset.value, roll: window.__touch.tilt.roll }; });
-  check(Math.abs(tl.bend - 200) < 10 && Math.abs(tl.bright - 1200) < 60, `full roll and pitch: bend ${tl.bend.toFixed(0)} cents (±2 semitones default), brightness +${tl.bright.toFixed(0)} cents`);
+  const grav = (L) => { const l = L * Math.PI / 180; return { x: Math.sin(l) * 9.8, y: 0, z: -Math.cos(l) * 9.8 }; };
+  const lean = async (L) => { for (let k = 0; k < 25; k++) { await page.evaluate((g2) => window.__touch.onMotion({ accelerationIncludingGravity: g2 }), grav(L)); await sleep(8); } await sleep(120); };
+  const freqOf = () => page.evaluate(() => { const v = [...window.__touch.sound().voices.values()][0]; return v ? v.oscs[0][0].frequency.value : null; });
+  await lean(45);
+  id++; await touch("touchStart", [[id, xL, yOf(g.L, 7)]], 36); await sleep(80); // D4, held
+  const f0 = await freqOf();
+  await lean(10); const fUp = await freqOf();
+  await lean(45); const fBack = await freqOf();
+  await lean(80); const fDown = await freqOf();
+  const st = await page.evaluate(() => ({ voices: window.__touch.sound().voices.size, oct: window.__touch.tilt.octave }));
+  check(Math.abs(fUp / f0 - 2) < 0.02 && Math.abs(fBack / f0 - 1) < 0.02 && Math.abs(fDown / f0 - 0.5) < 0.02 && st.voices === 1,
+    `held D4 (${f0.toFixed(0)} Hz) slurs with the lean: 10° → ${fUp.toFixed(0)} Hz (octave up), 45° → ${fBack.toFixed(0)}, 80° → ${fDown.toFixed(0)} (octave down), one voice throughout`);
   await touch("touchEnd", [[id, xL, yOf(g.L, 7)]], 36);
+  await sleep(60);
+  id++; await touch("touchStart", [[id, xL, yOf(g.L, 7)]], 36); await sleep(80);
+  const fNew = await freqOf();
+  check(Math.abs(fNew / f0 - 0.5) < 0.02, `a new note while leaning upright starts an octave down (${fNew.toFixed(0)} Hz)`);
+  await touch("touchEnd", [[id, xL, yOf(g.L, 7)]], 36);
+  await lean(45);
+  if (shotDir) { await tapEl("#tSettings"); await page.screenshot({ path: path.join(shotDir, `touch-${W}x${H}-tilt-settings.png`) }); await tapEl("#setClose"); }
   await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = false; c.dispatchEvent(new Event("change")); });
 
   // back to the start screen, then into the bowed prototype and back
