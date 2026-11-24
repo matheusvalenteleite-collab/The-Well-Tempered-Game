@@ -55,7 +55,7 @@ import { BtWarn, btWarnNow } from "./BtWarn.tsx";
 import { RouteNotice, useRoute } from "./RouteWatch.tsx";
 import { latOfSetup } from "../touch/route.ts";
 import { Chip, openingOf, voicing, type Sounding } from "../touch/chip.ts";
-import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras } from "../touch/fugue.ts";
+import { barAt, barStart, beatOf, fugueById, keyAt, keyName, type TouchFugue, fugueOnly, cadenceName, everyNote, loadExtras, loadPiecePair, pieceReady } from "../touch/fugue.ts";
 import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
@@ -321,13 +321,25 @@ export function BenchApp() {
   const back = () => setPhase({ kind: origin.current });
   // D237: the minimal page keeps no pick (it opens on its grid; Prelude 1 its first card).
   const [pick, setPickRaw] = useState<Pick>(() => sane(APP.lite ? { ...DEFAULT, piece: startHere(litePlatform() === "mobile"), voice: -1 } : load(PICK_KEY, DEFAULT)));
-  const setPick = (p: Partial<Pick>) =>
+  const setPickNow = (p: Partial<Pick>) =>
     setPickRaw((cur) => {
       // A new piece starts at its own tempo (D184; the slider moves it after).
       const next = sane({ ...cur, ...p, ...(APP.lite ? { share: 0, her: false } : {}) });
       if (!APP.lite) save(PICK_KEY, next);
       return next;
     });
+  // D1054: a new piece is taken up once its notes are in (the browser build fetches each piece's notes when it is first wanted;
+  // prefetchPieces has usually brought them already, and the piece's pair, which sane() may choose instead, comes with it).
+  const [fetching, setFetching] = useState(false);
+  const setPick = (p: Partial<Pick>) => {
+    if (p.piece === undefined || pieceReady(p.piece)) return setPickNow(p);
+    // Not yet fetched (a slow connection, a tap before prefetchPieces got there): a see-through shield takes the taps meanwhile,
+    // so the old piece's PLAY cannot be pressed while the new one is on its way.
+    setFetching(true);
+    void loadPiecePair(p.piece)
+      .catch(() => undefined)
+      .then(() => (setPickNow(p), setFetching(false)));
+  };
   // D237, the minimal page: its own progress, instruction lines seen and volume (lite.ts).
   const [lite, setLite] = useState(readLite);
   // D239: the bench shows the first game's one-line rule per mode too (START plays at once: no other place to read it).
@@ -1867,6 +1879,7 @@ export function BenchApp() {
         </div>
       )}
       {/* D380: iPhone Safari, not installed: ADD TO HOME SCREEN, once, on the selection only (never in play). */}
+      {fetching && <div className="tb-fetching" aria-hidden="true" />}
       {APP.lite && !APP.glenn && <InstallHint busy={intro || phase.kind !== "home" || calib || !!film} />}
       {/* D381: the headphones gone or back (a brief notice), or USING SPEAKER? where the browser cannot tell. */}
       {APP.lite && !APP.glenn && <RouteNotice route={route} busy={playing && !paused} />}

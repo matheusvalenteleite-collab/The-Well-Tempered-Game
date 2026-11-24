@@ -3,13 +3,15 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { benchServiceWorker } from "./tools/bench/sw-plugin.ts";
 import { playServiceWorker } from "./tools/play-app/sw-plugin.ts";
+import { piecesSplit } from "./tools/touch/pieces-split.ts";
 
 export default defineConfig(({ mode }) => ({
   // Relative asset paths, so the built game works from any folder (e.g. GitHub Pages).
   base: "./",
   // bench-sw.js, the bench's offline cache for the Home Screen (D195).
   // D380: play-sw.js, play.html's (installed from the home screen, offline).
-  plugins: [react(), benchServiceWorker(), playServiceWorker()],
+  plugins: [piecesSplit(), react(), benchServiceWorker(), playServiceWorker()],
+  // D1054: the browser build reads the WTC pieces as stubs plus a chunk of notes per piece (tools/touch/pieces-split.ts, which also swaps src/touch/pieces-source.ts for pieces-source.web.ts); tests and tools read pieces.json whole.
   json: { stringify: true },
   // `vite build --mode artifact`: one script, no chunks loaded on demand, for the single-file page
   // published on claude.ai (tools/build-artifact.mjs), whose file count is limited.

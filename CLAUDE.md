@@ -5,7 +5,7 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 ## Where things are
 - **Dev branch:** `claude/wtc-touchscreen-game-pzwxs4`. **Deploy branch (GitHub Pages):** `claude/fux-gradus-two-voice-dataset-ouu87h`; deploy = PR dev → deploy branch, merged.
 - **Live site:** https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/play.html. The version mark is in `src/bench/version.ts` ("WTC x.yy"); bump it by 0.01 per deploy.
-- **docs/DECISIONS.md** is the index; the log is split by number into `docs/decisions/` (`grep -n "^| D123 " docs/decisions/*.md`). Every decision is a D-number row; the code cites them (`D123`). Take new numbers from the end of the newest range file (next: D1054) and say which.
+- **docs/DECISIONS.md** is the index; the log is split by number into `docs/decisions/` (`grep -n "^| D123 " docs/decisions/*.md`). Every decision is a D-number row; the code cites them (`D123`). Take new numbers from the end of the newest range file (next: D1055) and say which.
 - **docs/BACKLOG.md:** what is approved, parked or paused, newest first. Read it before starting.
 - **docs/audits/CODE-AUDIT-PHASE1.md:** the code audit. Phase 2's quick wins are done (D1050-D1053); what remains is in BACKLOG. **docs/PROJECT-BRIEF.md:** a two-page description of the game to paste into Claude chat.
 
@@ -28,7 +28,7 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 - Start fresh sessions rather than letting one run for days; this file plus BACKLOG carries the context.
 
 ## Released and pending (as of 24 Nov 2026)
-- **Live:** WTC 3.33, which includes Canons batch B (#496), the Musical Offering voicing (#498) and the Phase 2 quick wins (retired features deleted, the root redirects to play.html, the MP3 encoder loads when used).
+- **Live:** WTC 3.34 (adds the per-piece notes split, D1054), which includes Canons batch B (#496), the Musical Offering voicing (#498) and the Phase 2 quick wins (retired features deleted, the root redirects to play.html, the MP3 encoder loads when used).
 - **Owner to do:** run `sh tools/delete-merged-branches.sh` from a computer with push rights (211 merged branches, see `docs/audits/MERGED-BRANCHES.md`); set GitHub's default branch to the dev branch.
 - **Open, unmerged:**
   - #499, retiring FLUTE & HARP and ZELENKA: conflicts with dev, and II/23 needs the owner's pick;
