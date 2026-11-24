@@ -50,7 +50,7 @@ test("D506: the texts say the strong zone (D387's wording), translated", async (
   const lessons = src("src/bench/lessons.ts");
   assert.match(lessons, /> ACCENT \(STRONG ZONE, ON TIME\)"/);
   assert.doesNotMatch(lessons, /TAP HARD/);
-  for (const f of ["src/bench/manual/lessons.ts", "src/bench/manual/coach.ts", "src/bench/lite.ts"]) assert.doesNotMatch(src(f), /tap (it|the accent|each top note|them) hard|hard tap/i, f);
+  for (const f of ["src/bench/lite.ts"]) assert.doesNotMatch(src(f), /tap (it|the accent|each top note|them) hard|hard tap/i, f);
   assert.match(src("src/bench/lite.ts"), /An accent \(>\) is weight on time: land it in the strong zone/);
   for (const d of [PT, ES]) {
     assert.ok(d["PLAY THE SUBJECT AS THE MARKS SAY: ‾ LEGATO · ⌒ SLUR · | DETACHED · · SHORT · > ACCENT (STRONG ZONE, ON TIME)"]);

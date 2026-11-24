@@ -37,7 +37,7 @@ test("D921: a careful player passes the pads of acts I–IV, on the game's engin
   const { PLAY } = await import("../src/bench/howto-text.ts");
   const { padGame, padStage } = await import("../src/bench/howto/TryPad.tsx");
   const { stagePassed } = await import("../src/bench/basics/plan.ts");
-  const { LensTally } = await import("../src/bench/manual/lens.ts");
+  const { LensTally } = await import("../src/bench/basics/lens.ts");
   const { fakeChip, ROWS } = await import("./d342-sim.ts");
   for (const ch of PLAY.slice(0, 4))
     for (const c of ch.cards)

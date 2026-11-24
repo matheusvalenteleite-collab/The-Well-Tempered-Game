@@ -119,10 +119,8 @@ test("D409, D492: no L or R in the suggestion marks: ● and ○ with their lege
   assert.deepEqual(THUMB_GLYPH, { A: "●", B: "○" });
   assert.equal(THUMB_LEGEND, "● ○ = your two thumbs, either way round");
   const hear = readFileSync(new URL("../src/bench/HearSubject.tsx", import.meta.url), "utf8");
-  const aids = readFileSync(new URL("../src/bench/manual/aids.ts", import.meta.url), "utf8");
-  for (const [name, src] of [["HearSubject", hear], ["aids", aids]] as const) assert.doesNotMatch(src, /tr\("[LR]"\)|"[LR]"\s*:\s*tr|\? "L" : "R"|\? tr\("L"\)/, `${name}: an L or R letter drawn`);
+  for (const [name, src] of [["HearSubject", hear]] as const) assert.doesNotMatch(src, /tr\("[LR]"\)|"[LR]"\s*:\s*tr|\? "L" : "R"|\? tr\("L"\)/, `${name}: an L or R letter drawn`);
   // D444 (the owner: "eliminate the bloody white and black balls … from anywhere, except the TUTORIALS"): the tutorial's aid draws them; HEAR THE SUBJECT no longer does.
-  assert.match(aids, /drawThumbMark/, "aids: the neutral marks drawn");
   assert.doesNotMatch(hear, /drawThumbMark|THUMB_LEGEND|hear-thumbs-key/, "HearSubject: no ● ○ under the notes");
   // D492 (the owner: "Eliminate FINGERING SUGGESTIONS from HEAR THE SUBJECT"): no button, no thumbs drawn there.
   assert.doesNotMatch(hear, /FINGERING SUGGESTION|subjectFingerings|drawThumb|hear-fingering/);

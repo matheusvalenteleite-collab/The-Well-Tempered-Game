@@ -15,8 +15,6 @@ import type { LabEvent } from "../src/bench/lab/events.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import { PRESETS, setPreset } from "../src/touch/sound.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
-import { lessonById } from "../src/bench/manual/lessons.ts";
-import { gameFor } from "./d342-sim.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
@@ -201,30 +199,4 @@ test("D424: a slide's portamento follows the thumb on strings, voices and synths
   const kb = run("harpsichordSampled", slide(0.3));
   assert.equal(kb.heard[0].glides.length, 0);
   assert.ok(kb.heard[1] && kb.heard[1].midi !== kb.heard[0].midi);
-}));
-
-test("D424: Herr Bach's demonstrations drive it: \"prepared\" (3.4) sounds its pull-offs slurred, coach \"slide\" (6.6) follows on the strings", () =>
-  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
-  withSlideSound("instruments", () => {
-  const demo = (sound: string, lesson: string) => {
-    setPreset(sound);
-    const st = lessonById(lesson)!.stages[0];
-    const clock = { t: 0 };
-    const { g } = gameFor(st.m, clock, st.style ?? "plain");
-    const heard: { p: Play; glides: number[] }[] = [];
-    (g as unknown as { chip: { note: unknown } }).chip.note = (_m: number, _at: number, _d: number, _v: unknown, p: Play = {}) => {
-      const h = { p, glides: [] as number[] };
-      if (p.lead) heard.push(h);
-      return { stop() {}, bend() {}, glide: (to: number) => void h.glides.push(to), muffle() {}, dyn() {} };
-    };
-    let done = false;
-    while (!done && clock.t < 900) (clock.t += 1 / 120), (done = g.step());
-    setPreset("chip");
-    return heard;
-  };
-  const prepared = demo("stringConsort", "3.4");
-  assert.ok(prepared.filter((h) => h.p.slur && h.p.legato).length >= 1, "the pull-off slurred");
-  assert.equal(demo("pianoSampled", "3.4").filter((h) => h.p.slur).length, 0, "the piano unchanged");
-  const slid = demo("stringConsort", "6.6");
-  assert.ok(slid.some((h) => h.glides.length > 0), "the slide's portamento");
 }));

@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import { fugueById } from "../src/touch/fugue.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
-import { LensTally } from "../src/bench/manual/lens.ts";
+import { LensTally } from "../src/bench/basics/lens.ts";
 import { ACTS, helpFor, stagePassed, type Stage } from "../src/bench/basics/plan.ts";
 import { basicsRun, type Phase } from "../src/bench/basics/runner.ts";
 import { EXERCISES } from "../src/bench/basics/exercises.ts";
@@ -134,7 +134,7 @@ test("every line and label in Portuguese and Spanish; the developer view only; n
 
 test("D691: the review's fixes: no verdict words, YOU alone in the legend, exactly two labelled arrows after a miss", () => {
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /const BASICS_DRESS: DressId\[\] = \["voices", "bar", "marks", "subjects"\];/);
+  assert.match(app, /const BASICS_DRESS: readonly string\[\] = \["voices", "bar", "marks", "subjects"\];/);
   assert.match(app, /names\[i\]\) \? tr\("YOU · \{voice\}"/);
   for (const f of EXERCISES) assert.deepEqual(f.voiceNames, [""]);
   const aids = src("src/bench/basics/aids2.ts");

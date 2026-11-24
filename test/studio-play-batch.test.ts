@@ -38,8 +38,8 @@ test("the title bar: the fugue's name before its title; the map in the music box
 
 test("no legend, no instructions at a game's start (the tutorial keeps them; the gloss stays)", () => {
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /glossOnly=\{!man\}/);
-  assert.match(app, /\{hintLine && \(layout !== "bars" \|\| man \|\| revealPlan\)/);
+  assert.match(app, /glossOnly \/>/);
+  assert.match(app, /\{hintLine && \(layout !== "bars" \|\| revealPlan\)/);
   assert.match(src("src/bench/SideNotes.tsx"), /if \(glossOnly\) return whole \?/);
 });
 

@@ -1133,12 +1133,6 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .tb-tut-langs button.on { color: var(--tg-gold); }
 
 /* D373: a lesson on the play screen: his words over the foot of the box, between the strips (the layout never moves). */
-.tb-bach.tb-bach-low { position: fixed; inset: auto calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px) 30px calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); z-index: 30; max-height: 62vh; overflow: auto; padding: 7px 10px; gap: 10px; border-width: 2px; border-radius: 6px; box-shadow: none; }
-.tb-bach-low .tb-bach-face { width: 36px; height: 40px; }
-.tb-bach-low .tb-bach-line { font-size: 13px; line-height: 1.35; }
-.tb-bach-low .tb-bach-title { font-size: 6px; }
-.tb-bach-low .tb-bach-choices { gap: 6px; }
-.tb-bach-low .tb-bach-choice { padding: 7px 10px; }
 .tb-course-chrome { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
 .tb-caption { position: fixed; left: calc(var(--tg-sal) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); right: calc(var(--tg-sar) + (100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) + 6px); bottom: 30px; display: flex; gap: 8px; align-items: center; padding: 5px 9px; background: rgba(10, 9, 14, 0.82); border: 2px solid rgba(243, 215, 138, 0.75); border-radius: 6px; }
 .tb-caption .tb-bach-face { width: 26px; height: 29px; flex: none; }
@@ -1342,7 +1336,6 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .basics2-go { color: #2a2216; background: var(--tg-shine); border: 0; box-shadow: 2px 2px 0 #b8322a; }
 .basics2-skip { color: var(--tg-fg); background: transparent; border: 1px solid #78789f; }
 /* D1004: the old tutorial, a small link under BASICS (developer view only). */
-.sel-basics-old { display: block; margin-top: 6px; padding: 6px 8px; min-height: 32px; width: 100%; text-align: left; font-size: 10px !important; line-height: 1.2 !important; letter-spacing: 0.08em; color: var(--tg-dim, #a59c88); background: transparent; border: 1px dashed currentColor; border-radius: 2px; cursor: pointer; }
 .basics2-cliplayer { cursor: pointer; }
 /* D991: the clip loops until touched; TOUCH TO PLAY over its empty top, breathing (1.6 s: slower than once a second). */
 .basics2-clipwrap { position: relative; display: inline-block; }

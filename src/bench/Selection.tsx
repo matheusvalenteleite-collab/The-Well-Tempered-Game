@@ -11,7 +11,6 @@
  * play) and a big ▶ PLAY under the right thumb. The first visit (nothing played, no lesson done): the
  * TUTORIAL glows, the grid is dimmed but works, and the right column says in one sentence where to start.
  */
-import { glennShown } from "./glenn-host.ts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { auditionUrl, soundBlurb } from "../touch/sound-blurbs.ts";
 import { FugueAbout } from "./FugueAbout.tsx";
@@ -76,7 +75,6 @@ export interface SelectionProps {
   soundOf?: (id: string) => string;
   settings: () => void;
   setLang?: (l: Lang) => void;
-  tutorial?: { done: number; of: number; start: () => void };
   /** D680 (design studio): BASICS with Glenn, the first of three tutorials, in the TUTORIAL slot; glowing while a beginner. D1004: for every player. */
   /** D1005: `soon`, the INTERMEDIATE and ADVANCED rows (UNDER CONSTRUCTION): the developer view only. */
   basics?: { beginner: boolean; start: () => void; soon?: boolean };
@@ -119,7 +117,7 @@ export interface SelectionProps {
 }
 
 export function Selection(p: SelectionProps) {
-  const { piece, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {}, tutorial } = p;
+  const { piece, beaten, best = {}, scores = {}, bestOld = {}, scoresOld = {} } = p;
   const tabs = liteTabs();
   const shown = (t: LiteTab) => tabs.some(([x]) => x === t);
   const [tab, setTab] = useState<LiteTab>(() => (shown(liteTabOf(piece)) && gridTab(liteTabOf(piece)) ? liteTabOf(piece) : storedTab()));
@@ -130,8 +128,8 @@ export function Selection(p: SelectionProps) {
   }, [tab, aofReady]);
   const pick = (t: LiteTab) => (setTab(t), storeTab(t), t === "II" && p.bookTwo?.());
   const won = new Set(beaten);
-  // D1004: a first visit (nothing played, no lesson done) with BASICS too, not only with the old tutorial (now the developer view's).
-  const first = (!!tutorial || !!p.basics) && liteFirstVisit(beaten, tutorial?.done ?? 0);
+  // D1004: a first visit (nothing played) with BASICS. D1050: the old tutorial deleted.
+  const first = !!p.basics && liteFirstVisit(beaten, 0);
   // The first visit: the right column says where to start until a tile is tapped.
   const [chosen, setChosen] = useState(!first || !!p.current);
   const grid = gridTab(tab) && (!extraTab(tab) || aofReady);
@@ -142,7 +140,6 @@ export function Selection(p: SelectionProps) {
   // D980: and play.html's key for a WTC prelude, Book II's too (its tile is its fugue's).
   const pairKey = p.playPiece ? piece.replace(/^wtc1p/, "wtc1f") : fugueOfPrelude(piece);
   const fugueOpen = won.has(pairKey.replace(/^wtc1f/, "wtc1p")) || won.has(pairKey);
-  const learning = !!tutorial && tutorial.done < tutorial.of;
   return (
     <div className={`tb-sel${first ? " tb-sel-first" : ""}`} id="selection" role="main" aria-label="Pieces">
       <aside className="sel-col sel-left" id="sel-left">
@@ -178,31 +175,7 @@ export function Selection(p: SelectionProps) {
               ))}
             </div>
             )}
-            {/* D1004: the old tutorial (THE MANUAL), out of the game since D868, still reachable in the developer view. */}
-            {tutorial && (
-              <button type="button" id="card-tutorial-old" className="sel-basics-old" onClick={tutorial.start}>
-                {tr("OLD TUTORIAL")} · {tutorial.done}/{tutorial.of}
-              </button>
-            )}
           </div>
-        )}
-        {tutorial && !p.basics && (
-          <button type="button" id="card-tutorial" className={`sel-tutorial${first ? " sel-glow" : ""}`} onClick={tutorial.start}>
-            <span className="sel-tut-head">
-              <span className="sel-tut-face" aria-hidden="true">
-                <Portrait talking={false} who={glennShown() ? "glenn" : undefined} />
-              </span>
-              <span className="sel-tut-words">
-                <span className="sel-tut-title">{tr("TUTORIAL")}</span>
-                <span className="sel-tut-sub">{glennShown() ? "LEARN TO PLAY WITH GLENN" : tr("LEARN TO PLAY WITH HERR BACH")}</span>
-              </span>
-            </span>
-            <span className="sel-tut-bar" aria-hidden="true">
-              <i style={{ width: `${Math.round((100 * tutorial.done) / Math.max(1, tutorial.of))}%` }} />
-            </span>
-            <span className="sel-tut-line">{first ? tr("NEW HERE? START HERE") : tr("{n} OF {m} LESSONS", { n: tutorial.done, m: tutorial.of })}</span>
-            <span className="sel-tut-go">▶ {tutorial.done === 0 ? tr("BEGIN") : learning ? tr("CONTINUE") : tr("AGAIN")}</span>
-          </button>
         )}
         <nav className="sel-tabs" aria-label={tr("COLLECTIONS")}>
           <p className="sel-tabs-head">{tr("COLLECTIONS")}</p>
@@ -287,7 +260,7 @@ export function Selection(p: SelectionProps) {
           <Chosen {...p} piece={p.playPiece ? pairKey : piece} scores={scores} scoresOld={scoresOld} best={best} bestOld={bestOld} pair={p.preludes && !p.playPiece && /^wtc[12]f\d\d$/.test(pairKey) ? { fugue: pairKey, prelude: preludeOfFugue(pairKey), choose: p.select } : undefined} />
         ) : (
           <p className="sel-hint" id="sel-hint">
-            {p.basics ? tr("Pick a fugue in the middle, or learn first with BASICS on the left.") : tutorial ? tr("Pick a fugue in the middle, or learn first with the TUTORIAL on the left.") : tr("Pick a piece in the middle.")}
+            {p.basics ? tr("Pick a fugue in the middle, or learn first with BASICS on the left.") : tr("Pick a piece in the middle.")}
           </p>
         )}
         {chosen && p.note}

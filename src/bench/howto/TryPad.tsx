@@ -18,7 +18,7 @@ import { BASICS_PT } from "../../i18n/basics-pt.ts";
 import { BASICS_ES } from "../../i18n/basics-es.ts";
 import { ProtoGame, type Rows } from "../proto-game.ts";
 import { BAR, protoById } from "../protos.ts";
-import { LensTally } from "../manual/lens.ts";
+import { LensTally } from "../basics/lens.ts";
 import { ACTS, stagePassed, type Stage } from "../basics/plan.ts";
 import { basicsRun } from "../basics/runner.ts";
 import { paintBasics2, type MissShown } from "../basics/aids2.ts";
