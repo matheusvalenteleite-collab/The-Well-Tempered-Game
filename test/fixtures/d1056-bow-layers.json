@@ -1,0 +1,140 @@
+{
+ "how": "D1056: each recording's mix at the bow's colour against its mf alone (equal power, sampled.ts BOW_LAYER_GAIN), EBU R128 integrated loudness over 0-4.2 s (ffmpeg ebur128), LU; 'phone' after two 600 Hz high-passes (the phone model), 'full' the full band. [min, mean, max] over the instrument's recordings. /tmp script: build_consort_bow.py's levels, measured on the shipped MP3s.",
+ "sets": {
+  "violinSolo": {
+   "notes": 17,
+   "colour": {
+    "ph-1": [
+     -1.0,
+     -0.73,
+     -0.6
+    ],
+    "ph-0.5": [
+     -0.7,
+     -0.32,
+     0.1
+    ],
+    "ph0.5": [
+     0.0,
+     0.36,
+     0.6
+    ],
+    "ph1": [
+     0.7,
+     0.79,
+     0.9
+    ],
+    "full-1": [
+     -1.3,
+     -0.42,
+     1.6
+    ],
+    "full-0.5": [
+     -0.9,
+     -0.17,
+     0.6
+    ],
+    "full0.5": [
+     -0.8,
+     0.15,
+     0.6
+    ],
+    "full1": [
+     -0.8,
+     0.34,
+     0.8
+    ]
+   }
+  },
+  "celloSolo": {
+   "notes": 14,
+   "colour": {
+    "ph-1": [
+     -1.4,
+     -0.78,
+     -0.5
+    ],
+    "ph-0.5": [
+     -0.9,
+     -0.44,
+     0.1
+    ],
+    "ph0.5": [
+     0.3,
+     0.45,
+     0.7
+    ],
+    "ph1": [
+     0.6,
+     0.8,
+     0.9
+    ],
+    "full-1": [
+     -1.1,
+     0.79,
+     4.6
+    ],
+    "full-0.5": [
+     -1.2,
+     0.59,
+     4.3
+    ],
+    "full0.5": [
+     -3.2,
+     -0.33,
+     1.5
+    ],
+    "full1": [
+     -4.2,
+     -0.29,
+     1.2
+    ]
+   }
+  },
+  "violaSolo": {
+   "notes": 20,
+   "colour": {
+    "ph-1": [
+     -1.4,
+     -1.16,
+     -1.0
+    ],
+    "ph-0.5": [
+     -0.9,
+     -0.56,
+     -0.1
+    ],
+    "ph0.5": [
+     -0.3,
+     0.16,
+     0.4
+    ],
+    "ph1": [
+     0.1,
+     0.29,
+     0.5
+    ],
+    "full-1": [
+     -1.7,
+     -0.54,
+     2.1
+    ],
+    "full-0.5": [
+     -1.2,
+     -0.3,
+     1.3
+    ],
+    "full0.5": [
+     -1.1,
+     -0.08,
+     0.9
+    ],
+    "full1": [
+     -1.4,
+     -0.18,
+     0.4
+    ]
+   }
+  }
+ }
+}

@@ -109,6 +109,15 @@ export const PERIOD: Record<string, Bake> = {
   // STRING CONSORT's alone: the VSO2 violin and the Freesound cello above stay the other sounds' (BAROQUE BAND, ORCHESTRA & ORGAN, ...).
   consortViolinSolo: { folder: "violinSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
   consortCelloSolo: { folder: "celloSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
+  // D1056, THE BOW'S COLOUR LAYERS (THE NEW LAB's bowing, MECH.bow; tools/playback/consort/build_consort_bow.py): TinySOL's pp and ff
+  // ordinario at the mf sets' pitches and strings, made the same way, each levelled to its mf recording through the phone model (pp
+  // -0.75 dB, ff +0.75 dB) and written 4 dB under it (BOW_LAYER_GAIN gives it back). Loaded only while bowing is wanted (setBowLayersWanted).
+  violinSoloPp: { folder: "violinSoloPp", rate: 32000, lp: 11000, bits: 16, loop: true },
+  violinSoloFf: { folder: "violinSoloFf", rate: 32000, lp: 11000, bits: 16, loop: true },
+  celloSoloPp: { folder: "celloSoloPp", rate: 32000, lp: 11000, bits: 16, loop: true },
+  celloSoloFf: { folder: "celloSoloFf", rate: 32000, lp: 11000, bits: 16, loop: true },
+  violaSoloPp: { folder: "violaSoloPp", rate: 32000, lp: 11000, bits: 16, loop: true },
+  violaSoloFf: { folder: "violaSoloFf", rate: 32000, lp: 11000, bits: 16, loop: true },
   // D1031 (provisional), BAROQUE BAND's oboe (build_consort.py, as D1011's strings): TinySOL's oboe, ordinario mf, every three or
   // four semitones A#3-G#6 (11: BAROQUE BAND's slim keeps every one; no note read more than 2 semitones from one), retuned and levelled when built, held on the made loop; in place of VSCO 2 CE's trial oboe (ZELENKA's stays).
   baroqueOboe: { folder: "oboeSolo", rate: 32000, lp: 11000, bits: 16, loop: true },
@@ -207,6 +216,13 @@ const VSCO_CENTS: Record<string, Record<string, number>> = {
   violinSolo: zeroCents("violinSolo"),
   oboeSolo: zeroCents("oboeSolo"),
   celloSolo: zeroCents("celloSolo"),
+  // D1056: the bow's layers (build_consort_bow.py): the violin's and the cello's retuned as their mf; the viola's as measured (as violaSolo's).
+  violinSoloPp: zeroCents("violinSoloPp"),
+  violinSoloFf: zeroCents("violinSoloFf"),
+  celloSoloPp: zeroCents("celloSoloPp"),
+  celloSoloFf: zeroCents("celloSoloFf"),
+  violaSoloPp: { C3: -0.5, D3: -7.4, E3: 1.1, Fs3: 1.9, Gs3: -4.9, As3: -2.2, C4: -4.2, D4: -3.2, E4: -2.4, Fs4: 3.2, Gs4: 10.0, As4: -10.0, C5: -5.7, D5: 2.7, E5: -0.1, Fs5: -3.3, Gs5: 0.8, As5: -8.4, C6: -8.4, D6: -0.8 },
+  violaSoloFf: { C3: -0.8, D3: -6.8, E3: -1.5, Fs3: 1.8, Gs3: 1.7, As3: 0.7, C4: -3.9, D4: 2.0, E4: -4.5, Fs4: -3.2, Gs4: 7.8, As4: 1.5, C5: -7.3, D5: -4.8, E5: 0.3, Fs5: -1.2, Gs5: 1.1, As5: 0.4, C6: -3.4, D6: -1.0 },
   violaSolo: { C3: -2.5, D3: -7.8, E3: -0.5, Fs3: 1.3, Gs3: -2.6, As3: -5.7, C4: -3.1, D4: 0.2, E4: -2.2, Fs4: -1.5, Gs4: 1.7, As4: -8.7, C5: -5.9, D5: -1.8, E5: 1.1, Fs5: -0.2, Gs5: 2.2, As5: -0.7, C6: -5.6, D6: -2.5 },
   harp: { A2: -3.7, A4: -9.6, A6: -18.7, B1: -14.5, B3: -12, B5: -8.3, C3: -2.7, C5: -10.4, D2: -4.8, D4: -12.4, D6: -7.7, D7: -8, E1: -16.5, E3: -4.4, E5: -11.5, F2: -7.2, F4: -0.7, F6: -5.8, F7: 0, G1: -21.4, G3: -8, G5: -6.7 },
   horn: { A1: -0.2, A3: 0.1, C2: 0, C4: -0.2, D3: 0.6, D5: 0.2, Ds2: 0, F3: 0.1, F5: 0.1, G2: 0.3 },
@@ -292,6 +308,13 @@ const SHORT: Record<string, Record<string, number>> = {
   violinSolo: allOf("violinSolo", 4.5),
   oboeSolo: allOf("oboeSolo", 4.5),
   celloSolo: allOf("celloSolo", 4.5),
+  // D1056: the bow's layers, every one 4.5 s.
+  violinSoloPp: allOf("violinSoloPp", 4.5),
+  violinSoloFf: allOf("violinSoloFf", 4.5),
+  celloSoloPp: allOf("celloSoloPp", 4.5),
+  celloSoloFf: allOf("celloSoloFf", 4.5),
+  violaSoloPp: allOf("violaSoloPp", 4.5),
+  violaSoloFf: allOf("violaSoloFf", 4.5),
   // D547: build_altoflute.py's notes, every one 4.3 s.
   altoFlute: allOf("altoFlute", 4.3),
   // D504: build_trio.py's lengths.
@@ -628,6 +651,12 @@ export interface SampledInstrument {
    */
   blend?: { set: string };
   /**
+   * D1056, THE BOW'S COLOUR (MECH.bow, THE NEW LAB; src/touch/bow.ts): the same instrument's ordinario pp and ff recorded at the main
+   * set's pitches (build_consort_bow.py), crossfaded with it on the player's held note by the bow's speed (chip.ts Sounding.bow);
+   * `spicc` the instrument whose spiccato a flick-and-lift ends on. Loaded only while bowing is wanted (setBowLayersWanted).
+   */
+  bowLayers?: { pp: string; ff: string; spicc?: SampledId };
+  /**
    * D405: at most this many semitones between a note and a neighbouring recording it may be played from (a trill's
    * other recording, a loaded stand-in), and the reach past the compass `reachOf` allows where `extend` says nothing.
    * D631: no longer a fold: a pitch past the compass is read from the nearest recording at its written pitch.
@@ -705,13 +734,13 @@ export const SAMPLED: Record<SampledId, SampledInstrument> = {
   // D358: SUPER 16-BIT's continuo cello; STRING CONSORT's violin, viola and cello (D510: LUTE's strings withdrawn; the guitar's folder stays, the Lab's). Gains set by measurement (each voice alone, gated loudness).
   cello16: { set: "cello16", plucked: false, gain: 2.2 },
   consortViolin: { set: "consortViolin", plucked: false, gain: 2.2 },
-  consortViola: { set: "consortViola", plucked: false, gain: 2.2 },
+  consortViola: { set: "consortViola", plucked: false, gain: 2.2, bowLayers: { pp: "violaSoloPp", ff: "violaSoloFf", spicc: "consortViolaSpicc" } },
   consortCello: { extend: { up: 5 }, set: "consortCello", plucked: false, gain: 2.2 },
   // D1011: STRING CONSORT's own (TinySOL, every two or three semitones: the violin G3-C#7, the cello C2-D#5, read 5 over as the old
   // cello was). Gains matched to the recordings they replace (the mean level of a chromatic scale over the voices' own range, each
   // note 0.5 s, the engine on a phone: at 2.2 the violin B3-B5 1.7 dB over the VSO2 violin, the cello C2-E4 1.4 dB under the old).
-  consortViolinSolo: { set: "consortViolinSolo", plucked: false, gain: 1.8 },
-  consortCelloSolo: { extend: { up: 5 }, set: "consortCelloSolo", plucked: false, gain: 2.6 },
+  consortViolinSolo: { set: "consortViolinSolo", plucked: false, gain: 1.8, bowLayers: { pp: "violinSoloPp", ff: "violinSoloFf", spicc: "consortViolinSpicc" } },
+  consortCelloSolo: { extend: { up: 5 }, set: "consortCelloSolo", plucked: false, gain: 2.6, bowLayers: { pp: "celloSoloPp", ff: "celloSoloFf", spicc: "consortCelloSpicc" } },
   // D1031: BAROQUE BAND's oboe (TinySOL), read past its compass 5 under (as far as a line needs: D633) and 4 over; its gain the
   // trial oboe's level over C4-D6 (a chromatic scale of 0.5 s notes through the engine on a phone: 0.9 dB under at 2.2).
   baroqueOboe: { extend: { down: 5 }, set: "baroqueOboe", plucked: false, gain: 2.45, maxShift: 4 },
@@ -855,6 +884,16 @@ export function setZones(set: string, stride: number | null) {
   if (!stride || stride <= 1) zoned.delete(set);
   else zoned.set(set, zonesOf(recordedMidis(set), stride));
 }
+/** D1056: the bow's layers' files are written this much under their level (build_consort_bow.py HEAD_DB -4): given back when played. */
+export const BOW_LAYER_GAIN = 10 ** (4 / 20);
+/** D1056: whether the bow's colour layers are wanted (THE NEW LAB, the developer view's NEW MECHANICS: MECH.bow); off everywhere else, so nothing more is loaded. */
+let bowWanted = false;
+export function setBowLayersWanted(on: boolean) {
+  bowWanted = on;
+}
+export const bowLayersWanted = () => bowWanted;
+/** D1056: an instrument's bow layer sets (pp, ff and its spiccato's), wanted or not. */
+export const bowSetsOf = (inst: SampledInstrument): string[] => (inst.bowLayers ? [inst.bowLayers.pp, inst.bowLayers.ff, ...(inst.bowLayers.spicc ? [SAMPLED[inst.bowLayers.spicc].set] : [])] : []);
 /** D540: sets held off while a slimmed preset plays (its one-layer rule, Slim.oneLayer): never loaded, their instrument's main set standing in. */
 const heldOff = new Set<string>();
 export function holdOff(sets: Iterable<string>) {
@@ -983,6 +1022,12 @@ export function planFor(inst: SampledInstrument, pitches: Iterable<number>, lead
   if (inst.short) plan.push({ set: inst.short.set, notes: notesFor(inst.short.set, wanted) });
   // D502: the second dynamic layer, the same pitches (SampledInstrument.blend).
   if (inst.blend) plan.push({ set: inst.blend.set, notes });
+  // D1056: the bow's colour layers (and its spiccato's notes), the same pitches, only while bowing is wanted.
+  if (inst.bowLayers && bowWanted) {
+    plan.push({ set: inst.bowLayers.pp, notes }, { set: inst.bowLayers.ff, notes });
+    const sp = inst.bowLayers.spicc ? SAMPLED[inst.bowLayers.spicc].set : null;
+    if (sp) plan.push({ set: sp, notes: notesFor(sp, wanted) });
+  }
   if (inst.release) plan.push({ set: inst.release, notes: notes.filter((m) => sampledMidis(inst.release!).includes(m)) });
   if (inst.low) {
     const lows = sampledMidis(inst.low);

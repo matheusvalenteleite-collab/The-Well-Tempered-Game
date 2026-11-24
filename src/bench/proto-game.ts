@@ -34,6 +34,8 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
+import { BowHand, bowedNow } from "./bowing.ts";
+import { joinOf, type OutBow } from "../touch/bow.ts";
 import { Crowd, CROWD_LEAVE, CROWD_LEAVE_PRELUDE, GOOD_TIMING, GOOD_WORTH, PERFORMANCE_WEIGHTS, REVOKED_SPAN_S, STRAY_SPAN_S, STRAY_WORTH, STREAK_STEPS, STREAK_STEP_NOTES, streakFactor, WRONG_WORTH } from "./scoring.ts";
 /** D445: an entry's points, whole (paid by the share of its notes right). */
 const ENTRY_POINTS = 20;
@@ -232,6 +234,8 @@ function wasAt(trail: readonly { t: number; y: number }[]): number | undefined {
 
 interface Held {
   side: Side;
+  /** D1055 (MECH.bow): the thumb's bow on the notes it holds (bowing.ts). */
+  bow?: BowHand;
   /** The voice it plays (TWO VOICES: the left thumb the first, the right the second). */
   k: number;
   /** Where it landed, and where it last played a note (for the next slide). */
@@ -1061,12 +1065,26 @@ export class ProtoGame {
   }
   /** A touch's sound (D494: in BLUETOOTH MODE too: D299's silent touch over a scheduled note withdrawn). */
   private touchNote(...args: Parameters<Chip["note"]>): Sounding {
+    // D1055 (MECH.bow): the player's note bowed (Play.bow); D1058: a join whose bow carries on enters as a slur under the note before.
+    if (bowedNow()) {
+      const p = args[4] ?? {};
+      const nx = this.bowNext && this.bowNext.ev === this.evTs ? this.bowNext : null;
+      args[4] = { ...p, bow: nx ? nx.colour : 0, ...(nx && p.legato ? { slur: true } : {}) };
+    }
     const sd = this.chip.note(...args);
     // D457: a take being recorded keeps every sound of the player's voice as it is asked for.
     return this.takeRec ? this.takeRec.note(args[0], args[1], args[2], args[3], args[4] ?? {}, sd) : sd;
   }
   /** D457, RECORD YOUR FUGUE: the player's voice recorded as it is played (takes/take.ts); null: not recorded. */
   takeRec: TakeRecorder | null = null;
+  /** D1058: the join being sounded carries the bow on (its colour), for the event `ev` (touchNote). */
+  private bowNext: { ev: number | null; colour: number } | null = null;
+  /** D1055: the sounds a held thumb's bow reaches (its notes; in BLUETOOTH MODE the note it scored). */
+  private bowSounds(h: Held): Sounding[] {
+    return h.armed?.state === "hit" ? [...h.sounds, ...h.armed.own] : h.sounds;
+  }
+  /** D1058: each voice's bow as its thumb lifted (a handover's join), and when (ms, evMs). */
+  private lastBow: (OutBow & { ms: number })[] = [];
   /** D457: a recorder on this game's clocks (the tick a time sounds at; the headphone delay). */
   takeRecorder(): TakeRecorder {
     const ch = this.chip;
@@ -1117,6 +1135,8 @@ export class ProtoGame {
     // D308: paused: the clock held where it stopped, nothing scheduled, nothing judged.
     if (this.pausedAt !== null) return false;
     this.evTs = null;
+    // D1055: a bow that stopped eases back (read on the clock: a still thumb sends nothing).
+    for (const h of this.held.values()) if (h.bow && !h.passive) h.bow.tick(this.evMs(), this.bowSounds(h));
     // D376 (MECH.glenn): over-legato's ringing notes past their cap let go.
     if (this.rings.items.length) this.rings.frame(ch.ctx.currentTime);
     // D345: sounds past their own schedule let go even where the browser never reports their end.
@@ -2063,6 +2083,8 @@ export class ProtoGame {
     const h: Held = { across: c.x / Math.max(1, c.w), side: c.side, k: this.line ? this.rowTrack(c, ts) : this.hands && this.road ? this.touchTrack(this.laneOfX(c.x, c.w), ts) : this.trackOf(c.side), x0: c.x, ax: c.x, ay: c.y, note: -1, chord: [], sounds: [], midi: 0, cell: this.cellAt(c), d0: d, trail: [{ t: ts, y: c.y }], t0: ts, row: c.y >= c.h - PAD_SPLIT ? 1 : 0 };
     // D311: where across it landed (the attack); BLUETOOTH MODE's next notes of the voice take it too.
     h.land = this.landAt(c);
+    // D1055 (MECH.bow): the thumb's bow from its landing (its place along its own bar, in px).
+    if (bowedNow() && this.proto.layout === "bars") h.bow = new BowHand(this.evMs(), h.land * c.w * BAR, c.w * BAR);
     this.lastLand[h.k] = h.land;
     this.landNow[c.side] = h.land;
     // D425: the strike's strength, given (the demonstration) or read from the motion sensor just after the touchdown.
@@ -2573,6 +2595,8 @@ export class ProtoGame {
       for (const s of h.sounds) s.shape?.(sv);
       if (h.armed?.state === "hit") for (const s of h.armed.own) s.shape?.(sv);
     }
+    // D1055: the bow (MECH.bow): the thumb's motion along its own bar.
+    if (h.bow && !h.passive && this.proto.layout === "bars") h.bow.move(this.evMs(), this.landAt(c) * c.w * BAR, this.bowSounds(h));
     const t = this.tickOf(ts);
     // D318: down early for its note: where it is now judges it; it slides nowhere meanwhile.
     if (h.wait) {
@@ -3642,6 +3666,13 @@ export class ProtoGame {
     // D488: a landing inside the window lifted before its note without sliding in: struck from its landing.
     if (h.slideIn?.inWin && !h.slideIn.wait && this.tracks[h.k].notes[h.slideIn.i]?.state === "pending" && h.slideIn.best < SLIDE.tryShare * h.slideIn.need) this.slideInPlain(id, h);
     this.held.delete(id);
+    // D1057: a flick lifted at once ends on the spiccato (the stops after it then do nothing); D1058: its bow kept for a handover's join.
+    if (h.bow && !h.passive && !cancelled) {
+      const ms = this.evMs();
+      h.bow.lift(ms, this.bowSounds(h));
+      const out = h.bow.out(ms);
+      if (out) this.lastBow[h.k] = { ...out, ms };
+    }
     // D486: lifted on its way to a slide's note (or waiting on it, early): told if the note then goes by unplayed.
     const si = h.slideIn;
     if (si && !cancelled && this.tracks[h.k].notes[si.i]?.state === "pending" && (si.wait || si.best >= SLIDE.tryShare * si.need)) this.slLifted.push({ h, k: h.k, on: si.on, why: si.wait ? "early" : "lifted" });
@@ -3927,6 +3958,9 @@ export class ProtoGame {
       let legato = slide || (MECH.joinedSound && over && !piano && v.ok);
       // D427: a JOIN, HANDOFF or OVERLAP on the strings: a new bow (glenn.ts joinedSound), its change heard.
       const bowChange = touchFam === "strings" && !setRelease && !slide;
+      // D1058 (MECH.bow): the bow giving way, moving: the new note enters under it as a slur and is decided after (bowing.ts).
+      let bowCarry: OutBow | null = null;
+      const bowing = bowChange && bowedNow() && !!h.bow;
       for (const [hid, o] of this.held) {
         if (hid === id || o.k !== h.k) continue;
         o.passive = true;
@@ -3943,7 +3977,12 @@ export class ProtoGame {
           const min = gPos > 1 && cap > 0 ? slurRingS(pid) : GLENN.minRingS;
           if (cap > 0) this.rings.add({ k: h.k, holder: o, stops: o.sounds, min: now + min, max: now + Math.max(cap, min) });
           // D427: on a bowed string a two-thumb join is a bow change: the note given way to stops at the change (chip.ts giveWay).
-          else if (bowChange) for (const sd of o.sounds) sd.stop(now, "bow");
+          else if (bowChange) {
+            const out = bowing ? (o.bow?.out(this.evMs()) ?? null) : null;
+            const carry = !!out && joinOf(out, 0, 0).kind === "pending";
+            if (carry) bowCarry = out;
+            for (const sd of o.sounds) sd.stop(now, carry ? "slur" : "bow");
+          }
           else for (const sd of o.sounds) sd.stop(now + min);
           o.sounds = [];
           continue;
@@ -3952,6 +3991,15 @@ export class ProtoGame {
         for (const sd of o.sounds) sd.stop(this.chip.ctx.currentTime + (slurAt === "mid" || slurAt === "last" ? slurHandoverS(preset().id) : 0.03));
         o.sounds = [];
       }
+      // D1058: a handover (the bow lifted a moment ago, within the legato gap): its bow as it lifted.
+      if (bowing && !bowCarry && legato) {
+        const lb = this.lastBow[h.k];
+        if (lb && this.evMs() - lb.ms <= 250 && joinOf(lb, 0, 0).kind === "pending") bowCarry = lb;
+      }
+      if (bowCarry && h.bow) {
+        h.bow.joined(bowCarry, this.evMs());
+        this.bowNext = { ev: this.evTs, colour: bowCarry.colour };
+      } else this.bowNext = null;
       // D205: an ornamented note, struck right, plays its ornament from the moment it is struck, then holds its main note.
       const n0 = notes[i];
       const orn = v.ok && pitches.length === 1 ? this.ornaments.get(`${this.voiceOf(h.k, i)}:${n0.on}`) : undefined;
