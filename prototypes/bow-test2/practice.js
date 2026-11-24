@@ -1,4 +1,4 @@
-/* Touch-area mode, PRACTICE: four items for learning the three kinds of press (fingertip, normal, flat).
+/* Touch-area mode, PRACTICE: four items for learning the two kinds of press (not flat, flat).
    Every drill plays through the real gesture and sound layers (you hear what you pressed) and judges the
    kind from your calibration, exactly as play would. Results are kept on this device with the date.
      1 Mixed: 30 prompts, kind and area at random (balanced).
@@ -8,22 +8,22 @@
      4 Progress: every finished drill, with date, accuracy per kind and per area, and timing. */
 (function (root) {
   "use strict";
-  const KINDS = ["tip", "normal", "flat"];
-  const NAME = { tip: "FINGERTIP", normal: "NORMAL", flat: "FLAT" };
-  const SHORT = { tip: "T", normal: "N", flat: "F" };
+  const KINDS = ["normal", "flat"]; // two kinds since 24 Nov 2026: not flat, flat
+  const NAME = { normal: "NOT FLAT", flat: "FLAT" };
+  const SHORT = { normal: "N", flat: "F" };
 
   /* ---------- pure parts (tested in node) ---------- */
   function rand(seed) { let r = seed || Date.now() % 2147483647 || 1; return () => ((r = (r * 16807) % 2147483647) / 2147483647); }
   function shuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   /* n prompts, kinds (and sides) as even as n allows, shuffled */
-  function makeDeck(n, sides, rnd) {
-    const combos = []; for (const s of sides) for (const k of KINDS) combos.push({ side: s, kind: k });
-    const out = []; while (out.length < n) out.push(...shuffle(combos.slice(), rnd));
-    return shuffle(out.slice(0, n), rnd);
+  function makeDeck(n, sides, rnd) { // kinds even, sides even, each shuffled on its own
+    const fill = (list) => shuffle(Array.from({ length: n }, (_, i) => list[i % list.length]), rnd);
+    const ks = fill(KINDS), ss = fill(sides);
+    return ks.map((kind, i) => ({ side: ss[i], kind }));
   }
   function tally(items) { // items: {side, kind, got}
     const by = (f) => { const m = {}; for (const it of items) { const k = f(it); m[k] = m[k] || { n: 0, ok: 0 }; m[k].n++; if (it.got === it.kind) m[k].ok++; } return m; };
-    const confusion = {}; for (const k of KINDS) { confusion[k] = { tip: 0, normal: 0, flat: 0, none: 0 }; }
+    const confusion = {}; for (const k of KINDS) { confusion[k] = { normal: 0, flat: 0, none: 0 }; }
     for (const it of items) confusion[it.kind][it.got || "none"]++;
     const ok = items.filter((it) => it.got === it.kind).length;
     return { n: items.length, ok, pct: items.length ? (100 * ok) / items.length : 0, byKind: by((it) => it.kind), bySide: by((it) => it.side), confusion };
@@ -105,13 +105,13 @@
         if (H.T().bpm !== bpmAt) { stop(); show("RHYTHM", "", "", "Stopped: the tempo changed."); return; }
         // the beat shown is the nearest one: from halfway after a beat on, the screen shows the coming beat
         const now = ctx.currentTime, beat = Math.floor((now - t0) / spb + 0.5);
-        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "T fingertip · N normal · F flat"); return; }
+        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "N not flat · F flat"); return; }
         const bar = Math.floor((beat - 4) / 4), inBar = (beat - 4) % 4;
         if (bar >= bars) { if (now > beats[beats.length - 1].t + 0.3) { const sc = rhythmScore(beats, onsets.filter((o) => o.t >= beats[0].t - 0.25)); finish({ drill: "rhythm", bpm: bpmAt, tally: sc.tally, missed: sc.missed, extra: sc.extra, meanAbsMs: sc.meanAbsMs, meanMs: sc.meanMs, items: sc.res.map((r) => ({ side: r.side, kind: r.kind, got: r.got, err: r.err })) }); } return; }
         const side = bar % 2 ? "right" : "left"; H.target(side);
         const pat = deck.slice(bar * 4, bar * 4 + 4).map((k, j) => (j === inBar ? `[${SHORT[k]}]` : SHORT[k])).join(" ");
         const nxt = bar + 1 < bars ? `next: ${bar % 2 ? "LEFT" : "RIGHT"} ` + deck.slice((bar + 1) * 4, (bar + 1) * 4 + 4).map((k) => SHORT[k]).join(" ") : "last bar";
-        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "T fingertip · N normal · F flat");
+        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "N not flat · F flat");
       }, 30);
     }
 
@@ -119,10 +119,10 @@
     function two() {
       const rnd = rand(), pairs = [];
       for (const a of KINDS) for (const b of KINDS) pairs.push([a, b]);
-      const deck = shuffle([...pairs, ...pairs], rnd); // 18: every combination twice
+      const deck = shuffle([...pairs, ...pairs, ...pairs, ...pairs], rnd); // 16: every combination four times
       const items = [], gaps = [];
       let i = 0, cur = null;
-      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/18`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
+      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/${deck.length}`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
       const fn = (ev) => {
         if (ev.type === "onset") { cur.held++; const s = ev.side === "left" ? "l" : "r"; if (!cur[s]) cur[s] = { kind: kindOf(ev), t: ev.t, size: ev.size }; }
         if (ev.type === "release") {
@@ -147,23 +147,23 @@
     /* reports */
     function summary(e) {
       const t = e.tally, L = [];
-      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: "TWO THUMBS (18 pairs)" }[e.drill];
+      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: `TWO THUMBS (${e.pairs} pairs)` }[e.drill];
       L.push(`${head}  ${e.date.slice(0, 16).replace("T", " ")}`);
       L.push(`kinds right: ${t.ok} of ${t.n} (${pct(t.pct)})` + (e.drill === "two" ? `; both thumbs right: ${e.pairsRight} of ${e.pairs}; pressed together within ${e.meanGapMs.toFixed(0)} ms on average` : ""));
       if (e.drill === "rhythm") L.push(`beats missed ${e.missed}, extra taps ${e.extra}; timing off by ${e.meanAbsMs == null ? "–" : e.meanAbsMs.toFixed(0)} ms on average (${e.meanMs == null ? "" : e.meanMs < 0 ? "early" : "late"} ${e.meanMs == null ? "" : Math.abs(e.meanMs).toFixed(0) + " ms overall"})`);
-      L.push("by kind:  " + KINDS.map((k) => `${k} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
+      L.push("by kind:  " + KINDS.map((k) => `${NAME[k].toLowerCase()} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
       L.push("by area:  " + ["left", "right"].map((s) => `${s} ${t.bySide[s] ? pct((100 * t.bySide[s].ok) / t.bySide[s].n) : "–"}`).join("   "));
-      L.push("asked → heard as     tip normal flat  none");
-      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${k.padEnd(18)} ${String(c.tip).padStart(4)} ${String(c.normal).padStart(6)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
+      L.push("asked → heard as   not-flat  flat  none");
+      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${NAME[k].toLowerCase().padEnd(16)} ${String(c.normal).padStart(8)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
       return L.join("\n");
     }
     function progress() {
       const all = load();
       if (!all.length) { overlay("No practice sessions yet."); return; }
-      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right   tip  normal  flat   left right  timing  cal. of", ""];
+      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right  notflat  flat   left right  timing  cal. of", ""];
       for (const e of all) {
         const t = e.tally, k = (x) => (t.byKind[x] ? pct((100 * t.byKind[x].ok) / t.byKind[x].n) : "–"), s = (x) => (t.bySide[x] ? pct((100 * t.bySide[x].ok) / t.bySide[x].n) : "–");
-        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("tip").padStart(5)} ${k("normal").padStart(6)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
+        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("normal").padStart(7)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
       }
       L.push("", "timing: rhythm = average distance from the beat; two thumbs (⇄) = average gap between the thumbs.", "", "DETAIL", ...all.map(summary));
       overlay(L.join("\n"));

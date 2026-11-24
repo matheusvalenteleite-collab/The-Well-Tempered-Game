@@ -7,7 +7,7 @@ const shotDir = process.argv.includes("--shots") ? process.argv[process.argv.ind
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
 const check = (c, m) => { console.log((c ? "  ok   " : "  FAIL ") + m); if (!c) failures++; };
-const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × radius → 24 / 72 / 144 px
+const R = { normal: 24, flat: 72 }; // Chromium: pointer width = 2 × radius → 48 / 144 px
 
 (async () => {
   for (const [W, H] of [[932, 430], [667, 375]]) {
@@ -17,7 +17,7 @@ const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × r
     // a stored calibration: ten taps of each kind per area
     await context.addInitScript(() => {
       const seqs = (w) => Array.from({ length: 10 }, () => [[0, w]]);
-      const side = () => ({ tip: seqs(24), normal: seqs(72), flat: seqs(144) });
+      const side = () => ({ normal: seqs(48), flat: seqs(144) });
       if (!localStorage.getItem("touchcal")) localStorage.setItem("touchcal", JSON.stringify({ samples: { left: side(), right: side() }, savedAt: "2026-11-24T20:00:00Z" }));
     });
     const page = await context.newPage();
@@ -31,7 +31,6 @@ const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × r
 
     await tapEl("#goTouch");
     // PIANO
-    await page.selectOption("#tLayout", "piano"); await sleep(100);
     const kb = await page.evaluate(() => {
       const r = window.__touch.rect, rows = window.__touch.rows(), out = [];
       for (const side of ["left", "right"]) {
@@ -49,14 +48,13 @@ const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × r
     for (const k of left) await tapAt([[k.cx, k.cy]], 36);
     const got = await page.evaluate(() => window.__heard);
     check(JSON.stringify(got) === JSON.stringify(left.map((k) => k.row)), `every key on the left plays its own note (${left.filter((k) => !k.white).length} black, ${left.filter((k) => k.white).length} white)`);
-    await page.selectOption("#tLayout", "key"); await sleep(100);
 
     // TILT through the page with the gyroscope (minus sign, deg/s)
     await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = true; c.dispatchEvent(new Event("change")); });
     const motion = (L, w) => page.evaluate(([L, w]) => { const l = L * Math.PI / 180; window.__touch.onMotion({ accelerationIncludingGravity: { x: Math.sin(l) * 9.8, y: 0, z: -Math.cos(l) * 9.8 }, rotationRate: { alpha: 0, beta: 0, gamma: -w } }); }, [L, w]);
     for (let k = 0; k < 120; k++) { const L = 45 + 10 * Math.sin(k / 9); const L2 = 45 + 10 * Math.sin((k + 1) / 9); await motion(L, (L2 - L) * 60); await sleep(16); }
     const lab = await page.evaluate(() => window.__touch.tilt.gyroLabel());
-    check(lab === "gyro (sign −, deg/s)", "the page found the gyroscope's convention: " + lab);
+    check(lab === "gyro (standard axes, sign −, deg/s)", "the page found the gyroscope's convention: " + lab);
     await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = false; c.dispatchEvent(new Event("change")); });
 
     // PRACTICE 1: mixed, answered correctly every time
@@ -66,27 +64,27 @@ const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × r
     if (shotDir) await page.screenshot({ path: path.join(shotDir, `practice-${W}x${H}.png`) });
     for (let i = 0; i < 30; i++) {
       const p = await page.evaluate(() => document.getElementById("prPrompt").textContent);
-      const side = p.startsWith("LEFT") ? "left" : "right", kind = /FINGERTIP/.test(p) ? "tip" : /FLAT/.test(p) ? "flat" : "normal";
+      const side = p.startsWith("LEFT") ? "left" : "right", kind = /NOT FLAT/.test(p) ? "normal" : "flat";
       await tapAt([mid(side)], R[kind]);
     }
     await sleep(100);
     const sum1 = await page.evaluate(() => document.getElementById("prOvText").value);
-    check(/kinds right: 30 of 30/.test(sum1), "mixed drill: 30 of 30 when every press is right; saved");
+    check(/kinds right: 30 of 30/.test(sum1), "mixed drill (not flat / flat): 30 of 30 when every press is right; saved");
     await tapEl("#prOvClose");
 
     // PRACTICE 3: two thumbs, one deliberate mistake (the first pair's right thumb pressed flat)
     await tapEl("#prTwo");
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 16; i++) {
       const p = await page.evaluate(() => document.getElementById("prPrompt").textContent);
-      const [l, r] = p.split("\n").map((s) => (/FINGERTIP/.test(s) ? "tip" : /FLAT/.test(s) ? "flat" : "normal"));
-      const rr = i === 0 ? (r === "flat" ? "tip" : "flat") : r;
+      const [l, r] = p.split("\n").map((s) => (/NOT FLAT/.test(s) ? "normal" : "flat"));
+      const rr = i === 0 ? (r === "flat" ? "normal" : "flat") : r;
       const a = [++id, ...mid("left")], b = [++id, ...mid("right")];
       await touch("touchStart", [a], R[l]); await touch("touchStart", [a, b], R[rr]); await sleep(40);
       await touch("touchEnd", [a, b], R[l]); await sleep(40);
     }
     await sleep(100);
     const sum3 = await page.evaluate(() => document.getElementById("prOvText").value);
-    check(/both thumbs right: 17 of 18/.test(sum3), "two-thumb drill: 17 of 18 pairs (the planted mistake caught)");
+    check(/both thumbs right: 15 of 16/.test(sum3), "two-thumb drill: 15 of 16 pairs (the planted mistake caught)");
     await tapEl("#prOvClose");
 
     // PRACTICE 2: rhythm, tapping on the loop's beats (the simulator's touches arrive late by tens of ms)
@@ -96,7 +94,7 @@ const R = { tip: 12, normal: 36, flat: 72 }; // Chromium: pointer width = 2 × r
       const beatT = clock.t0 + (4 + b) * clock.spb;
       for (;;) { const now = await page.evaluate(() => window.__touchHooks.ctx().currentTime); if (now >= beatT - 0.035) break; await sleep(5); }
       const p = await page.evaluate(() => document.getElementById("prPrompt").textContent);
-      const side = p.startsWith("LEFT") ? "left" : "right", kind = { T: "tip", N: "normal", F: "flat" }[(p.match(/\[(.)\]/) || [])[1]] || "normal";
+      const side = p.startsWith("LEFT") ? "left" : "right", kind = { N: "normal", F: "flat" }[(p.match(/\[(.)\]/) || [])[1]] || "normal";
       await tapAt([mid(side)], R[kind]);
     }
     await sleep(Math.max(600, clock.spb * 1000 + 400));

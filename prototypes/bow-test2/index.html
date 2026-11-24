@@ -58,11 +58,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
 .trow.tonic { background: rgba(127, 176, 201, 0.07); }
 .trow.on { background: var(--rosin); color: #1a1408; }
-.wk { fill: #cbc6b8; stroke: #6f6c64; stroke-width: 1; }
-.wk.tonic { fill: #ddd2b4; }
-.bk { fill: #101114; stroke: #000; stroke-width: 1; }
+.wk { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.wk.tonic { fill: #222a31; }
+.bk { fill: #08090c; stroke: #59606f; stroke-width: 1; }
 .wk.on, .bk.on { fill: var(--rosin); }
-.kt { font: 9px var(--f-num); fill: #3d3b36; pointer-events: none; }
+.kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
 .tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
@@ -144,8 +144,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
   <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
-    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout"><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
     <div id="tRd" class="rd"></div>
@@ -1051,7 +1051,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
            {type:"contact", id, t, size, norm, norm0}  (continuous: contact size now, and at the onset)
            {type:"release", id, t}
            {type:"tilt", t, bend, vib, bright}         (bend in semitones, vib depth and bright in cents)
-   onset carries cls ("tip" | "normal" | "flat" | null) and size; contact carries size and norm (0..1).
+   onset carries cls ("normal" | "flat" | null) and size; contact carries size and norm (0..1).
    Contact size = PointerEvent.width (CSS px). The probe on an iPhone (iOS 27, 24 Nov 2026) found it in
    8 steps of 24.2 px (24…194); touch.radiusX has only 4 steps and force is always 0, so width is the signal.
 
@@ -1142,17 +1142,54 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     return out;
   }
 
+  /* The prototype's piano (the owner, 24 Nov 2026): as D330's, but each black key widens toward the inner
+     edge (`edge` of a white key's height there, `black` at its tip end), so a thumb near the edge cannot miss
+     it. What is drawn is what is hit: black keys are polygons tested first, white keys are full-width bands. */
+  class WedgeKeyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites), wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const tau = Math.max(0.5, shape.slant * bw), u1 = Math.max(1, shape.split * bw - tau / 2), u2 = shape.split * bw + tau / 2;
+      const keys = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        const next = wi[j + 1]; if (next === undefined) return;
+        const n = next - r - 1; if (n <= 0) return;
+        const yb = y - wh / 2, cap = 0.98 / n;
+        const he = Math.min(shape.edge, cap) * wh, ht = Math.min(shape.black, cap) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * he;
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: ht, poly: [[0, yc - he / 2], [u1, yc - ht / 2], [u2, yc], [u1, yc + ht / 2], [0, yc + he / 2]] });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.whitesList = keys.filter((k) => k.white);
+    }
+    hit(u, y) {
+      for (const k of this.keys) if (!k.white && inPoly(k.poly, u, y)) return { row: k.row, white: false };
+      let best = this.whitesList[0], bd = Infinity;
+      for (const k of this.whitesList) { const d = Math.abs(y - k.y); if (d < bd) { bd = d; best = k; } }
+      return { row: best.row, white: true };
+    }
+  }
+  function inPoly(p, x, y) { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; }
+
   const rowH = (n, h) => Math.max(4, (h - 2 * MARGIN) / n);
   function rowAt(n, y, h) { const r = n - 1 - Math.floor((y - MARGIN) / rowH(n, h)); return Math.max(0, Math.min(n - 1, r)); }
   const rowMid = (n, row, h) => MARGIN + (n - 1 - row + 0.5) * rowH(n, h);
 
   /* ---------- contact classes ---------- */
-  const CLASSES = ["tip", "normal", "flat"];
-  const classify = (th, size) => (!th || size == null ? null : size < th.t1 ? "tip" : size < th.t2 ? "normal" : "flat");
+  /* Two kinds (the owner, 24 Nov 2026, after three calibrations: "three distinct types simply won't work"):
+     NOT FLAT (any ordinary press, fingertip included) and FLAT (the thumb pad laid down). One cut point. */
+  const CLASSES = ["normal", "flat"];
+  const classify = (th, size) => (!th || size == null ? null : size < th.t1 ? "normal" : "flat");
   /* The largest size seen within `ms` of landing (seq: [[ms after landing, size], ...]). */
   function sizeAt(seq, ms) { let m = null; for (const [dt, v] of seq) if (dt <= ms + 0.5 && (m === null || v > m)) m = v; return m; }
-  /* Two cut points (tip | normal | flat) with the fewest calibration taps on the wrong side;
-     ties go to the cut farthest from the nearest tap. by = {tip:[sizes], normal:[...], flat:[...]}. */
+  /* The cut point with the fewest calibration taps on the wrong side; ties go to the cut farthest from
+     the nearest tap. by = {normal:[sizes], flat:[sizes]}. */
   function fitThresholds(by) {
     if (CLASSES.some((c) => !by[c] || !by[c].length)) return null;
     const all = CLASSES.flatMap((c) => by[c]);
@@ -1162,18 +1199,17 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     cuts.push(vals[vals.length - 1] + 1);
     const gap = (c) => Math.min(...all.map((v) => Math.abs(v - c)));
     let best = null;
-    for (let i = 0; i < cuts.length; i++) for (let j = i; j < cuts.length; j++) {
-      const th = { t1: cuts[i], t2: cuts[j] };
+    for (const t1 of cuts) {
+      const th = { t1 };
       let err = 0; for (const c of CLASSES) for (const v of by[c]) if (classify(th, v) !== c) err++;
-      const margin = Math.min(gap(th.t1), gap(th.t2));
-      if (!best || err < best.err || (err === best.err && margin > best.margin)) best = { ...th, err, margin };
+      const margin = gap(t1);
+      if (!best || err < best.err || (err === best.err && margin > best.margin)) best = { t1, err, margin };
     }
-    const confusion = {}; for (const c of CLASSES) { confusion[c] = { tip: 0, normal: 0, flat: 0 }; for (const v of by[c]) confusion[c][classify(best, v)]++; }
+    const confusion = {}; for (const c of CLASSES) { confusion[c] = { normal: 0, flat: 0 }; for (const v of by[c]) confusion[c][classify(best, v)]++; }
     const hist = vals.map((v) => [v, ...CLASSES.map((c) => by[c].filter((x) => x === v).length)]);
-    const overlap = (a, b) => by[a].filter((v) => v >= Math.min(...by[b])).length + by[b].filter((v) => v <= Math.max(...by[a])).length;
     const n = all.length;
-    return { t1: best.t1, t2: best.t2, errors: best.err, n, errorRate: best.err / n, confusion, hist,
-      overlapTipNormal: overlap("tip", "normal"), overlapNormalFlat: overlap("normal", "flat") };
+    return { t1: best.t1, errors: best.err, n, errorRate: best.err / n, confusion, hist,
+      overlap: by.normal.filter((v) => v >= Math.min(...by.flat)).length + by.flat.filter((v) => v <= Math.max(...by.normal)).length };
   }
   /* How long after landing the class stopped changing (ms), from a size sequence. */
   function stableAfter(th, seq) {
@@ -1195,20 +1231,27 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
      gyroscope's sign and unit conventions are not assumed: four candidate trackers run side by side
      (±, degrees or radians per second) and the one that best predicts the accelerometer is used.
      SOURCE "gravity": the accelerometer alone, low-passed (P.tiltTau), as before. */
-  const CANDS = [[1, Math.PI / 180], [-1, Math.PI / 180], [1, 1], [-1, 1]];
+  /* Candidate readings of rotationRate: axis labelling × sign × units. "standard": the spec's (alpha about z,
+     beta about x, gamma about y); "swapped": alpha, beta, gamma about x, y, z, as WebKit is reported to label
+     them (the owner's tilt felt late on an iPhone, 24 Nov 2026: if only the standard labelling is tried and
+     Safari uses the other, the gyroscope is wasted and tilt waits for the slow gravity correction). */
+  const CANDS = [];
+  for (const map of ["swapped", "standard"]) for (const sg of [1, -1]) for (const k of [Math.PI / 180, 1]) CANDS.push([map, sg, k]);
+  const wOf = (c, r) => { const f = c.sg * c.k; return c.map === "standard" ? [r.beta * f, r.gamma * f, r.alpha * f] : [r.alpha * f, r.beta * f, r.gamma * f]; };
   class TiltReader {
     constructor(emit) { this.emit = emit; this.g = null; this.gl = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; this.cands = null; this.best = 0; this.source = "gravity"; }
     /* the fused gravity estimate: returns false if no gyroscope data */
     fuse(dt, gm, rot, P) {
       if (!rot || rot.alpha == null || rot.beta == null || rot.gamma == null) return false;
-      if (!this.cands) this.cands = CANDS.map(([sg, k]) => ({ sg, k, g: gm.slice(), err: 0 }));
+      if (!this.cands) this.cands = CANDS.map(([map, sg, k]) => ({ map, sg, k, g: gm.slice(), err: 0 }));
       const corr = Math.min(1, dt / Math.max(0.05, P.gyroCorrS));
       for (const c of this.cands) {
-        const w = [rot.beta * c.sg * c.k, rot.gamma * c.sg * c.k, rot.alpha * c.sg * c.k]; // about x, y, z
+        const w = wOf(c, rot); // about x, y, z
         const g = c.g, cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
         const pred = [g[0] - cr[0] * dt, g[1] - cr[1] * dt, g[2] - cr[2] * dt]; // a world-fixed vector seen from a rotating body
-        const cos = (pred[0] * this.gl[0] + pred[1] * this.gl[1] + pred[2] * this.gl[2]) / (Math.hypot(...pred) * Math.hypot(...this.gl) || 1);
-        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 2);
+        // judged against the raw accelerometer (unbiased; its jolts are the same for every candidate), over ~1 s
+        const cos = (pred[0] * gm[0] + pred[1] * gm[1] + pred[2] * gm[2]) / (Math.hypot(...pred) * Math.hypot(...gm) || 1);
+        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 1);
         c.g = pred.map((v, i) => v + (gm[i] - v) * corr);
       }
       const cur = this.cands[this.best];
@@ -1217,7 +1260,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       this.rot = rot;
       return true;
     }
-    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
+    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (${c.map} axes, sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
     takeRef() {
       const g = this.g, m = Math.hypot(g[0], g[1]);
       if (m < 1) return false; // lying flat: wait for a held reading
@@ -1243,7 +1286,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       let gNow = this.g;
       if (this.source === "fused" && P.tiltLookMs > 0 && this.rot) {
         const c = this.cands[this.best], la = P.tiltLookMs / 1000, r = this.rot;
-        const w = [r.beta * c.sg * c.k, r.gamma * c.sg * c.k, r.alpha * c.sg * c.k], g = this.g;
+        const w = wOf(c, r), g = this.g;
         const cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
         gNow = [g[0] - cr[0] * la, g[1] - cr[1] * la, g[2] - cr[2] * la];
       }
@@ -1357,7 +1400,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const noteName = (m) => NAMES[pcOf(m)] + (Math.floor(m / 12) - 1);
-  window.TouchGest = { doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
+  window.TouchGest = { WedgeKeyboard, doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
 })();
 
 </script>
@@ -1507,13 +1550,17 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
-    layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
+    layout: "piano", kbSplit: 0.6, kbBlack: 0.5, kbEdge: 0.9, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
     tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
+  // settings version 2 (24 Nov 2026, the owner: no latency): bring the delay-related settings saved by older
+  // versions to the new defaults once
+  if ((T.ver || 0) < 2) { for (const k of ["octHystDeg", "tiltLookMs", "slideDwellMs", "tiltSource", "tiltTau", "gyroCorrS", "decideMs"]) T[k] = T_DEFAULTS[k]; T.ver = 2; }
+  T.layout = "piano"; // the owner, 24 Nov 2026: the piano only ("we don't want to go back")
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
   const computeRows = () => { ROWS = G.doToDo(T.tonic, T.minor, T.octaves, T.layout === "piano"); };
@@ -1530,10 +1577,12 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   let FIT = { left: null, right: null }, RANGE = {};
   function refit() {
     for (const side of ["left", "right"]) {
-      const by = {}; for (const c of G.CLASSES) by[c] = CAL.samples[side][c].map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      // two kinds: earlier three-kind calibrations count their fingertip taps as "not flat"
+      const at = (c) => (CAL.samples[side][c] || []).map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      const by = { normal: at("tip").concat(at("normal")), flat: at("flat") };
       FIT[side] = G.fitThresholds(by);
       const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-      RANGE[side] = FIT[side] ? [mean(by.tip), mean(by.flat)] : [24, 194];
+      RANGE[side] = FIT[side] ? [mean(by.normal), mean(by.flat)] : [24, 194];
     }
   }
   refit();
@@ -1581,11 +1630,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       el.innerHTML = "";
       if (T.layout === "piano") {
         // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
-        const kb = (KB[side] = new G.Keyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, slant: T.kbSlant }, r.width, r.height));
-        const X = (u) => (side === "L" ? r.width - u : u), sU = T.kbSplit * r.width, tau = Math.max(0.5, T.kbSlant * r.width);
+        const kb = (KB[side] = new G.WedgeKeyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, edge: T.kbEdge, slant: T.kbSlant }, r.width, r.height));
+        const X = (u) => (side === "L" ? r.width - u : u);
         let svg = `<svg width="${r.width}" height="${r.height}" style="position:absolute;left:0;top:0">`;
         for (const k of kb.keys) if (k.white) svg += `<rect class="wk${pcName(k.midi) === G.NAMES[T.tonic] ? " tonic" : ""}" data-row="${k.row}" x="0" y="${k.y - k.h / 2}" width="${r.width}" height="${k.h}"/><text x="${side === "L" ? 6 : r.width - 6}" y="${k.y + 3}" text-anchor="${side === "L" ? "start" : "end"}" class="kt">${G.noteName(k.midi)}</text>`;
-        for (const k of kb.keys) if (!k.white) { const y0 = k.y - k.h / 2, y1 = k.y + k.h / 2, u1 = sU - tau / 2, u2 = sU + tau / 2; svg += `<polygon class="bk" data-row="${k.row}" points="${X(0)},${y0} ${X(u1)},${y0} ${X(u2)},${k.y} ${X(u1)},${y1} ${X(0)},${y1}"/>`; }
+        for (const k of kb.keys) if (!k.white) svg += `<polygon class="bk" data-row="${k.row}" points="${k.poly.map(([u, y]) => X(u) + "," + y).join(" ")}"/>`;
         el.innerHTML = svg + "</svg>";
       } else ROWS.forEach((m, i) => {
         const d = document.createElement("div"); d.className = "trow" + (G.NAMES[m % 12] === G.NAMES[T.tonic] ? " tonic" : "");
@@ -1729,7 +1778,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   /* ---------- calibration: 10 taps per class, per area ---------- */
   const STEPS = [];
   for (const side of ["left", "right"]) for (const c of G.CLASSES) STEPS.push({ side, c });
-  const CNAME = { tip: "FINGERTIP", normal: "NORMAL THUMB", flat: "FLAT THUMB PAD" };
+  const CNAME = { normal: "NOT FLAT\n(your ordinary press)", flat: "FLAT THUMB PAD" };
   let calib = null, calRec = null;
   function calStart() {
     calib = { step: 0, taps: STEPS.map(() => []) };
@@ -1738,7 +1787,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
   function calPaint() {
     const st = STEPS[calib.step], n = calib.taps[calib.step].length;
-    $("calStep").textContent = `Step ${calib.step + 1} of 6`;
+    $("calStep").textContent = `Step ${calib.step + 1} of ${STEPS.length}`;
     $("calWhat").textContent = `${st.side === "left" ? "LEFT" : "RIGHT"} area\n${CNAME[st.c]}`;
     $("calCount").textContent = `${n} / 10 taps` + (calRec ? "" : "");
     $("tL").classList.toggle("target", st.side === "left"); $("tR").classList.toggle("target", st.side === "right");
@@ -1762,6 +1811,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
   function calFinish() {
     STEPS.forEach((st, i) => { CAL.samples[st.side][st.c] = calib.taps[i]; });
+    for (const side of ["left", "right"]) CAL.samples[side].tip = []; // a two-kind calibration replaces any older fingertip taps
     CAL.savedAt = new Date().toISOString();
     try { localStorage.setItem("touchcal", JSON.stringify(CAL)); } catch (e) { /* none */ }
     calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
@@ -1780,14 +1830,14 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       const f = FIT[side];
       L.push("", `${side.toUpperCase()} AREA`);
       if (!f) { L.push("  incomplete"); continue; }
-      L.push(`  cut points: fingertip < ${f.t1.toFixed(1)} px ≤ normal < ${f.t2.toFixed(1)} px ≤ flat`);
+      L.push(`  cut point: not flat < ${f.t1.toFixed(1)} px ≤ flat`);
       L.push(`  misclassified ${f.errors} of ${f.n} taps (${(f.errorRate * 100).toFixed(0)}%)`);
-      L.push(`  taps inside the neighbouring class's size range: fingertip/normal ${f.overlapTipNormal}, normal/flat ${f.overlapNormalFlat}`);
-      L.push("  size px   tip normal flat");
-      for (const [v, a, b, c] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(3)} ${String(b).padStart(6)} ${String(c).padStart(4)}`);
-      L.push("  heard as →  tip normal flat");
-      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${c.padEnd(7)}     ${String(r.tip).padStart(3)} ${String(r.normal).padStart(6)} ${String(r.flat).padStart(4)}`); }
-      const st = G.CLASSES.flatMap((c) => CAL.samples[side][c].map((q) => G.stableAfter(f, q)));
+      L.push(`  taps inside the other kind's size range: ${f.overlap}`);
+      L.push("  size px   not-flat  flat");
+      for (const [v, a, b] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(8)} ${String(b).padStart(5)}`);
+      L.push("  heard as →    not-flat  flat");
+      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${(c === "normal" ? "not flat" : c).padEnd(10)}   ${String(r.normal).padStart(8)} ${String(r.flat).padStart(5)}`); }
+      const st = ["tip", "normal", "flat"].flatMap((c) => (CAL.samples[side][c] || []).map((q) => G.stableAfter(f, q)));
       if (st.length) L.push(`  class settled after (calibration taps): average ${(st.reduce((a, b) => a + b, 0) / st.length).toFixed(0)} ms, worst ${Math.max(...st).toFixed(0)} ms`);
     }
     const live = gest.stable;
@@ -1830,7 +1880,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["invRoll", "Invert roll"],
     ["Piano layout (choose “piano” in the panel)"],
     ["kbSplit", "Black keys: width (share of the area)", 0.3, 0.85, 0.01, (v) => (v * 100).toFixed(0) + "%"],
-    ["kbBlack", "Black keys: height (share of a white key)", 0.3, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbEdge", "Black keys: height at the inner edge (share of a white key)", 0.5, 0.98, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbBlack", "Black keys: height at the tip", 0.2, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -1838,7 +1889,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
-    if (k === "kbSplit" || k === "kbBlack") layout();
+    if (k === "kbSplit" || k === "kbBlack" || k === "kbEdge") layout();
     if (k === "tiltSource") tilt.cands = null;
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
@@ -1862,7 +1913,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   $("calCopy").onclick = () => {
     const ta = $("calSel");
     ta.value = calText() + "\n\nRAW CALIBRATION (size px per tap, by area and kind; each tap: sizes seen in its first 400 ms)\n" +
-      ["left", "right"].map((side) => G.CLASSES.map((c) => `${side} ${c}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0)).join(">")).join("  ")).join("\n")).join("\n");
+      ["left", "right"].map((side) => ["tip", "normal", "flat"].filter((c) => (CAL.samples[side][c] || []).length).map((c) => `${side} ${c === "tip" ? "fingertip (counted as not flat)" : c === "normal" ? "not flat" : "flat"}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0) + "@" + Math.round(x[0])).join(">")).join("  ")).join("\n")).join("\n") + "\n(each reading: size px @ ms after landing)";
     ta.hidden = false;
     SH.copyText(ta, (m) => { $("calCopyMsg").textContent = m + ": paste it to Claude"; });
   };
@@ -1961,7 +2012,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
 </script>
 <script>
-/* Touch-area mode, PRACTICE: four items for learning the three kinds of press (fingertip, normal, flat).
+/* Touch-area mode, PRACTICE: four items for learning the two kinds of press (not flat, flat).
    Every drill plays through the real gesture and sound layers (you hear what you pressed) and judges the
    kind from your calibration, exactly as play would. Results are kept on this device with the date.
      1 Mixed: 30 prompts, kind and area at random (balanced).
@@ -1971,22 +2022,22 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
      4 Progress: every finished drill, with date, accuracy per kind and per area, and timing. */
 (function (root) {
   "use strict";
-  const KINDS = ["tip", "normal", "flat"];
-  const NAME = { tip: "FINGERTIP", normal: "NORMAL", flat: "FLAT" };
-  const SHORT = { tip: "T", normal: "N", flat: "F" };
+  const KINDS = ["normal", "flat"]; // two kinds since 24 Nov 2026: not flat, flat
+  const NAME = { normal: "NOT FLAT", flat: "FLAT" };
+  const SHORT = { normal: "N", flat: "F" };
 
   /* ---------- pure parts (tested in node) ---------- */
   function rand(seed) { let r = seed || Date.now() % 2147483647 || 1; return () => ((r = (r * 16807) % 2147483647) / 2147483647); }
   function shuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   /* n prompts, kinds (and sides) as even as n allows, shuffled */
-  function makeDeck(n, sides, rnd) {
-    const combos = []; for (const s of sides) for (const k of KINDS) combos.push({ side: s, kind: k });
-    const out = []; while (out.length < n) out.push(...shuffle(combos.slice(), rnd));
-    return shuffle(out.slice(0, n), rnd);
+  function makeDeck(n, sides, rnd) { // kinds even, sides even, each shuffled on its own
+    const fill = (list) => shuffle(Array.from({ length: n }, (_, i) => list[i % list.length]), rnd);
+    const ks = fill(KINDS), ss = fill(sides);
+    return ks.map((kind, i) => ({ side: ss[i], kind }));
   }
   function tally(items) { // items: {side, kind, got}
     const by = (f) => { const m = {}; for (const it of items) { const k = f(it); m[k] = m[k] || { n: 0, ok: 0 }; m[k].n++; if (it.got === it.kind) m[k].ok++; } return m; };
-    const confusion = {}; for (const k of KINDS) { confusion[k] = { tip: 0, normal: 0, flat: 0, none: 0 }; }
+    const confusion = {}; for (const k of KINDS) { confusion[k] = { normal: 0, flat: 0, none: 0 }; }
     for (const it of items) confusion[it.kind][it.got || "none"]++;
     const ok = items.filter((it) => it.got === it.kind).length;
     return { n: items.length, ok, pct: items.length ? (100 * ok) / items.length : 0, byKind: by((it) => it.kind), bySide: by((it) => it.side), confusion };
@@ -2068,13 +2119,13 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         if (H.T().bpm !== bpmAt) { stop(); show("RHYTHM", "", "", "Stopped: the tempo changed."); return; }
         // the beat shown is the nearest one: from halfway after a beat on, the screen shows the coming beat
         const now = ctx.currentTime, beat = Math.floor((now - t0) / spb + 0.5);
-        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "T fingertip · N normal · F flat"); return; }
+        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "N not flat · F flat"); return; }
         const bar = Math.floor((beat - 4) / 4), inBar = (beat - 4) % 4;
         if (bar >= bars) { if (now > beats[beats.length - 1].t + 0.3) { const sc = rhythmScore(beats, onsets.filter((o) => o.t >= beats[0].t - 0.25)); finish({ drill: "rhythm", bpm: bpmAt, tally: sc.tally, missed: sc.missed, extra: sc.extra, meanAbsMs: sc.meanAbsMs, meanMs: sc.meanMs, items: sc.res.map((r) => ({ side: r.side, kind: r.kind, got: r.got, err: r.err })) }); } return; }
         const side = bar % 2 ? "right" : "left"; H.target(side);
         const pat = deck.slice(bar * 4, bar * 4 + 4).map((k, j) => (j === inBar ? `[${SHORT[k]}]` : SHORT[k])).join(" ");
         const nxt = bar + 1 < bars ? `next: ${bar % 2 ? "LEFT" : "RIGHT"} ` + deck.slice((bar + 1) * 4, (bar + 1) * 4 + 4).map((k) => SHORT[k]).join(" ") : "last bar";
-        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "T fingertip · N normal · F flat");
+        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "N not flat · F flat");
       }, 30);
     }
 
@@ -2082,10 +2133,10 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     function two() {
       const rnd = rand(), pairs = [];
       for (const a of KINDS) for (const b of KINDS) pairs.push([a, b]);
-      const deck = shuffle([...pairs, ...pairs], rnd); // 18: every combination twice
+      const deck = shuffle([...pairs, ...pairs, ...pairs, ...pairs], rnd); // 16: every combination four times
       const items = [], gaps = [];
       let i = 0, cur = null;
-      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/18`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
+      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/${deck.length}`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
       const fn = (ev) => {
         if (ev.type === "onset") { cur.held++; const s = ev.side === "left" ? "l" : "r"; if (!cur[s]) cur[s] = { kind: kindOf(ev), t: ev.t, size: ev.size }; }
         if (ev.type === "release") {
@@ -2110,23 +2161,23 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     /* reports */
     function summary(e) {
       const t = e.tally, L = [];
-      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: "TWO THUMBS (18 pairs)" }[e.drill];
+      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: `TWO THUMBS (${e.pairs} pairs)` }[e.drill];
       L.push(`${head}  ${e.date.slice(0, 16).replace("T", " ")}`);
       L.push(`kinds right: ${t.ok} of ${t.n} (${pct(t.pct)})` + (e.drill === "two" ? `; both thumbs right: ${e.pairsRight} of ${e.pairs}; pressed together within ${e.meanGapMs.toFixed(0)} ms on average` : ""));
       if (e.drill === "rhythm") L.push(`beats missed ${e.missed}, extra taps ${e.extra}; timing off by ${e.meanAbsMs == null ? "–" : e.meanAbsMs.toFixed(0)} ms on average (${e.meanMs == null ? "" : e.meanMs < 0 ? "early" : "late"} ${e.meanMs == null ? "" : Math.abs(e.meanMs).toFixed(0) + " ms overall"})`);
-      L.push("by kind:  " + KINDS.map((k) => `${k} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
+      L.push("by kind:  " + KINDS.map((k) => `${NAME[k].toLowerCase()} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
       L.push("by area:  " + ["left", "right"].map((s) => `${s} ${t.bySide[s] ? pct((100 * t.bySide[s].ok) / t.bySide[s].n) : "–"}`).join("   "));
-      L.push("asked → heard as     tip normal flat  none");
-      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${k.padEnd(18)} ${String(c.tip).padStart(4)} ${String(c.normal).padStart(6)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
+      L.push("asked → heard as   not-flat  flat  none");
+      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${NAME[k].toLowerCase().padEnd(16)} ${String(c.normal).padStart(8)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
       return L.join("\n");
     }
     function progress() {
       const all = load();
       if (!all.length) { overlay("No practice sessions yet."); return; }
-      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right   tip  normal  flat   left right  timing  cal. of", ""];
+      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right  notflat  flat   left right  timing  cal. of", ""];
       for (const e of all) {
         const t = e.tally, k = (x) => (t.byKind[x] ? pct((100 * t.byKind[x].ok) / t.byKind[x].n) : "–"), s = (x) => (t.bySide[x] ? pct((100 * t.bySide[x].ok) / t.bySide[x].n) : "–");
-        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("tip").padStart(5)} ${k("normal").padStart(6)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
+        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("normal").padStart(7)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
       }
       L.push("", "timing: rhythm = average distance from the beat; two thumbs (⇄) = average gap between the thumbs.", "", "DETAIL", ...all.map(summary));
       overlay(L.join("\n"));

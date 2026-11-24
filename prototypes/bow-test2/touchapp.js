@@ -31,13 +31,17 @@
 
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
-    layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
+    layout: "piano", kbSplit: 0.6, kbBlack: 0.5, kbEdge: 0.9, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
     tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
+  // settings version 2 (24 Nov 2026, the owner: no latency): bring the delay-related settings saved by older
+  // versions to the new defaults once
+  if ((T.ver || 0) < 2) { for (const k of ["octHystDeg", "tiltLookMs", "slideDwellMs", "tiltSource", "tiltTau", "gyroCorrS", "decideMs"]) T[k] = T_DEFAULTS[k]; T.ver = 2; }
+  T.layout = "piano"; // the owner, 24 Nov 2026: the piano only ("we don't want to go back")
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
   const computeRows = () => { ROWS = G.doToDo(T.tonic, T.minor, T.octaves, T.layout === "piano"); };
@@ -54,10 +58,12 @@
   let FIT = { left: null, right: null }, RANGE = {};
   function refit() {
     for (const side of ["left", "right"]) {
-      const by = {}; for (const c of G.CLASSES) by[c] = CAL.samples[side][c].map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      // two kinds: earlier three-kind calibrations count their fingertip taps as "not flat"
+      const at = (c) => (CAL.samples[side][c] || []).map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      const by = { normal: at("tip").concat(at("normal")), flat: at("flat") };
       FIT[side] = G.fitThresholds(by);
       const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-      RANGE[side] = FIT[side] ? [mean(by.tip), mean(by.flat)] : [24, 194];
+      RANGE[side] = FIT[side] ? [mean(by.normal), mean(by.flat)] : [24, 194];
     }
   }
   refit();
@@ -105,11 +111,11 @@
       el.innerHTML = "";
       if (T.layout === "piano") {
         // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
-        const kb = (KB[side] = new G.Keyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, slant: T.kbSlant }, r.width, r.height));
-        const X = (u) => (side === "L" ? r.width - u : u), sU = T.kbSplit * r.width, tau = Math.max(0.5, T.kbSlant * r.width);
+        const kb = (KB[side] = new G.WedgeKeyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, edge: T.kbEdge, slant: T.kbSlant }, r.width, r.height));
+        const X = (u) => (side === "L" ? r.width - u : u);
         let svg = `<svg width="${r.width}" height="${r.height}" style="position:absolute;left:0;top:0">`;
         for (const k of kb.keys) if (k.white) svg += `<rect class="wk${pcName(k.midi) === G.NAMES[T.tonic] ? " tonic" : ""}" data-row="${k.row}" x="0" y="${k.y - k.h / 2}" width="${r.width}" height="${k.h}"/><text x="${side === "L" ? 6 : r.width - 6}" y="${k.y + 3}" text-anchor="${side === "L" ? "start" : "end"}" class="kt">${G.noteName(k.midi)}</text>`;
-        for (const k of kb.keys) if (!k.white) { const y0 = k.y - k.h / 2, y1 = k.y + k.h / 2, u1 = sU - tau / 2, u2 = sU + tau / 2; svg += `<polygon class="bk" data-row="${k.row}" points="${X(0)},${y0} ${X(u1)},${y0} ${X(u2)},${k.y} ${X(u1)},${y1} ${X(0)},${y1}"/>`; }
+        for (const k of kb.keys) if (!k.white) svg += `<polygon class="bk" data-row="${k.row}" points="${k.poly.map(([u, y]) => X(u) + "," + y).join(" ")}"/>`;
         el.innerHTML = svg + "</svg>";
       } else ROWS.forEach((m, i) => {
         const d = document.createElement("div"); d.className = "trow" + (G.NAMES[m % 12] === G.NAMES[T.tonic] ? " tonic" : "");
@@ -253,7 +259,7 @@
   /* ---------- calibration: 10 taps per class, per area ---------- */
   const STEPS = [];
   for (const side of ["left", "right"]) for (const c of G.CLASSES) STEPS.push({ side, c });
-  const CNAME = { tip: "FINGERTIP", normal: "NORMAL THUMB", flat: "FLAT THUMB PAD" };
+  const CNAME = { normal: "NOT FLAT\n(your ordinary press)", flat: "FLAT THUMB PAD" };
   let calib = null, calRec = null;
   function calStart() {
     calib = { step: 0, taps: STEPS.map(() => []) };
@@ -262,7 +268,7 @@
   }
   function calPaint() {
     const st = STEPS[calib.step], n = calib.taps[calib.step].length;
-    $("calStep").textContent = `Step ${calib.step + 1} of 6`;
+    $("calStep").textContent = `Step ${calib.step + 1} of ${STEPS.length}`;
     $("calWhat").textContent = `${st.side === "left" ? "LEFT" : "RIGHT"} area\n${CNAME[st.c]}`;
     $("calCount").textContent = `${n} / 10 taps` + (calRec ? "" : "");
     $("tL").classList.toggle("target", st.side === "left"); $("tR").classList.toggle("target", st.side === "right");
@@ -286,6 +292,7 @@
   }
   function calFinish() {
     STEPS.forEach((st, i) => { CAL.samples[st.side][st.c] = calib.taps[i]; });
+    for (const side of ["left", "right"]) CAL.samples[side].tip = []; // a two-kind calibration replaces any older fingertip taps
     CAL.savedAt = new Date().toISOString();
     try { localStorage.setItem("touchcal", JSON.stringify(CAL)); } catch (e) { /* none */ }
     calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
@@ -304,14 +311,14 @@
       const f = FIT[side];
       L.push("", `${side.toUpperCase()} AREA`);
       if (!f) { L.push("  incomplete"); continue; }
-      L.push(`  cut points: fingertip < ${f.t1.toFixed(1)} px ≤ normal < ${f.t2.toFixed(1)} px ≤ flat`);
+      L.push(`  cut point: not flat < ${f.t1.toFixed(1)} px ≤ flat`);
       L.push(`  misclassified ${f.errors} of ${f.n} taps (${(f.errorRate * 100).toFixed(0)}%)`);
-      L.push(`  taps inside the neighbouring class's size range: fingertip/normal ${f.overlapTipNormal}, normal/flat ${f.overlapNormalFlat}`);
-      L.push("  size px   tip normal flat");
-      for (const [v, a, b, c] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(3)} ${String(b).padStart(6)} ${String(c).padStart(4)}`);
-      L.push("  heard as →  tip normal flat");
-      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${c.padEnd(7)}     ${String(r.tip).padStart(3)} ${String(r.normal).padStart(6)} ${String(r.flat).padStart(4)}`); }
-      const st = G.CLASSES.flatMap((c) => CAL.samples[side][c].map((q) => G.stableAfter(f, q)));
+      L.push(`  taps inside the other kind's size range: ${f.overlap}`);
+      L.push("  size px   not-flat  flat");
+      for (const [v, a, b] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(8)} ${String(b).padStart(5)}`);
+      L.push("  heard as →    not-flat  flat");
+      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${(c === "normal" ? "not flat" : c).padEnd(10)}   ${String(r.normal).padStart(8)} ${String(r.flat).padStart(5)}`); }
+      const st = ["tip", "normal", "flat"].flatMap((c) => (CAL.samples[side][c] || []).map((q) => G.stableAfter(f, q)));
       if (st.length) L.push(`  class settled after (calibration taps): average ${(st.reduce((a, b) => a + b, 0) / st.length).toFixed(0)} ms, worst ${Math.max(...st).toFixed(0)} ms`);
     }
     const live = gest.stable;
@@ -354,7 +361,8 @@
     ["invRoll", "Invert roll"],
     ["Piano layout (choose “piano” in the panel)"],
     ["kbSplit", "Black keys: width (share of the area)", 0.3, 0.85, 0.01, (v) => (v * 100).toFixed(0) + "%"],
-    ["kbBlack", "Black keys: height (share of a white key)", 0.3, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbEdge", "Black keys: height at the inner edge (share of a white key)", 0.5, 0.98, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbBlack", "Black keys: height at the tip", 0.2, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -362,7 +370,7 @@
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
-    if (k === "kbSplit" || k === "kbBlack") layout();
+    if (k === "kbSplit" || k === "kbBlack" || k === "kbEdge") layout();
     if (k === "tiltSource") tilt.cands = null;
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
@@ -386,7 +394,7 @@
   $("calCopy").onclick = () => {
     const ta = $("calSel");
     ta.value = calText() + "\n\nRAW CALIBRATION (size px per tap, by area and kind; each tap: sizes seen in its first 400 ms)\n" +
-      ["left", "right"].map((side) => G.CLASSES.map((c) => `${side} ${c}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0)).join(">")).join("  ")).join("\n")).join("\n");
+      ["left", "right"].map((side) => ["tip", "normal", "flat"].filter((c) => (CAL.samples[side][c] || []).length).map((c) => `${side} ${c === "tip" ? "fingertip (counted as not flat)" : c === "normal" ? "not flat" : "flat"}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0) + "@" + Math.round(x[0])).join(">")).join("  ")).join("\n")).join("\n") + "\n(each reading: size px @ ms after landing)";
     ta.hidden = false;
     SH.copyText(ta, (m) => { $("calCopyMsg").textContent = m + ": paste it to Claude"; });
   };

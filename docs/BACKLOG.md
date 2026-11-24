@@ -3,6 +3,14 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Two-thumb test bench (`prototypes/bow-test2/`): sounds button (added 24 November 2026, not started)
+
+The owner: add a sounds button to the touch-area prototype that switches between instruments, and bring in
+some of the main game's good sounds and playing knowledge. Three instruments: one synth, one flute (the
+game's flute), one piano (the game's piano). Use what the main game has learnt about playing, so the
+prototype plays better. The prototype is throwaway (its own folder, not part of the game); the standing rule
+on sound changes (the owner listens first) applies if anything moves into the game.
+
 ## Code audit, Phase 2 (quick wins done 24 November 2026; the rest not started)
 
 Report: docs/audits/CODE-AUDIT-PHASE1.md. Done and live (WTC 3.28-3.33; D1050-D1053): deploy of #496/#498; quick/full test tiers

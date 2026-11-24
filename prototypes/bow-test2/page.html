@@ -53,11 +53,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
 .trow.tonic { background: rgba(127, 176, 201, 0.07); }
 .trow.on { background: var(--rosin); color: #1a1408; }
-.wk { fill: #cbc6b8; stroke: #6f6c64; stroke-width: 1; }
-.wk.tonic { fill: #ddd2b4; }
-.bk { fill: #101114; stroke: #000; stroke-width: 1; }
+.wk { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.wk.tonic { fill: #222a31; }
+.bk { fill: #08090c; stroke: #59606f; stroke-width: 1; }
 .wk.on, .bk.on { fill: var(--rosin); }
-.kt { font: 9px var(--f-num); fill: #3d3b36; pointer-events: none; }
+.kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
 .tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
@@ -138,8 +138,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
   <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
-    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout"><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
     <div id="tRd" class="rd"></div>

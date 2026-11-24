@@ -4,7 +4,7 @@
            {type:"contact", id, t, size, norm, norm0}  (continuous: contact size now, and at the onset)
            {type:"release", id, t}
            {type:"tilt", t, bend, vib, bright}         (bend in semitones, vib depth and bright in cents)
-   onset carries cls ("tip" | "normal" | "flat" | null) and size; contact carries size and norm (0..1).
+   onset carries cls ("normal" | "flat" | null) and size; contact carries size and norm (0..1).
    Contact size = PointerEvent.width (CSS px). The probe on an iPhone (iOS 27, 24 Nov 2026) found it in
    8 steps of 24.2 px (24…194); touch.radiusX has only 4 steps and force is always 0, so width is the signal.
 
@@ -95,17 +95,54 @@
     return out;
   }
 
+  /* The prototype's piano (the owner, 24 Nov 2026): as D330's, but each black key widens toward the inner
+     edge (`edge` of a white key's height there, `black` at its tip end), so a thumb near the edge cannot miss
+     it. What is drawn is what is hit: black keys are polygons tested first, white keys are full-width bands. */
+  class WedgeKeyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites), wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const tau = Math.max(0.5, shape.slant * bw), u1 = Math.max(1, shape.split * bw - tau / 2), u2 = shape.split * bw + tau / 2;
+      const keys = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        const next = wi[j + 1]; if (next === undefined) return;
+        const n = next - r - 1; if (n <= 0) return;
+        const yb = y - wh / 2, cap = 0.98 / n;
+        const he = Math.min(shape.edge, cap) * wh, ht = Math.min(shape.black, cap) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * he;
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: ht, poly: [[0, yc - he / 2], [u1, yc - ht / 2], [u2, yc], [u1, yc + ht / 2], [0, yc + he / 2]] });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.whitesList = keys.filter((k) => k.white);
+    }
+    hit(u, y) {
+      for (const k of this.keys) if (!k.white && inPoly(k.poly, u, y)) return { row: k.row, white: false };
+      let best = this.whitesList[0], bd = Infinity;
+      for (const k of this.whitesList) { const d = Math.abs(y - k.y); if (d < bd) { bd = d; best = k; } }
+      return { row: best.row, white: true };
+    }
+  }
+  function inPoly(p, x, y) { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; }
+
   const rowH = (n, h) => Math.max(4, (h - 2 * MARGIN) / n);
   function rowAt(n, y, h) { const r = n - 1 - Math.floor((y - MARGIN) / rowH(n, h)); return Math.max(0, Math.min(n - 1, r)); }
   const rowMid = (n, row, h) => MARGIN + (n - 1 - row + 0.5) * rowH(n, h);
 
   /* ---------- contact classes ---------- */
-  const CLASSES = ["tip", "normal", "flat"];
-  const classify = (th, size) => (!th || size == null ? null : size < th.t1 ? "tip" : size < th.t2 ? "normal" : "flat");
+  /* Two kinds (the owner, 24 Nov 2026, after three calibrations: "three distinct types simply won't work"):
+     NOT FLAT (any ordinary press, fingertip included) and FLAT (the thumb pad laid down). One cut point. */
+  const CLASSES = ["normal", "flat"];
+  const classify = (th, size) => (!th || size == null ? null : size < th.t1 ? "normal" : "flat");
   /* The largest size seen within `ms` of landing (seq: [[ms after landing, size], ...]). */
   function sizeAt(seq, ms) { let m = null; for (const [dt, v] of seq) if (dt <= ms + 0.5 && (m === null || v > m)) m = v; return m; }
-  /* Two cut points (tip | normal | flat) with the fewest calibration taps on the wrong side;
-     ties go to the cut farthest from the nearest tap. by = {tip:[sizes], normal:[...], flat:[...]}. */
+  /* The cut point with the fewest calibration taps on the wrong side; ties go to the cut farthest from
+     the nearest tap. by = {normal:[sizes], flat:[sizes]}. */
   function fitThresholds(by) {
     if (CLASSES.some((c) => !by[c] || !by[c].length)) return null;
     const all = CLASSES.flatMap((c) => by[c]);
@@ -115,18 +152,17 @@
     cuts.push(vals[vals.length - 1] + 1);
     const gap = (c) => Math.min(...all.map((v) => Math.abs(v - c)));
     let best = null;
-    for (let i = 0; i < cuts.length; i++) for (let j = i; j < cuts.length; j++) {
-      const th = { t1: cuts[i], t2: cuts[j] };
+    for (const t1 of cuts) {
+      const th = { t1 };
       let err = 0; for (const c of CLASSES) for (const v of by[c]) if (classify(th, v) !== c) err++;
-      const margin = Math.min(gap(th.t1), gap(th.t2));
-      if (!best || err < best.err || (err === best.err && margin > best.margin)) best = { ...th, err, margin };
+      const margin = gap(t1);
+      if (!best || err < best.err || (err === best.err && margin > best.margin)) best = { t1, err, margin };
     }
-    const confusion = {}; for (const c of CLASSES) { confusion[c] = { tip: 0, normal: 0, flat: 0 }; for (const v of by[c]) confusion[c][classify(best, v)]++; }
+    const confusion = {}; for (const c of CLASSES) { confusion[c] = { normal: 0, flat: 0 }; for (const v of by[c]) confusion[c][classify(best, v)]++; }
     const hist = vals.map((v) => [v, ...CLASSES.map((c) => by[c].filter((x) => x === v).length)]);
-    const overlap = (a, b) => by[a].filter((v) => v >= Math.min(...by[b])).length + by[b].filter((v) => v <= Math.max(...by[a])).length;
     const n = all.length;
-    return { t1: best.t1, t2: best.t2, errors: best.err, n, errorRate: best.err / n, confusion, hist,
-      overlapTipNormal: overlap("tip", "normal"), overlapNormalFlat: overlap("normal", "flat") };
+    return { t1: best.t1, errors: best.err, n, errorRate: best.err / n, confusion, hist,
+      overlap: by.normal.filter((v) => v >= Math.min(...by.flat)).length + by.flat.filter((v) => v <= Math.max(...by.normal)).length };
   }
   /* How long after landing the class stopped changing (ms), from a size sequence. */
   function stableAfter(th, seq) {
@@ -148,20 +184,27 @@
      gyroscope's sign and unit conventions are not assumed: four candidate trackers run side by side
      (±, degrees or radians per second) and the one that best predicts the accelerometer is used.
      SOURCE "gravity": the accelerometer alone, low-passed (P.tiltTau), as before. */
-  const CANDS = [[1, Math.PI / 180], [-1, Math.PI / 180], [1, 1], [-1, 1]];
+  /* Candidate readings of rotationRate: axis labelling × sign × units. "standard": the spec's (alpha about z,
+     beta about x, gamma about y); "swapped": alpha, beta, gamma about x, y, z, as WebKit is reported to label
+     them (the owner's tilt felt late on an iPhone, 24 Nov 2026: if only the standard labelling is tried and
+     Safari uses the other, the gyroscope is wasted and tilt waits for the slow gravity correction). */
+  const CANDS = [];
+  for (const map of ["swapped", "standard"]) for (const sg of [1, -1]) for (const k of [Math.PI / 180, 1]) CANDS.push([map, sg, k]);
+  const wOf = (c, r) => { const f = c.sg * c.k; return c.map === "standard" ? [r.beta * f, r.gamma * f, r.alpha * f] : [r.alpha * f, r.beta * f, r.gamma * f]; };
   class TiltReader {
     constructor(emit) { this.emit = emit; this.g = null; this.gl = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; this.cands = null; this.best = 0; this.source = "gravity"; }
     /* the fused gravity estimate: returns false if no gyroscope data */
     fuse(dt, gm, rot, P) {
       if (!rot || rot.alpha == null || rot.beta == null || rot.gamma == null) return false;
-      if (!this.cands) this.cands = CANDS.map(([sg, k]) => ({ sg, k, g: gm.slice(), err: 0 }));
+      if (!this.cands) this.cands = CANDS.map(([map, sg, k]) => ({ map, sg, k, g: gm.slice(), err: 0 }));
       const corr = Math.min(1, dt / Math.max(0.05, P.gyroCorrS));
       for (const c of this.cands) {
-        const w = [rot.beta * c.sg * c.k, rot.gamma * c.sg * c.k, rot.alpha * c.sg * c.k]; // about x, y, z
+        const w = wOf(c, rot); // about x, y, z
         const g = c.g, cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
         const pred = [g[0] - cr[0] * dt, g[1] - cr[1] * dt, g[2] - cr[2] * dt]; // a world-fixed vector seen from a rotating body
-        const cos = (pred[0] * this.gl[0] + pred[1] * this.gl[1] + pred[2] * this.gl[2]) / (Math.hypot(...pred) * Math.hypot(...this.gl) || 1);
-        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 2);
+        // judged against the raw accelerometer (unbiased; its jolts are the same for every candidate), over ~1 s
+        const cos = (pred[0] * gm[0] + pred[1] * gm[1] + pred[2] * gm[2]) / (Math.hypot(...pred) * Math.hypot(...gm) || 1);
+        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 1);
         c.g = pred.map((v, i) => v + (gm[i] - v) * corr);
       }
       const cur = this.cands[this.best];
@@ -170,7 +213,7 @@
       this.rot = rot;
       return true;
     }
-    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
+    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (${c.map} axes, sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
     takeRef() {
       const g = this.g, m = Math.hypot(g[0], g[1]);
       if (m < 1) return false; // lying flat: wait for a held reading
@@ -196,7 +239,7 @@
       let gNow = this.g;
       if (this.source === "fused" && P.tiltLookMs > 0 && this.rot) {
         const c = this.cands[this.best], la = P.tiltLookMs / 1000, r = this.rot;
-        const w = [r.beta * c.sg * c.k, r.gamma * c.sg * c.k, r.alpha * c.sg * c.k], g = this.g;
+        const w = wOf(c, r), g = this.g;
         const cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
         gNow = [g[0] - cr[0] * la, g[1] - cr[1] * la, g[2] - cr[2] * la];
       }
@@ -310,5 +353,5 @@
 
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const noteName = (m) => NAMES[pcOf(m)] + (Math.floor(m / 12) - 1);
-  window.TouchGest = { doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
+  window.TouchGest = { WedgeKeyboard, doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
 })();
