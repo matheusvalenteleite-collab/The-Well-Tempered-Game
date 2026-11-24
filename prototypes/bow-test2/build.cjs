@@ -1,6 +1,6 @@
 // Builds two single-file pages from page.html + bowcore.js + app.js:
 //   dist/artifact.html  (body fragment, for a claude.ai Artifact, which adds its own <head>)
-//   dist/index.html     (complete page, for any static host)
+//   dist/index.html and index.html (complete page, for any static host; index.html is the committed copy)
 const fs = require("fs"), path = require("path");
 const dir = __dirname, rd = (f) => fs.readFileSync(path.join(dir, f), "utf8");
 let page = rd("page.html");
@@ -11,5 +11,7 @@ const head = `<!doctype html>\n<html lang="en"><head><meta charset="utf-8">\n<me
 const [pre, ...rest] = page.split("</style>");
 const headPart = pre + "</style>" + rest[0].slice(0, rest[0].indexOf("\n<div"));
 const body = rest.join("</style>").slice(rest[0].indexOf("\n<div"));
-fs.writeFileSync(path.join(dir, "dist/index.html"), head + headPart + "\n</head><body>" + body + "\n</body></html>\n");
+const full = head + headPart + "\n</head><body>" + body + "\n</body></html>\n";
+fs.writeFileSync(path.join(dir, "dist/index.html"), full);
+fs.writeFileSync(path.join(dir, "index.html"), full); // committed copy (dist/ is git-ignored), for static hosting
 console.log("built dist/artifact.html and dist/index.html");
