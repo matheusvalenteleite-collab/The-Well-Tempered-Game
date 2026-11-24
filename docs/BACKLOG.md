@@ -3,6 +3,42 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
+
+Report: docs/audits/CODE-AUDIT-PHASE1.md. Owner decisions: "delete all retired features outright"; "the older
+counterpoint app is not a product anymore and should stop being published"; start with the quick safe wins. The job was
+handed to the design studio session (rows D1050-D1069), then stopped at once; any WIP is on its branches, unreviewed.
+Order: A delete retired features (MANUAL, TWO HANDS, unoffered readings, FILM, SYNTH_LAYERS_SOUND, five unused skins);
+B lazy-load lamejs and developer-only code (not the pieces.json split yet); C stop publishing index.html, root redirects to
+play.html; D quick/full test tiers; E JSON type declarations so tsc runs without the 4096 MB flag; F x.tmp.ts, merged
+branches (list to the board before deleting), DECISIONS.md split. Owner to do: set GitHub's default branch to the dev branch.
+Merged but not yet released (deploy when work resumes): Canons batch B (#496), the Musical Offering voicing (#498).
+
+## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
+
+All worker sessions were stopped at the owner's request; resume only when the owner says so.
+
+- **Ornament slurs (shakes), APPROVED.** Instruments' gesture proposal (draft D1040,
+  prototypes on `claude/instruments-gesture3-proto`, behind a flag that is off): an ornament plays as one slurred
+  sound with the print's exact pitches and times: brass lip trill, GAME BOY pitch-command trill, SWITCHED-ON legato
+  trill, guitar softer re-strike (hammer-on). Then winds and voices; strings' one-bow trill later; organ tremulant
+  and brass lip vibrato onto sway. The owner: "Instrument shakes are good, I like them."
+- **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
+  `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
+  drops, colour in step. The owner: "I like the crab canon suggestion, build A."
+- **Retiring FLUTE & HARP and ZELENKA (D1037), PR #499, open and unmerged.** It conflicts with dev (#496, #498):
+  `data/touch/colour-plans.json` (regenerate with its tool) and `test/d805-berlin-school.test.ts`; explain the test
+  count (1849 against 1864). II/23: BERLIN SCHOOL unless the owner prefers VOCAL SYNTH (clip on the retirement page).
+- **Prelude II/1's plucked bass line on a sustaining instrument:** an A/B the owner wants to hear ("Maybe yes. Try it out."). Not started.
+- **Strings.** Synthesized strings REJECTED ("I hate the synthesized strings, they're pointless"); STRING CONSORT
+  stays as it is. BAROQUE BAND keeps its old violin and cello with the new oboe; the sampled strings still need a
+  better answer some day (stride, the 2–5 kHz share; see the strings research, D1034).
+- **Also waiting:** the remaining audit items (SUPER 16-BIT strings, sung voices, BACH BRASS attacks, ORCHESTRA &
+  ORGAN with no default piece); Instruments' per-instrument sway/slide/shake design beyond the ornaments; the
+  Musical Offering trio sonata's real voicing (stopgap levels on SUPER 16-BIT are live); the owner's 1741 Goldberg
+  print (Var. 9 bar 11, Var. 24 junctions) and BG 31.2 scan (Canon a 4 octaves) in Drive; the Fuga a 2 Clav. (no
+  word yet); the prelude ABOUT notes (#474) and the preludes leaving the developer view (owner to try first).
+
 ## Chorales (22 November 2026)
 
 - **Lyrics at the top of the music box, not the bottom.** The owner: "chorales lyrics should appear on top of
