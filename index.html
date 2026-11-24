@@ -3,10 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- D1051 (code audit, Phase 2): the older counterpoint app is no longer published; the site's root sends everyone to the game.
+         The query and the hash go along, so an old link with ?unlock=all or a #name-... still lands where it meant to. The old app's
+         own page is counterpoint.html (developer server only, not in the build). -->
+    <meta http-equiv="refresh" content="0; url=./play.html" />
     <title>The Well-Tempered Game</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #0b0d18;
+        color: #fff;
+        font-family: sans-serif;
+      }
+      a {
+        color: #ffd86b;
+      }
+    </style>
+    <script>
+      location.replace("./play.html" + location.search + location.hash);
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <p style="padding: 1em"><a href="./play.html">The Well-Tempered Game</a></p>
   </body>
 </html>
