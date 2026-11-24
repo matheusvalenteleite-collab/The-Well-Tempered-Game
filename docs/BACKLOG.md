@@ -3,6 +3,38 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Instrument gestures and tilt, by batches (agreed 24 November 2026; the owner is short of tokens)
+
+Batch 1 is done (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
+developer view's NEW MECHANICS switch, MECH.bow). Not yet deployed; the owner listens in the New Lab first.
+From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
+The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
+one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
+stay the ornaments. Horizontal responses continuous wherever possible (no classifier). Never adds notes.
+- **Batch 2, PSYCH guitar (approved):** landing place = pick position (inner/bridge bright, outer/neck warm);
+  landing flick = hard pick; held sideways displacement = bend (at most a quarter tone, returns on release;
+  back-and-forth = vibrato, absorbing D1014); join up = hammer-on, join down / set-and-release = pull-off (no
+  pick); slide = smooth quick glide (no fret steps, as D1018); palm mute, harmonics, tremolo picking left out.
+  Tilt for it: LEAN = turning toward the amp, a held note blooming into feedback sustain (may reach its octave
+  partial, owner's yes); STEER left/right (big, with hysteresis) = stomp boxes: rotary "vibe" / fuzz. Start
+  with a short bench test of steering (prototypes/bow-test2): easy with both thumbs playing, never accidental?
+- **Tilt rules (approved):** never affects judging; neutral = how the phone is held when the piece starts;
+  LEAN continuous with a dead zone; STEER on/off stops needing a big turn and a return past neutral; on
+  struck/plucked sounds a stop applies from the next note; motion access asked by a tap (as D335).
+  The table (approved, replaces octave doubling): other guitars lean wah, steer neck/bridge pickup; flute lean
+  rolling in/out, steer flattement off/on; brass lean bell up/down, steer mute; strings lean bow contact point
+  (bridge-fingerboard), steer no vibrato / mute; organ lean swell, steer flute / reed registration; harpsichord
+  steer one manual / coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths
+  lean mod wheel, steer glide off / chorus; GAME BOY steer pulse / wave channel.
+- **Batch 3** voices and winds; **4** brass, organ, harpsichord, piano; **5** synths and chips (designs to
+  draft per family in the frame above, the owner to approve each).
+- **Then: a USER'S MANUAL** with playable animations: the game and the music box shown, arrows drawn on or
+  around the notes in sync with the thumbs' vertical and horizontal movements, extending over time as the
+  sound does. Not started; after the mechanics are approved.
+- **Open from Batch 1:** a listening page with A/B clips before bowing ships to players; low cello notes
+  swing about ±4 dB on headphones (fine on the phone model); PASSAGE bowing not driven live; BAROQUE BAND and
+  ORCHESTRA & ORGAN strings not bowed (no pp/ff layers).
+
 ## Two-thumb test bench (`prototypes/bow-test2/`): sounds button (added 24 November 2026, not started)
 
 The owner: add a sounds button to the touch-area prototype that switches between instruments, and bring in
