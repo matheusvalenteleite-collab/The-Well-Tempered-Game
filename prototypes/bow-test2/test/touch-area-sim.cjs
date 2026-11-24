@@ -73,6 +73,51 @@ async function run(W, H) {
   check(!(await page.locator("#csvBox").isHidden()) && lines[0].startsWith("t_ms,mode,event") && lines.length >= 5 && /touchstart/.test(csv) && /pointerdown/.test(csv), `CSV box: ${lines.length - 1} rows, e.g. ${lines[1]}`);
   await tapEl("#csvClose");
 
+  // FEATURE 1: calibrate (Chromium reports pointer width = 2 × the simulated radius)
+  await tapEl("#tSettings"); await tapEl("#calGo");
+  check(await page.isVisible("#calPanel") && /LEFT/.test(await page.textContent("#calWhat")), "calibration starts: LEFT area, fingertip");
+  if (shotDir) await page.screenshot({ path: path.join(shotDir, `touch-${W}x${H}-calib.png`) });
+  const R = { tip: 12, normal: 36, flat: 72 };
+  let id = 100;
+  for (const [A, x] of [[g.L, xL], [g.R, xR]]) for (const c of ["tip", "normal", "flat"]) for (let k = 0; k < 10; k++) {
+    const r = A === g.L && c === "normal" && k === 0 ? 12 : R[c]; // one normal tap on the left as small as a fingertip
+    const y = yOf(A, 2 + (k % 5)); id++;
+    await touch("touchStart", [[id, x, y]], r); await sleep(20); await touch("touchEnd", [[id, x, y]], r); await sleep(20);
+  }
+  await sleep(200);
+  const cal = await page.evaluate(() => document.getElementById("calRes").textContent);
+  check(!(await page.locator("#tSet").isHidden()) && /LEFT AREA[\s\S]*misclassified 1 of 30/.test(cal) && /RIGHT AREA[\s\S]*misclassified 0 of 30/.test(cal), "calibration done: left 1 of 30 misclassified (the planted one), right 0 of 30; saved and shown");
+  console.log("  " + cal.split("\n").slice(0, 14).join("\n  "));
+  if (shotDir) await page.screenshot({ path: path.join(shotDir, `touch-${W}x${H}-settings.png`) });
+  check(await page.evaluate(() => JSON.parse(localStorage.getItem("touchcal")).samples.right.flat.length === 10), "calibration stored on the device");
+  await tapEl("#setClose");
+
+  // the class sets the timbre
+  const clsOf = async (r) => { id++; await touch("touchStart", [[id, xL, yOf(g.L, 5)]], r); await sleep(60); const c = await page.evaluate(() => [...window.__touch.sound().voices.values()].map((v) => v.cls)); await touch("touchEnd", [[id, xL, yOf(g.L, 5)]], r); await sleep(60); return c.join(","); };
+  const got3 = [await clsOf(12), await clsOf(36), await clsOf(72)];
+  check(got3.join(" ") === "tip normal flat", "fingertip / normal / flat touches play bell / standard / muted: " + got3.join(" "));
+  // a held normal note pressed flatter gets louder and brighter (smoothed)
+  id++; await touch("touchStart", [[id, xR, yOf(g.R, 5)]], 36); await sleep(40);
+  for (let k = 0; k < 5; k++) { await touch("touchMove", [[id, xR, yOf(g.R, 5) + (k % 2)]], 60); await sleep(40); }
+  await sleep(300);
+  const ex = await page.evaluate(() => { const v = [...window.__touch.sound().voices.values()][0]; return { gain: v.expr.gain.value, cents: v.lp.detune.value }; });
+  check(ex.gain > 1.05 && ex.gain < 1.6 && ex.cents > 100, `held note pressed flatter: loudness ×${ex.gain.toFixed(2)} (+${(20 * Math.log10(ex.gain)).toFixed(1)} dB), brightness +${ex.cents.toFixed(0)} cents`);
+  await touch("touchEnd", [[id, xR, yOf(g.R, 5)]], 60);
+
+  // FEATURE 2: tilt (simulated gravity; no motion sensor in a desktop browser)
+  await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = true; c.dispatchEvent(new Event("change")); });
+  const grav = (roll, lean) => { const a = (82 + roll) * Math.PI / 180, l = (-24 + lean) * Math.PI / 180; return { x: Math.sin(a) * Math.cos(l) * 9.8, y: Math.cos(a) * Math.cos(l) * 9.8, z: Math.sin(l) * 9.8 }; };
+  const motion = (g2, n) => page.evaluate(([g2, n]) => { for (let i = 0; i < n; i++) window.__touch.onMotion({ accelerationIncludingGravity: g2 }); }, [g2, n]);
+  await motion(grav(0, 0), 1);
+  await tapEl("#tNeutral");
+  id++; await touch("touchStart", [[id, xL, yOf(g.L, 7)]], 36);
+  for (let k = 0; k < 30; k++) { await motion(grav(30, 30), 1); await sleep(16); }
+  await sleep(250);
+  const tl = await page.evaluate(() => { const s = window.__touch.sound(); return { bend: s.bend.offset.value, bright: s.tiltBright.offset.value, roll: window.__touch.tilt.roll }; });
+  check(Math.abs(tl.bend - 200) < 10 && Math.abs(tl.bright - 1200) < 60, `full roll and pitch: bend ${tl.bend.toFixed(0)} cents (±2 semitones default), brightness +${tl.bright.toFixed(0)} cents`);
+  await touch("touchEnd", [[id, xL, yOf(g.L, 7)]], 36);
+  await page.evaluate(() => { const c = document.getElementById("s_tiltOn"); c.checked = false; c.dispatchEvent(new Event("change")); });
+
   // back to the start screen, then into the bowed prototype and back
   await tapEl("#tMenu");
   check(await page.evaluate(() => window.__mode === "home" && !document.getElementById("home").hidden), "◂ Menu returns to the start screen");

@@ -55,6 +55,14 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .trow.on { background: var(--rosin); color: #1a1408; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
+.calbig { font: 600 16px/1.3 var(--f-ui); white-space: pre-line; color: var(--fg); }
+.calcount { font: 500 20px var(--f-num); color: var(--rosin); }
+.tarea.target { border: 2px solid var(--rosin); }
+#tSet { align-items: stretch; justify-content: flex-start; padding: 8px 48px; overflow-y: auto; touch-action: pan-y; text-align: left; }
+.setcols { display: flex; gap: 18px; align-items: flex-start; }
+#setBody { flex: 1; min-width: 0; }
+#calRes { flex: 1.1; min-width: 0; margin: 0; font: 10px/1.35 var(--f-num); color: var(--fg); white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
 .rd { font: 10px/1.4 var(--f-num); color: var(--dim); white-space: pre-wrap; }
 #diag { position: absolute; inset: 0; pointer-events: none; background: rgba(12, 13, 17, 0.72); padding: 8px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; }
 #diag .bar { pointer-events: auto; align-self: center; }
@@ -109,11 +117,22 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
   <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button></div>
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tNeutral">Set neutral</button></div>
     <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
     <div id="tRd" class="rd"></div>
+  </div>
+  <div id="calPanel" hidden>
+    <div id="calStep" class="rd"></div>
+    <div id="calWhat" class="calbig"></div>
+    <div id="calCount" class="calcount"></div>
+    <div id="calLast" class="rd"></div>
+    <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
+  </div>
+  <div id="tSet" class="overlay" hidden>
+    <div class="bar"><button id="setClose">Close</button></div>
+    <div class="setcols"><div id="setBody"></div><pre id="calRes"></pre></div>
   </div>
   <div id="diag" hidden>
     <div class="bar"><button id="diagCopy">Copy probe report</button><button id="diagClose">Close</button><span id="diagMsg"></span></div>

@@ -15,5 +15,6 @@ Tests (run from this folder; the browser tests need the preinstalled Playwright)
     node --test test/core.test.cjs
     NODE_PATH=$(npm root -g) node test/offline-audio.cjs
     NODE_PATH=$(npm root -g) node test/touch-sim.cjs
+    node --test test/touch.test.cjs
     NODE_PATH=$(npm root -g) node test/touch-area-sim.cjs
     node test/port.test.mts       # the pitch-row port matches the game's free.ts

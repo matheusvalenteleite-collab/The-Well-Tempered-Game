@@ -24,7 +24,10 @@
   };
 
   /* ---------- settings ---------- */
-  let T = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5, sides: "both" };
+  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+    contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
+    tiltOn: false, tiltMode: "bend", bendRange: 2, vibMax: 50, fullDeg: 30, deadDeg: 3, tiltTau: 120, pitchBright: 1, invRoll: false, invPitch: false };
+  let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
@@ -37,13 +40,35 @@
   const TLOG = [];
   function tlog(m) { TLOG.push(((now()) / 1000).toFixed(3) + "  " + m); if (TLOG.length > 500) TLOG.shift(); }
   const active = new Map(); // gesture id -> row, for drawing
-  const gest = new G.TouchGestures(() => ({ left: rect.left, right: rect.right }), () => ROWS, (ev) => {
+  /* ---------- contact-size calibration (kept on this device) ---------- */
+  let CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null };
+  try { const c = JSON.parse(localStorage.getItem("touchcal") || "null"); if (c && c.samples) CAL = c; } catch (e) { /* none */ }
+  let FIT = { left: null, right: null }, RANGE = {};
+  function refit() {
+    for (const side of ["left", "right"]) {
+      const by = {}; for (const c of G.CLASSES) by[c] = CAL.samples[side][c].map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      FIT[side] = G.fitThresholds(by);
+      const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+      RANGE[side] = FIT[side] ? [mean(by.tip), mean(by.flat)] : [24, 194];
+    }
+  }
+  refit();
+  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE });
+  const onEvent = (ev) => {
     if (ev.type === "onset" || ev.type === "pitch") active.set(ev.id, { row: ev.row, side: ev.side || (active.get(ev.id) || {}).side });
     if (ev.type === "release") active.delete(ev.id);
+    if (ev.type === "onset") { lastOnset = ev; SH.csv.add({ mode: "touch", event: "onset", id: ev.id, zone: ev.side, width: ev.size, note: (ev.cls || "") + " " + G.noteName(ev.midi) }); }
     if (sound) sound.handle(ev);
-    lastEv = ev;
-  });
-  let lastEv = null;
+    if (ev.type !== "tilt") lastEv = ev;
+  };
+  const gest = new G.TouchGestures(() => ({ left: rect.left, right: rect.right }), () => ROWS, onEvent, gopts);
+  const tilt = new G.TiltReader(onEvent);
+  let lastEv = null, lastOnset = null;
+  function onMotion(e) {
+    if (!T.tiltOn || window.__mode !== "touch") return;
+    const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
+    tilt.feed(now(), g.x, g.y, g.z, T);
+  }
 
   /* ---------- layout ---------- */
   const rect = { left: null, right: null };
@@ -53,6 +78,7 @@
     Object.assign($("tL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
+    Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
     rect.left = $("tL").getBoundingClientRect(); rect.right = $("tR").getBoundingClientRect();
     for (const side of ["L", "R"]) {
       const el = $("t" + side), r = side === "L" ? rect.left : rect.right;
@@ -94,7 +120,7 @@
 
   function enterTouch() {
     layout();
-    if (!sound && ctx) sound = new S.TouchSound(ctx);
+    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); }
     if (ctx && ctx.state !== "running") ctx.resume();
     if (T.loopOn && sound) sound.startLoop(T.bpm, T.mid, T.loopLevel);
   }
@@ -127,7 +153,7 @@
     if (!window.isSecureContext) { sens.status = "page is not HTTPS: sensors blocked"; return; }
     const attach = () => {
       addEventListener("deviceorientation", (e) => { sens.nOri++; sens.ori = e; SH.csv.add({ mode: "touch", event: "orientation", alpha: e.alpha, beta: e.beta, gamma: e.gamma }); });
-      addEventListener("devicemotion", (e) => { sens.nMot++; sens.mot = e; const a = e.accelerationIncludingGravity || {}, r = e.rotationRate || {}; SH.csv.add({ mode: "touch", event: "motion", accX: a.x, accY: a.y, accZ: a.z, rotA: r.alpha, rotB: r.beta, rotG: r.gamma }); });
+      addEventListener("devicemotion", (e) => { sens.nMot++; sens.mot = e; onMotion(e); const a = e.accelerationIncludingGravity || {}, r = e.rotationRate || {}; SH.csv.add({ mode: "touch", event: "motion", accX: a.x, accY: a.y, accZ: a.z, rotA: r.alpha, rotB: r.beta, rotG: r.gamma }); });
     };
     const DOE = window.DeviceOrientationEvent, DME = window.DeviceMotionEvent;
     if (DOE && typeof DOE.requestPermission === "function") {
@@ -139,7 +165,7 @@
   }
 
   /* ---------- raw input ---------- */
-  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden;
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden;
   const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
   const inArea = (x, y) => gest.sideAt(x, y) !== null;
   document.addEventListener("pointerdown", (e) => {
@@ -148,18 +174,21 @@
     const t = SH.evTime(e);
     livePointer.set(e.pointerId, e); PFIELDS.forEach((k) => note("pointer." + k, e[k]));
     SH.csv.add({ t_ms: t, mode: "touch", event: "pointerdown", id: e.pointerId, zone: gest.sideAt(e.clientX, e.clientY), x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
-    gest.down(e.pointerId, t, e.clientX, e.clientY, touchFor(e.clientX, e.clientY));
+    if (calib) { calDown(e, t); return; }
+    gest.down(e.pointerId, t, e.clientX, e.clientY, contactOf(e));
   }, { passive: false });
   document.addEventListener("pointermove", (e) => {
+    if (calib && calRec && calRec.id === e.pointerId) { e.preventDefault(); const dt = SH.evTime(e) - calRec.t0; if (dt <= 400 && e.width > 1) calRec.seq.push([dt, e.width]); return; }
     if (!gest.held.has(e.pointerId)) return;
     e.preventDefault();
     const t = SH.evTime(e);
     livePointer.set(e.pointerId, e); PFIELDS.forEach((k) => note("pointer." + k, e[k]));
     SH.csv.add({ t_ms: t, mode: "touch", event: "pointermove", id: e.pointerId, zone: gest.held.get(e.pointerId).side, x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
-    gest.move(e.pointerId, t, e.clientX, e.clientY, touchFor(e.clientX, e.clientY));
+    gest.move(e.pointerId, t, e.clientX, e.clientY, contactOf(e));
   }, { passive: false });
   const pend = (e) => {
     livePointer.delete(e.pointerId);
+    if (calib && calRec && calRec.id === e.pointerId) { calUp(); return; }
     if (!gest.held.has(e.pointerId)) return;
     SH.csv.add({ t_ms: SH.evTime(e), mode: "touch", event: e.type, id: e.pointerId, x: e.clientX, y: e.clientY });
     gest.up(e.pointerId, SH.evTime(e));
@@ -182,7 +211,127 @@
   }
   ["touchstart", "touchmove", "touchend", "touchcancel"].forEach((k) => document.addEventListener(k, onTouch, { passive: false }));
   /* the latest Touch near a point (pointer and touch ids differ in Safari) */
+  function contactOf(e) { return Object.assign({}, touchFor(e.clientX, e.clientY) || {}, { width: e.width, height: e.height }); }
   function touchFor(x, y) { let best = null, bd = 60; for (const p of liveTouch.values()) { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } } return best; }
+
+  /* ---------- calibration: 10 taps per class, per area ---------- */
+  const STEPS = [];
+  for (const side of ["left", "right"]) for (const c of G.CLASSES) STEPS.push({ side, c });
+  const CNAME = { tip: "FINGERTIP", normal: "NORMAL THUMB", flat: "FLAT THUMB PAD" };
+  let calib = null, calRec = null;
+  function calStart() {
+    calib = { step: 0, taps: STEPS.map(() => []) };
+    $("tSet").hidden = true; $("tPanel").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
+    calPaint();
+  }
+  function calPaint() {
+    const st = STEPS[calib.step], n = calib.taps[calib.step].length;
+    $("calStep").textContent = `Step ${calib.step + 1} of 6`;
+    $("calWhat").textContent = `${st.side === "left" ? "LEFT" : "RIGHT"} area\n${CNAME[st.c]}`;
+    $("calCount").textContent = `${n} / 10 taps` + (calRec ? "" : "");
+    $("tL").classList.toggle("target", st.side === "left"); $("tR").classList.toggle("target", st.side === "right");
+  }
+  function calDown(e, t) {
+    const st = STEPS[calib.step];
+    if (gest.sideAt(e.clientX, e.clientY) !== st.side || calRec) return;
+    calRec = { id: e.pointerId, t0: t, seq: e.width > 1 ? [[0, e.width]] : [] };
+    $("calLast").textContent = "";
+  }
+  function calUp() {
+    const rec = calRec; calRec = null;
+    if (!rec.seq.length) { $("calLast").textContent = "no size reported: tap again"; return; }
+    calib.taps[calib.step].push(rec.seq);
+    $("calLast").textContent = `last tap: ${rec.seq.map((q) => q[1].toFixed(0)).join("→")} px`;
+    if (calib.taps[calib.step].length >= 10) {
+      if (calib.step < STEPS.length - 1) calib.step++;
+      else return calFinish();
+    }
+    calPaint();
+  }
+  function calFinish() {
+    STEPS.forEach((st, i) => { CAL.samples[st.side][st.c] = calib.taps[i]; });
+    CAL.savedAt = new Date().toISOString();
+    try { localStorage.setItem("touchcal", JSON.stringify(CAL)); } catch (e) { /* none */ }
+    calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
+    tlog("calibration saved"); openSettings();
+  }
+  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tPanel").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
+  $("calRedo").onclick = () => { calib.taps[calib.step] = []; calPaint(); };
+  $("calBack").onclick = () => { if (calib.step > 0) { calib.taps[calib.step] = []; calib.step--; calib.taps[calib.step] = []; } calPaint(); };
+  $("calCancel").onclick = () => calEnd();
+
+  function calText() {
+    const L = [];
+    if (!CAL.savedAt) return "Not calibrated yet. Tap Calibrate.";
+    L.push(`Calibration of ${CAL.savedAt.slice(0, 16).replace("T", " ")}; class decided from the largest size within ${T.decideMs} ms of landing.`);
+    for (const side of ["left", "right"]) {
+      const f = FIT[side];
+      L.push("", `${side.toUpperCase()} AREA`);
+      if (!f) { L.push("  incomplete"); continue; }
+      L.push(`  cut points: fingertip < ${f.t1.toFixed(1)} px ≤ normal < ${f.t2.toFixed(1)} px ≤ flat`);
+      L.push(`  misclassified ${f.errors} of ${f.n} taps (${(f.errorRate * 100).toFixed(0)}%)`);
+      L.push(`  taps inside the neighbouring class's size range: fingertip/normal ${f.overlapTipNormal}, normal/flat ${f.overlapNormalFlat}`);
+      L.push("  size px   tip normal flat");
+      for (const [v, a, b, c] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(3)} ${String(b).padStart(6)} ${String(c).padStart(4)}`);
+      L.push("  heard as →  tip normal flat");
+      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${c.padEnd(7)}     ${String(r.tip).padStart(3)} ${String(r.normal).padStart(6)} ${String(r.flat).padStart(4)}`); }
+      const st = G.CLASSES.flatMap((c) => CAL.samples[side][c].map((q) => G.stableAfter(f, q)));
+      if (st.length) L.push(`  class settled after (calibration taps): average ${(st.reduce((a, b) => a + b, 0) / st.length).toFixed(0)} ms, worst ${Math.max(...st).toFixed(0)} ms`);
+    }
+    const live = gest.stable;
+    L.push("", live.length ? `Live notes (last ${live.length}): class settled after average ${(live.reduce((a, b) => a + b, 0) / live.length).toFixed(0)} ms, worst ${Math.max(...live).toFixed(0)} ms` : "Live notes: none yet");
+    return L.join("\n");
+  }
+
+  /* ---------- settings overlay ---------- */
+  const SET = [
+    ["Contact size"],
+    ["contactOn", "Contact size on (class sets the sound; size moves held notes)"],
+    ["decideMs", "Decision delay (wait before sounding)", 0, 120, 1, (v) => v + " ms"],
+    ["ctDb", "Held note: loudness range", 0, 12, 0.5, (v) => "±" + v + " dB"],
+    ["ctBright", "Held note: brightness range", 0, 1.5, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
+    ["Tilt"],
+    ["tiltOn", "Tilt on"],
+    ["tiltMode", "Roll controls", ["bend", "vibrato"]],
+    ["bendRange", "Bend at full roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
+    ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
+    ["pitchBright", "Pitch → brightness at full tilt", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["fullDeg", "Full effect at", 10, 60, 1, (v) => v + "°"],
+    ["deadDeg", "Dead zone", 0, 15, 0.5, (v) => v + "°"],
+    ["tiltTau", "Tilt smoothing", 10, 500, 5, (v) => v + " ms"],
+    ["invRoll", "Invert roll"],
+    ["invPitch", "Invert pitch"],
+  ];
+  const setInputs = {};
+  function applyT(k) {
+    save();
+    if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
+    if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
+    if (k === "contactOn") $("calRes").textContent = calText();
+    if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
+    tlog(`set ${k} = ${T[k]}`);
+  }
+  for (const d of SET) {
+    const box = $("setBody");
+    if (d.length === 1) { const h = document.createElement("h3"); h.textContent = d[0]; box.appendChild(h); if (d[0] === "Contact size") { const b = document.createElement("div"); b.className = "bar"; b.innerHTML = '<button id="calGo">Calibrate…</button><button id="calClear">Forget calibration</button>'; box.appendChild(b); } if (d[0] === "Tilt") { const b = document.createElement("div"); b.className = "bar"; b.innerHTML = '<button id="setNeutral">Set neutral</button><span id="tiltRd" class="rd"></span>'; box.appendChild(b); } continue; }
+    const [k, label] = d;
+    if (d.length === 2) { const l = document.createElement("label"); l.className = "tg"; const c = document.createElement("input"); c.type = "checkbox"; c.id = "s_" + k; c.checked = !!T[k]; c.onchange = () => { T[k] = c.checked; applyT(k); }; l.append(c, label); box.appendChild(l); setInputs[k] = c; continue; }
+    if (d.length === 3) { const l = document.createElement("label"); l.className = "tg"; const sel = document.createElement("select"); sel.id = "s_" + k; sel.innerHTML = d[2].map((o) => `<option>${o}</option>`).join(""); sel.value = T[k]; sel.onchange = () => { T[k] = sel.value; applyT(k); }; l.append(label + " ", sel); box.appendChild(l); setInputs[k] = sel; continue; }
+    const [, , min, max, step, fmt] = d;
+    const w = document.createElement("label"); w.className = "sl"; const o = document.createElement("output"), r = document.createElement("input");
+    r.type = "range"; r.id = "s_" + k; r.min = min; r.max = max; r.step = step; r.value = T[k]; o.textContent = fmt(T[k]);
+    r.oninput = () => { T[k] = parseFloat(r.value); o.textContent = fmt(T[k]); applyT(k); };
+    w.append(label, o, r); box.appendChild(w); setInputs[k] = r;
+  }
+  const resetB = document.createElement("button"); resetB.textContent = "Reset settings"; resetB.onclick = () => { const keep = { tonic: T.tonic, minor: T.minor, octaves: T.octaves, mid: T.mid, bpm: T.bpm, loopLevel: T.loopLevel, loopOn: T.loopOn }; T = Object.assign({}, T_DEFAULTS, keep); for (const k in setInputs) { const i = setInputs[k]; if (i.type === "checkbox") i.checked = !!T[k]; else { i.value = T[k]; if (i.oninput) i.oninput(); } } applyT("tiltOn"); refit(); }; $("setBody").appendChild(resetB);
+  function openSettings() { $("calRes").textContent = calText(); $("tSet").hidden = false; }
+  $("tSettings").onclick = openSettings;
+  $("setClose").onclick = () => { $("tSet").hidden = true; };
+  $("calGo").onclick = calStart;
+  $("calClear").onclick = () => { CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null }; try { localStorage.removeItem("touchcal"); } catch (e) { /* none */ } refit(); $("calRes").textContent = calText(); };
+  $("setNeutral").onclick = $("tNeutral").onclick = () => { const n = tilt.setNeutral(); tlog("tilt neutral set " + JSON.stringify(n)); };
+  $("tNeutral").hidden = !T.tiltOn;
 
   /* ---------- diagnostics text ---------- */
   const f = (v, d = 2) => (v === undefined ? "—" : v === null ? "null" : typeof v === "number" ? v.toFixed(d) : String(v));
@@ -242,11 +391,15 @@
         lastD = now();
         if (!$("diag").hidden) $("diagText").textContent = probeReport();
         $("tRd").textContent = `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
-          (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` + (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
+          (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
+          (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
+          (T.tiltOn ? `\nroll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` roll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : " (no motion data)");
       }
     }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  window.__touch = { gest, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect };
+  window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };
 })();
