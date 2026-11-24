@@ -18,7 +18,10 @@ async function run(W, H) {
   const cdp = await context.newCDPSession(page);
   const touch = (type, pts) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: pts.map(([id, x, y]) => ({ id, x, y, radiusX: 8, radiusY: 8, force: 0.5 })) });
 
-  // start sound with a tap
+  // the start screen: choose the bowed prototype, then start sound with a tap
+  const gb = await page.locator("#goBowed").boundingBox();
+  await touch("touchStart", [[0, gb.x + gb.width / 2, gb.y + gb.height / 2]]); await touch("touchEnd", [[0, gb.x + gb.width / 2, gb.y + gb.height / 2]]);
+  await sleep(100);
   const sb = await page.locator("#bStart").boundingBox();
   await touch("touchStart", [[0, sb.x + sb.width / 2, sb.y + sb.height / 2]]); await touch("touchEnd", [[0, sb.x + sb.width / 2, sb.y + sb.height / 2]]);
   await sleep(300);

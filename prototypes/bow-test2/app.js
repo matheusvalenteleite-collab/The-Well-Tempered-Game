@@ -45,30 +45,17 @@
   }
 
   /* ---------- audio ---------- */
-  let ctx = null, voice = null, engine = null, silentAudio = null;
+  let ctx = null, voice = null, engine = null;
   const silentEngine = { setFreq() {}, setBend() {}, setLevel() {}, setCutoff() {}, setNoise() {}, gate() {}, dip() {}, chiff() {} };
   engine = new C.BowEngine(silentEngine, P, () => 0, log);
 
-  function silentWavUrl() {
-    const sr = 8000, n = sr, b = new ArrayBuffer(44 + n * 2), d = new DataView(b);
-    const w = (o, s) => { for (let i = 0; i < s.length; i++) d.setUint8(o + i, s.charCodeAt(i)); };
-    w(0, "RIFF"); d.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt "); d.setUint32(16, 16, true);
-    d.setUint16(20, 1, true); d.setUint16(22, 1, true); d.setUint32(24, sr, true); d.setUint32(28, sr * 2, true);
-    d.setUint16(32, 2, true); d.setUint16(34, 16, true); w(36, "data"); d.setUint32(40, n * 2, true);
-    return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
-  }
   function startAudio() {
-    try { if (navigator.audioSession) { navigator.audioSession.type = "playback"; log("audioSession.type = playback (" + navigator.audioSession.type + ")"); } else log("navigator.audioSession not available"); } catch (e) { log("audioSession error " + e.message); }
-    try { silentAudio = new Audio(silentWavUrl()); silentAudio.loop = true; silentAudio.setAttribute("playsinline", ""); silentAudio.play().then(() => log("silent <audio> loop playing"), (e) => log("silent <audio> refused: " + e.message)); } catch (e) { log("silent audio error " + e.message); }
-    const AC = window.AudioContext || window.webkitAudioContext;
-    ctx = new AC({ latencyHint: "interactive" });
-    ctx.resume();
+    ctx = Shared.unlockAudio(log); // shared with the touch-area mode (audioSession, silent <audio> loop, wake lock)
     voice = C.buildVoice(ctx);
     const counts = engine.counts;
     engine = new C.BowEngine(voice, P, () => ctx.currentTime, log);
     engine.counts = counts;
     log(`AudioContext started: ${ctx.sampleRate} Hz, state ${ctx.state}`);
-    if (navigator.wakeLock) navigator.wakeLock.request("screen").then(() => log("screen wake lock on"), () => log("screen wake lock refused"));
     setTimeout(logLatency, 1500);
   }
   function audioLatency() {
@@ -187,6 +174,13 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => done("Copied"), fallback); else fallback();
   };
   $("bStart").onclick = () => { $("start").hidden = true; startAudio(); };
+  $("bMenu").onclick = $("bMenu2").onclick = () => { if (engine.bowId !== null) engine.bowUp(engine.bowId, now()); window.__home(); };
+  $("bCsv").onclick = () => {
+    if (!Shared.csv.on) { Shared.csv.start(); $("bCsv").textContent = "Stop CSV"; $("bCsv").classList.add("sel"); log("CSV recording started"); return; }
+    Shared.csv.stop(); $("bCsv").textContent = "Record CSV"; $("bCsv").classList.remove("sel"); log(`CSV recording stopped (${Shared.csv.rows.length} rows)`);
+    window.__showCsv("bowed");
+  };
+  window.__bowedEnter = () => { layout(); if (ctx && ctx.state !== "running") ctx.resume(); };
 
   /* ---------- 60-second endurance test ---------- */
   let endur = null;
@@ -219,7 +213,7 @@
   const inRect = (r, x, y, pad) => x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
   function zoneAt(x, y) { if (inRect(G.strip, x, y, 6)) return "bow"; if (inRect(G.rows, x, y, 4)) return "pitch"; return null; }
   const rowU = (y) => (G.rows.bottom - y) / (G.rows.height / 7);
-  const isOverlay = () => !$("start").hidden || !$("log").hidden || !$("rate").hidden;
+  const isOverlay = () => window.__mode !== "bowed" || !$("csvBox").hidden || !$("start").hidden || !$("log").hidden || !$("rate").hidden;
 
   document.addEventListener("pointerdown", (e) => {
     if (isOverlay() || e.pointerType === "mouse" && e.button !== 0) return;
@@ -227,6 +221,7 @@
     if (!z) return;
     e.preventDefault();
     const t = evTime(e);
+    Shared.csv.add({ t_ms: t, mode: "bowed", event: "pointerdown", id: e.pointerId, zone: z, x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
     zones.set(e.pointerId, z);
     if (z === "bow") {
       if (engine.bowId !== null) { zones.set(e.pointerId, "extra"); return; }
@@ -255,6 +250,7 @@
       addVal(M.press.pPressure, e.pressure); addVal(M.press.pW, e.width); addVal(M.press.pH, e.height);
       for (const s of samples) {
         const t = evTime(s), y = s.clientY;
+        Shared.csv.add({ t_ms: t, mode: "bowed", event: s === e ? "pointermove" : "coalesced", id: e.pointerId, zone: z, x: s.clientX, y, pressure: s.pressure, width: s.width, height: s.height });
         M.bow.samples++;
         if (engine.speed > 5 && t > M.bow.lastSmp) pushInt(M.bow.smpInt, t - M.bow.lastSmp);
         M.bow.lastSmp = Math.max(M.bow.lastSmp, t);
@@ -266,6 +262,7 @@
       }
     } else if (z === "pitch") {
       const s = samples[samples.length - 1];
+      Shared.csv.add({ t_ms: evTime(s), mode: "bowed", event: "pointermove", id: e.pointerId, zone: z, x: s.clientX, y: s.clientY, pressure: s.pressure, width: s.width, height: s.height });
       engine.pitchMove(e.pointerId, evTime(s), rowU(s.clientY), G.rows.height / 7);
     }
   }, { passive: false });
@@ -275,6 +272,7 @@
     if (!z) return;
     zones.delete(e.pointerId);
     const t = evTime(e);
+    Shared.csv.add({ t_ms: t, mode: "bowed", event: e.type, id: e.pointerId, zone: z, x: e.clientX, y: e.clientY });
     if (cancelled) { M.cancels.push(`${ts(t)} pointercancel zone=${z}`); log(`POINTERCANCEL zone=${z}`); }
     if (z === "bow") engine.bowUp(e.pointerId, t);
     else if (z === "pitch") engine.pitchUp(e.pointerId, t);
@@ -301,6 +299,7 @@
       const z = touchZones.get(tc.identifier);
       if (!z) continue;
       ours = true;
+      Shared.csv.add({ t_ms: evTime(e), mode: "bowed", event: "touchmove", id: tc.identifier, zone: z, x: tc.clientX, y: tc.clientY, radiusX: tc.radiusX, radiusY: tc.radiusY, force: tc.force, webkitForce: tc.webkitForce });
       if (z === "bow") {
         const t = evTime(e); M.bow.touchmoves++;
         if (engine.speed > 5) pushInt(M.bow.tmInt, t - M.bow.lastTm);
@@ -337,7 +336,7 @@
   setInterval(() => { const q = M.pitch.pending; while (q.length && now() - q[0].t > 300) { const p = q.shift(); M.pitch.unmatched++; log(`unmatched ${p.kind === "pd" ? "pointerdown" : "touchstart"} on pitch rows`); } }, 500);
   document.addEventListener("gesturestart", (e) => e.preventDefault());
   document.addEventListener("contextmenu", (e) => e.preventDefault());
-  document.addEventListener("selectstart", (e) => { if (e.target.id !== "logtext") e.preventDefault(); });
+  document.addEventListener("selectstart", (e) => { if (e.target.tagName !== "TEXTAREA") e.preventDefault(); });
   document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
 
   /* ---------- report ---------- */
