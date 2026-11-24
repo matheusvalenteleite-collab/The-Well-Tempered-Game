@@ -1347,3 +1347,6 @@ html.tb-paper .tb-you-chip { color: #14101a; }
 .basics2-hintlayer { background: rgba(10, 8, 16, 0.5); cursor: pointer; }
 .basics2-hint { margin: 0; padding: 10px 14px; max-width: min(520px, 100%); font-family: var(--tg-pixel); font-size: 9px; line-height: 1.7; color: #2a2216; background: var(--tg-shine); box-shadow: 2px 2px 0 #b8322a; text-align: center; }
 @media (max-height: 400px) { .basics2-card { padding: 10px; gap: 10px; } .basics2-glenn { width: 44px; } .basics2-line { font-size: 7px; } }
+
+/* D1054: while a piece's notes are fetched (a slow connection, a tap before they were brought quietly): a dim, see-through shield that takes the taps. */
+.tb-fetching { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.28); cursor: progress; touch-action: none; }

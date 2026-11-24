@@ -10,6 +10,8 @@ import { BenchApp } from "./BenchApp.tsx";
 import { markVersion } from "./version.ts";
 import { isSurelyComputer } from "./home.ts";
 import { unlocked } from "./unlock.ts";
+import { litePlatform, startHere } from "./lite.ts";
+import { loadPiecePair, prefetchPieces } from "../touch/fugue.ts";
 import { MobileOnly } from "./MobileOnly.tsx";
 import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
 import { isInstalled, watchInstall } from "./install.ts";
@@ -34,9 +36,17 @@ lockOnFirstTap();
 // (opened from the Home Screen: no browser bars; the sideways screen and the safe areas as ever).
 watchInstall();
 if (isInstalled()) document.documentElement.classList.add("tb-installed");
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}
-    <Sideways />
-  </StrictMode>,
-);
+// D1054: the card grid is drawn from light stubs; the notes of the piece the game starts on (and of the default, which the game falls
+// back to) are fetched first, then the rest quietly once the grid is up (fugue.ts prefetchPieces; setPick waits for any it lacks).
+const first = startHere(litePlatform() === "mobile");
+void Promise.all([loadPiecePair(first), loadPiecePair("wtc1f02")])
+  .catch(() => undefined)
+  .then(() => {
+    createRoot(document.getElementById("root")!).render(
+      <StrictMode>
+        {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}
+        <Sideways />
+      </StrictMode>,
+    );
+    setTimeout(() => prefetchPieces(first), 1500);
+  });

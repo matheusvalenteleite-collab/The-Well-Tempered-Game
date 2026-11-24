@@ -1,6 +1,6 @@
 # The Well-Tempered Game: project brief
 
-For pasting into a Claude chat (no access to the code). Written 24 November 2026, for the live version WTC 3.33 (the version mark is in the top left of the card grid).
+For pasting into a Claude chat (no access to the code). Written 24 November 2026, for the live version WTC 3.34 (the version mark is in the top left of the card grid).
 
 ## What it is
 
@@ -46,4 +46,4 @@ How a gesture could teach a specific contrapunctal idea (stretto, inversion, ans
 
 ## Technical footing, in one paragraph
 
-A web page built with Vite, React and TypeScript, with Web Audio for sound and canvas for the picture; about 1,800 automated tests; the whole game downloads about 1.4 MB compressed before the grid appears, and instrument recordings load as needed. The score data comes from open editions of the notes (the Humdrum WTC encoding and others); its rights must be settled before any wider public release.
+A web page built with Vite, React and TypeScript, with Web Audio for sound and canvas for the picture; about 1,800 automated tests; the whole game downloads about 0.9 MB compressed before the grid appears, and instrument recordings load as needed. The score data comes from open editions of the notes (the Humdrum WTC encoding and others); its rights must be settled before any wider public release.

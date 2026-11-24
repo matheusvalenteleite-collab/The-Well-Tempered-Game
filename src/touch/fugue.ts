@@ -8,7 +8,7 @@
  * Contrapunctus XIV's three subjects; each fugue's cadences and, where it has a regular one, its
  * countersubject against each entry (tools/touch/analysis.ts).
  */
-import data from "../../data/touch/pieces.json" with { type: "json" };
+import { PIECE_DATA as data, hydrate, isLoaded } from "./pieces-source.ts";
 import tutorialData from "../../data/touch/tutorial.json" with { type: "json" };
 // D343: the MORE BACH and CHORALES notes load on demand (extras-data.ts, loadExtras); their index (ids, collections) now.
 import extrasIndex from "../../data/touch/extras-index.json" with { type: "json" };
@@ -102,6 +102,8 @@ export interface TouchFugue {
    * its page.
    */
   collection?: Collection;
+  /** D1054: in the browser build's stubs only: what the entries hold (the grid asks before the notes arrive). */
+  has?: { inverted: boolean; augmented: boolean; laterSubjects: boolean };
   short?: string;
   credit?: string;
   source?: string;
@@ -174,6 +176,53 @@ export type Collection = "aof" | "mo" | "inv" | "sin" | "duet" | "keyboard" | "g
 export const PIECES = data as unknown as TouchFugue[];
 export const FUGUES = PIECES.filter((p) => p.kind === "fugue");
 export const PRELUDES = PIECES.filter((p) => p.kind === "prelude");
+
+/**
+ * D1054: in the browser build the 97 pieces start as light stubs (everything but `voices` and `entries`); this brings a piece's
+ * notes in, once, before the piece is opened, listened to or judged. Resolves at once where the notes are already there (tests,
+ * tools, pieces of other collections). Anything that reads `voices` or `entries` of a WTC piece must come after it.
+ */
+export function loadPiece(id: string): Promise<void> {
+  const f = BY_ID.get(id);
+  return f ? hydrate(f) : Promise.resolve();
+}
+
+/** D1054: whether this piece and its pair have their notes in (the player's page may ask for one that has not yet arrived). */
+export function pieceReady(id: string): boolean {
+  const f = BY_ID.get(id);
+  if (!f) return true;
+  return PIECES.filter((p) => p.id === id || (f.book && p.book === f.book && p.number === f.number)).every(isLoaded);
+}
+
+/** D1054: a piece and its pair (the prelude of a fugue, the fugue of a prelude), the two the game may move between. */
+export function loadPiecePair(id: string): Promise<void> {
+  const f = BY_ID.get(id);
+  const pair = f && f.book ? PIECES.filter((p) => p.book === f.book && p.number === f.number).map((p) => p.id) : [];
+  return Promise.all([id, ...pair].map(loadPiece)).then(() => undefined);
+}
+
+/** D1054: every WTC piece's notes (the developer pages, which read them all; the player's page asks for the ones it opens). */
+export function loadAllPieces(): Promise<void> {
+  return Promise.all(PIECES.map((p) => hydrate(p))).then(() => undefined);
+}
+
+/**
+ * D1054: after the card grid is up, fetches the other pieces' notes quietly, two at a time, the nearest to the one in hand first,
+ * so that a tap on any card finds the notes there (setPick waits for them if it does not).
+ */
+export function prefetchPieces(first: string): void {
+  const order = [...PIECES].sort((a, b) => Number(a.id !== first) - Number(b.id !== first));
+  let at = 0;
+  const next = (): Promise<void> => (at < order.length ? hydrate(order[at++]).catch(() => undefined).then(next) : Promise.resolve());
+  void next();
+  void next();
+}
+
+/** D1054: what the card grid asks of a piece's entries, from the stub's flags where the notes are not yet in (cards.ts). */
+export function entryKinds(f: TouchFugue): { inverted: boolean; augmented: boolean; laterSubjects: boolean } {
+  if (f.has) return f.has;
+  return { inverted: f.entries.some((e) => e.inverted), augmented: f.entries.some((e) => e.scale === 2), laterSubjects: f.entries.some((e) => e.theme) };
+}
 
 /** D270: the pieces the TUTORIAL teaches with (Invention No. 1, tools/touch/tutorial.ts): found by id, in no list. */
 export const TUTORIAL_PIECES = tutorialData as unknown as TouchFugue[];
