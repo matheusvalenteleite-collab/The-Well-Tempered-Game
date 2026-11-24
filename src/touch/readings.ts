@@ -12,7 +12,7 @@
  * its dynamics, and HEAR THE SUBJECT plays and draws the subject so.
  */
 import data from "../../data/touch/readings.json" with { type: "json" };
-import { ART_HOLD, SLUR_SHAPE, styleOf } from "./phrasing.ts";
+import { ART_HOLD, SLUR_SHAPE } from "./phrasing.ts";
 import { tr } from "../i18n/index.ts";
 import { hardTapDevice } from "./motion.ts";
 import { decide, type Kind } from "./practice.ts";
@@ -152,69 +152,6 @@ export function marksHas(marks: Iterable<MarkNote>): Record<MarkKind, boolean> {
   return { short: ms.some((m) => !!m.short), apart: ms.some((m) => m.join === false), joined: ms.some((m) => !!m.join && !m.slur), slur: ms.some((m) => !!m.slur), strong: ms.some((m) => !!m.accent) };
 }
 
-const KEY = "tb-reading-v1";
-function store(): Record<string, string> {
-  try {
-    const v = localStorage.getItem(KEY);
-    const o = v ? JSON.parse(v) : {};
-    return o && typeof o === "object" ? o : {};
-  } catch {
-    return {};
-  }
-}
-/** D325: NONE, the player's own articulation: no reading's marks shown, asked or scored. */
-export const NO_READING = "none";
-/**
- * D325: the reading the player chose for a fugue (any it has, all open; NONE chosen: none). D369 (the
- * owner: "I want the return of all 'HEAR THE SUBJECT' readings to the game"): every reading open to
- * everyone again; nothing chosen yet, D344's chosen reading for the fugue (bestReading) is the default.
- */
-export function chosenReading(id: string, soundId?: string): Reading | null {
-  const want = store()[id];
-  if (want === undefined) return bestReading(id, soundId);
-  return readingsOf(id).find((r) => r.id === want) ?? null;
-}
-/** D325: a reading's id, or NO_READING. */
-export function chooseReading(id: string, reading: string) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify({ ...store(), [id]: reading }));
-  } catch {
-    /* this visit only */
-  }
-}
-
-/**
- * D344 (WTC 1.57): play.html for the friends (not unlocked) shows one reading a fugue, and plays it: the
- * best of those the data hold for it on musical grounds (fidelity to the subject's character and to
- * Baroque articulation, playable with two thumbs, few marks for a newcomer), or NO_READING where none
- * convinces. The reasons: docs/wtc/READINGS-CHOSEN.md. The unlocked page keeps every reading to choose.
- */
-export const BEST_READING: Readonly<Record<string, string>> = {
-  wtc1f01: "keller",
-  wtc1f02: "bodky",
-  wtc1f03: "bodky",
-  wtc1f04: "bodky",
-  wtc1f05: "bodky",
-  wtc1f06: "bodky",
-  wtc1f07: "keller",
-  wtc1f08: "keller",
-  wtc1f09: "riemann",
-  wtc1f10: "bodky",
-  wtc1f11: "bodky",
-  wtc1f12: "keller",
-  wtc1f13: "bodky",
-  wtc1f14: "bodky",
-  wtc1f15: "keller",
-  wtc1f16: "bodky",
-  wtc1f17: "keller",
-  wtc1f18: "keller",
-  wtc1f19: "bodky",
-  wtc1f20: NO_READING,
-  wtc1f21: "keller",
-  wtc1f22: "bodky",
-  wtc1f23: "bodky",
-  wtc1f24: "keller",
-};
 /**
  * D385: on the piano a fugue with a whole-piece reading (BUSONI: every Book I fugue since D392, all 48 since D394) is played by it
  * unless the player chose another: its dynamics, accents, slurs and characters are the piano's (the
@@ -227,11 +164,9 @@ export const wholeReadingOf = (id: string): Reading | null =>
   readingsOf(id).find((r) => r.id === WHOLE_DEFAULT && r.whole) ?? readingsOf(id).find((r) => r.id === WHOLE_FALLBACK && r.whole) ?? null;
 /**
  * D393 (WTC 1.90; the owner: "leave only Busoni's reading in the game for now. It's the default, and can be
- * turned off in settings"): play.html offers no reading but BUSONI's. The books' readings (KELLER, BODKY,
- * RIEMANN) keep their data and code (readingsOf, chosenReading, the HEAR THE SUBJECT chooser behind
- * OFFER_READINGS) and the Lab still shows them; true brings the chooser back.
+ * turned off in settings"): play.html offers no reading but BUSONI's. D1050 (code audit A): the books' readings
+ * (KELLER, BODKY, RIEMANN), their chooser and D344's choice for the friends deleted.
  */
-export const OFFER_READINGS = false;
 const BUSONI_KEY = "tb-busoni-v1";
 /** D393: Settings' BUSONI'S MARKINGS: on unless turned off (persisted). */
 export function busoniOn(): boolean {
@@ -255,16 +190,6 @@ export function setBusoniOn(on: boolean) {
  * stay the piano's; the others take what they already support (articulation, slurs, the box, the ending).
  */
 export const playReading = (id: string): Reading | null => (busoniOn() ? wholeReadingOf(id) : null);
-/** D344: the one reading the friends' page gives a fugue (null: none, the player's own articulation); D385: on the piano a whole-piece reading first. */
-export function bestReading(id: string, soundId?: string): Reading | null {
-  if (soundId && styleOf(soundId) === "piano") {
-    const w = wholeReadingOf(id);
-    if (w) return w;
-  }
-  const want = BEST_READING[id];
-  return want ? (readingsOf(id).find((r) => r.id === want) ?? null) : null;
-}
-
 /** The level a reading asks for at a bar (the last named at or before it; cresc and dim pass). */
 export function planLevel(r: Reading, bar: number): Level | null {
   let lv: Level | null = null;

@@ -6,7 +6,6 @@
  * louder for a right or a wrong note.
  */
 import { trCanvas } from "../../i18n/index.ts";
-import { holdFill } from "../manual/aids.ts";
 import { label } from "../paint-proto.ts";
 import type { ProtoGame } from "../proto-game.ts";
 import { BAR } from "../protos.ts";
@@ -70,6 +69,34 @@ function arrow(c: CanvasRenderingContext2D, x: number, y0: number, y1: number, i
   c.restore();
 }
 
+
+/** The hold fill (from THE MANUAL's aids, D218): a held block filling as it is held, gold once held to its bound (75%). */
+function holdFill(c: CanvasRenderingContext2D, g: ProtoGame) {
+  const rows = g.rows!;
+  const ns = g.tracks[0].notes;
+  for (const hn of g.heldNotes()) {
+    if (hn.k !== 0) continue;
+    const n = ns[hn.i];
+    if (!n) continue;
+    const x0 = rows.xOf(n.on);
+    const x1 = rows.xOf(n.on + n.dur);
+    const share = Math.max(0, Math.min(1, (g.now - n.on) / Math.max(1, n.dur)));
+    const y = rows.yOf(n.step);
+    const hh = Math.max(4, rows.rowH * 1.4);
+    const full = share >= 0.75;
+    c.globalAlpha = 0.85;
+    c.strokeStyle = full ? "#f3d78a" : "rgba(255,255,255,0.35)";
+    c.lineWidth = 1;
+    c.strokeRect(x0 + 0.5, y - hh / 2 + 0.5, Math.max(2, x1 - x0) - 1, hh - 1);
+    c.globalAlpha = full ? 0.55 : 0.35;
+    c.fillStyle = full ? "#f3d78a" : "#ffffff";
+    c.fillRect(x0, y - hh / 2, (x1 - x0) * share, hh);
+    c.globalAlpha = 0.7;
+    c.fillStyle = "#f3d78a";
+    c.fillRect(x0 + (x1 - x0) * 0.75, y - hh / 2 - 2, 1, hh + 4);
+  }
+  c.globalAlpha = 1;
+}
 export function paintBasics2(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, s: AidsState, now = performance.now()) {
   const rows = g.rows;
   if (!rows || s.alpha <= 0) return;
@@ -254,3 +281,4 @@ export function paintInstruction(c: CanvasRenderingContext2D, w: number, h: numb
   lines.forEach((l, i) => c.fillText(l, w / 2, y0 + i * lh));
   c.restore();
 }
+

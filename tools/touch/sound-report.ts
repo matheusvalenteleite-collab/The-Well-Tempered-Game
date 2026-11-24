@@ -30,7 +30,7 @@ import { stepTempi } from "../../src/bench/tempo-steps.ts";
 import { BAND_ENTRY_DB, PLAYER_ENTRY_DB, bandTrimDb, balanceOf, liftDb, playerToneDb } from "../../src/touch/player-lift.ts";
 import { OWN_LOUD } from "../../src/touch/player-lift-data.ts";
 import { TRIO_ID, continuoMoments, trioLayout } from "../../src/touch/trio.ts";
-import { GENERIC, TAILORED, SYNTH_LAYERS, SYNTH_LAYERS_SOUND, LAB_DEFAULT } from "../../src/touch/subject-fx.ts";
+import { GENERIC, TAILORED, SYNTH_LAYERS, LAB_DEFAULT } from "../../src/touch/subject-fx.ts";
 import { FUGUE_NAMES } from "../../src/touch/fugue-names.ts";
 import { VERSION } from "../../src/bench/version.ts";
 import { COLOURS } from "./colour-plans/index.ts";
@@ -141,7 +141,7 @@ function fugueFacts(id: string, stage: Record<string, string>) {
   const styles = stylesFor(id);
   const presets = drumPresetsFor(id, sound).slice(0, 3).map((p, i) => ({ n: i + 1, id: p.id, name: p.name, style: p.style }));
   const fx = TAILORED[id];
-  const fxOf = (x: typeof GENERIC) => ({ name: x.name, why: x.why, room: x.room, layers: x.layers.map((l) => ({ kind: l.kind, heard: SYNTH_LAYERS_SOUND || !SYNTH_LAYERS.has(l.kind) })) });
+  const fxOf = (x: typeof GENERIC) => ({ name: x.name, why: x.why, room: x.room, layers: x.layers.map((l) => ({ kind: l.kind, heard: !SYNTH_LAYERS.has(l.kind) })) });
   const seats = seatsOf(sound, f);
   const sumDur = (v: number) => f.voices[v].reduce((a, x) => a + x[1], 0);
   return {
@@ -228,7 +228,7 @@ export function buildReport() {
       drums: { EPISODE_VEL, CLIMAX_VEL, ARC_VEL, CLIMAX_PATTERN_AT, RESOLVE_FALL, BRUSH_BEAT_S, ROCK_BEAT_S, DANCE_BEAT_S, ROLL_QUICK_S, STYLE_NAMES },
       balance: { PLAYER_ENTRY_DB, BAND_ENTRY_DB },
       busoni: { BUSONI_LEADS_MIN },
-      subjectFx: { LAB_DEFAULT, SYNTH_LAYERS_SOUND },
+      subjectFx: { LAB_DEFAULT },
       slideSound: SLIDE_SOUND,
     },
     presets: [...PRESETS.map((p) => presetFacts(p, used, false)), ...TRIALS.map((p) => presetFacts(p, used, true))],

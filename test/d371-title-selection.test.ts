@@ -120,12 +120,12 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { Selection } = await import("../src/bench/Selection.tsx");
   const base = { piece: "wtc1f02", voice: 1, singing: [0, 1, 2], setVoice: () => {}, select: () => {}, play: () => {}, options: () => {}, open: () => {}, hear: () => {}, settings: () => {}, setLang: () => {} };
-  // The first visit: the TUTORIAL glows (BEGIN), the right column says where to start, no PLAY yet.
-  const first = renderToStaticMarkup(createElement(Selection, { ...base, beaten: [], tutorial: { done: 0, of: 12, start: () => {} } }));
+  // The first visit: BASICS glows (D1050: the old TUTORIAL card deleted), the right column says where to start, no PLAY yet.
+  const first = renderToStaticMarkup(createElement(Selection, { ...base, beaten: [], basics: { beginner: true, start: () => {} } }));
   assert.equal(first.match(/id="tile-wtc1f\d\d"/g)?.length, 24);
   assert.doesNotMatch(first, /tb-lite-card|id="tile-wtc2/);
   assert.match(first, /class="tb-sel tb-sel-first"/);
-  assert.match(first, /id="card-tutorial" class="sel-tutorial sel-glow"[^>]*>.*?▶ BEGIN/);
+  assert.match(first, /id="card-basics" class="sel-tutorial sel-basics-card sel-glow"/);
   assert.match(first, /id="sel-hint"/);
   assert.doesNotMatch(first, /id="sel-play"|id="next-/);
   // D463 (design studio, D412's selection): the tab is the book and its share finished.
@@ -133,7 +133,7 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.match(first, /id="tab-book-II"/, "D489: Book II open from the start");
   assert.doesNotMatch(first, /id="tab-book-MORE"/);
   // Played before: NEXT on the first unfinished, the grades stamped, the chosen piece and PLAY on the right.
-  const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { "wtc1f02@1": 12340 }, tutorial: { done: 3, of: 12, start: () => {} } }));
+  const later = renderToStaticMarkup(createElement(Selection, { ...base, beaten: ["wtc1f01", "wtc1f02"], best: { wtc1f01: "A" }, scores: { "wtc1f02@1": 12340 }, basics: { beginner: false, start: () => {} } }));
   assert.match(later, /id="next-wtc1f03"/);
   assert.equal(later.match(/id="next-/g)?.length, 1);
   assert.match(later, /id="grade-wtc1f01"[^>]*>A</);
@@ -142,8 +142,6 @@ test("D371: the selection screen: 24 tiles, no list; TUTORIAL; Book I alone for 
   assert.match(later, /id="best-wtc1f02"[^>]*>BEST 12,340</);
   assert.match(later, /id="sel-voice-1" class="on"/);
   assert.match(later, /id="sel-play"/);
-  assert.match(later, /▶ CONTINUE/);
-  assert.match(later, /3 OF 12 LESSONS/);
   // Unlocked: the four tabs; MORE BACH keeps its scrolling list (LiteGrid, bare).
   store.set("tb-unlock-all", "1");
   try {

@@ -11,7 +11,7 @@ import { lang, pieceName, tr } from "../i18n/index.ts";
 import { useEffect, useRef, useState } from "react";
 import { fugueById } from "../touch/fugue.ts";
 import { inkOf } from "../touch/MusicBox.tsx";
-import { bestReading, busoniOn, chooseReading, chosenReading, NO_READING, OFFER_READINGS, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
+import { busoniOn, performSubject, playReading, readingsOf, slurredJoin, type Reading } from "../touch/readings.ts";
 import { fugueName } from "../touch/fugue-names.ts";
 import { paleOf } from "../touch/subject-hue.ts";
 import { STRONG_SIDE } from "../touch/touch-expr.ts";
@@ -28,7 +28,7 @@ export type { Performed };
 export { firstEntry };
 
 /**
- * D344: `single` (play.html for the friends): the one reading chosen for the fugue (readings.ts BEST_READING), no tabs.
+ * D344: `single` (play.html for the friends); D1050: every view now shows the one reading play.html plays.
  * D449: `embedded`, inside ABOUT THIS FUGUE: no veil, no title or ✕, heard only when ▶ is tapped.
  * D492: `stop` silences what `play` scheduled; called on every close and when the view is unmounted (wherever it is shown).
  */
@@ -43,10 +43,8 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
   const form = listed ? forms[Math.min(fi, forms.length - 1)] : null;
   const e = form && fi > 0 ? form.entry : firstEntry(id);
   const readings = readingsOf(id);
-  // D393: only BUSONI offered (OFFER_READINGS off): the reading play.html plays, shown, no chooser.
-  const offered = OFFER_READINGS && !single;
-  const [reading, setReading] = useState<Reading | null>(() => (!OFFER_READINGS ? playReading(id) : single ? bestReading(id, preset().id) : chosenReading(id, preset().id)));
-  const [picking, setPicking] = useState(false);
+  // D393: only BUSONI offered: the reading play.html plays, shown, no chooser. D1050: the chooser and the books' readings deleted.
+  const [reading] = useState<Reading | null>(() => playReading(id));
   const shown = fi > 0 ? null : reading;
   const canvas = useRef<HTMLCanvasElement>(null);
   const started = useRef<{ at: number; total: number } | null>(null);
@@ -112,11 +110,7 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
     started.current = null;
     setFi(i);
   };
-  const pick = (r: Reading | null) => {
-    chooseReading(id, r?.id ?? NO_READING);
-    setReading(r);
-    setPicking(false);
-  };
+
   const nick = fugueName(id, lang());
   // Design studio (D398): the legend only of the signs this subject bears in this reading.
   const ns = shown?.notes ?? [];
@@ -137,23 +131,6 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
         </div>}
         <div className="tb-hear-stage">
           <canvas ref={canvas} className="tb-hear-canvas" />
-          {offered && readings.length > 0 && (
-            <div className="tb-hear-picker" role="radiogroup" aria-label={tr("WHOSE READING?")} hidden={!picking}>
-              <p className="tb-hear-picker-head">{tr("WHOSE READING?")}</p>
-              <button type="button" id="reading-none" role="radio" aria-checked={!reading} className={`tb-hear-pick${!reading ? " on" : ""}`} onClick={() => pick(null)}>
-                <b>{tr("NO READING")}</b>
-                <span>{tr("Your own articulation: no marks asked or scored.")}</span>
-              </button>
-              {readings.map((r) => (
-                <button key={r.id} type="button" id={`reading-${r.id}`} role="radio" aria-checked={reading?.id === r.id} className={`tb-hear-pick${reading?.id === r.id ? " on" : ""}`} onClick={() => pick(r)}>
-                  <b>
-                    {r.author} {r.year}
-                  </b>
-                  <span>{READING_WHO[r.id] ? tr(READING_WHO[r.id]) : `${r.work}`}</span>
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         {form && (
           <div className="tb-hear-forms" id="hear-forms" role="radiogroup" aria-label={tr("ITS FORMS")}>
@@ -173,18 +150,12 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
           </button>
           {fi > 0 ? (
             <span className="tb-hear-one">{tr("PLAYED AS WRITTEN")}</span>
-          ) : !offered || !readings.length ? (
-            reading ? (
-              <span className="tb-hear-one" id="reading-one">
-                {tr("THE READING")}: {reading.author} {reading.year}
-              </span>
-            ) : (
-              <span className="tb-hear-one">{tr("NO READING")}</span>
-            )
+          ) : reading ? (
+            <span className="tb-hear-one" id="reading-one">
+              {tr("THE READING")}: {reading.author} {reading.year}
+            </span>
           ) : (
-            <button type="button" id="reading-pick" className={`tb-hear-btn2${picking ? " on" : ""}`} aria-expanded={picking} onClick={() => setPicking((x) => !x)}>
-              {reading ? `${reading.author} ${reading.year}` : tr("NO READING")} ▾
-            </button>
+            <span className="tb-hear-one">{tr("NO READING")}</span>
           )}
           <span className="tb-hear-tempo">♩ = {tempoOf(id)}</span>
         </div>
@@ -207,7 +178,7 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
             </cite>
           </blockquote>
         )}
-        {!reading && fi === 0 && <p className="tb-hear-lock">{!OFFER_READINGS && !busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : !offered ? tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION") : readings.length ? tr("NONE: MY OWN ARTICULATION · NO MARKS ASKED OR SCORED") : tr("NO READING FOUND FOR THIS FUGUE: PLAYED AS WRITTEN")}</p>}
+        {!reading && fi === 0 && <p className="tb-hear-lock">{!busoniOn() && readings.some((r) => r.whole) ? tr("BUSONI'S MARKINGS ARE OFF (SETTINGS): YOUR OWN ARTICULATION") : tr("NO MARKS FOR THIS FUGUE: YOUR OWN ARTICULATION")}</p>}
       </div>
   );
   if (embedded) return card;
@@ -217,14 +188,6 @@ export function HearSubject({ id, play, stop, close: onClose, single = false, em
     </div>
   );
 }
-
-/** Design studio (D398): what each reading is, one line in the picker (the studio's rating of 31 Oct 2026). */
-const READING_WHO: Readonly<Record<string, string>> = {
-  bodky: "A harpsichordist after Quantz. Marks almost every note.",
-  keller: "An organist's articulation, from Bach's marked parts. Not every fugue.",
-  riemann: "A Romantic theorist's phrasing. No tempo.",
-  busoni: "A pianist's edition. The default on every instrument.",
-};
 
 const BOX = "#0f1730";
 const STRIP = "#1c1f2c";

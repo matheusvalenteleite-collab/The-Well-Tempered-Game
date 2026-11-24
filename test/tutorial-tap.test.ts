@@ -17,8 +17,9 @@ test("his card is drawn inside the roll (so the roll's pointer-events reach it)"
   const app = src("src/bench/BenchApp.tsx");
   const open = app.indexOf("<MusicBox");
   const close = app.indexOf("</MusicBox>");
-  const card = app.indexOf('className={manLesson && isCourse(manLesson) ? "tb-bach-low" : undefined}');
-  assert.ok(open > 0 && card > open && card < close, "BachTalk (tb-bach-low) sits among MusicBox's children");
+  // D1050: THE MANUAL's low card (tb-bach-low) deleted; the lesson's BachTalk still sits in the roll.
+  const card = app.indexOf("<BachTalk key={`m-");
+  assert.ok(open > 0 && card > open && card < close, "BachTalk sits among MusicBox's children");
   assert.match(src("src/touch/MusicBox.tsx"), /<div className="tg-roll" ref=\{wrap\}>\s*<canvas ref=\{canvas\} \/>\s*\{children\}/);
 });
 

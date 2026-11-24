@@ -16,8 +16,6 @@ import type { LabEvent } from "../src/bench/lab/events.ts";
 import type { Chip, Play } from "../src/touch/chip.ts";
 import { setPreset } from "../src/touch/sound.ts";
 import { PIANO_ZONE_DB, pianoDb, pianoHairpinDb, pianoZone } from "../src/touch/touch-expr.ts";
-import { lessonById } from "../src/bench/manual/lessons.ts";
-import { gameFor } from "./d342-sim.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
@@ -254,30 +252,3 @@ test("D426: no Schleifer is read: a landing two steps below its note is judged a
   const ref = verdicts(run("chip", plan).events);
   for (const sound of ["harpsichordSampled", "chamberOrgan", "pianoSampled"]) assert.equal(verdicts(run(sound, plan).events), ref, sound);
 });
-
-test("D426: Herr Bach's slide (6.6) a gradual move from the departure row to the arrival: the portamento heard along the way", () =>
-  // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
-  withSlideSound("instruments", () => {
-  const demo = (sound: string) => {
-    setPreset(sound);
-    const st = lessonById("6.6")!.stages[0];
-    const clock = { t: 0 };
-    const { g } = gameFor(st.m, clock, st.style ?? "plain");
-    const heard: { midi: number; p: Play; glides: number[] }[] = [];
-    (g as unknown as { chip: { note: unknown } }).chip.note = (midi: number, _at: number, _d: number, _v: unknown, p: Play = {}) => {
-      const h = { midi, p, glides: [] as number[] };
-      if (p.lead) heard.push(h);
-      return { stop() {}, bend() {}, glide: (to: number) => void h.glides.push(to), muffle() {}, dyn() {} };
-    };
-    let done = false;
-    while (!done && clock.t < 900) (clock.t += 1 / 120), (done = g.step());
-    setPreset("chip");
-    return { heard, g };
-  };
-  const { heard, g } = demo("stringConsort");
-  const slid = heard.filter((h) => h.glides.length > 0);
-  assert.ok(slid.length >= 1, "the slide's portamento");
-  // Gradual: several steps between the notes (the old single jump gave one glide to the note).
-  assert.ok(slid.some((h) => h.glides.length >= 3 && h.glides.some((m) => !Number.isInteger(m))), `followed along the way: ${JSON.stringify(slid.map((h) => h.glides.map((m) => +m.toFixed(2))))}`);
-  assert.ok((g as unknown as { slides: number }).slides >= 1, "his slides arrive as slides");
-}));

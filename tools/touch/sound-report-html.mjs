@@ -269,9 +269,9 @@ const UNUSED = [
   "WIND QUINTET (trial): flute, oboe, clarinet, horn, bassoon, recorded and balanced, never offered. Its slide gesture falls back to the chip family; it would need the reed and flute gestures before offering.",
   "CLASSIC CHIP's own drum loop (chipMarch) plays only with setDrums(true), which play.html never sets: the friends' DRUMS replaces it with the presets.",
   "SLIDE_SOUND alternatives: ?slide=d486 (every instrument the arrival gesture) and ?slide=instruments (the instruments' portamento and coulé) on play.html. Default auto.",
-  "Subject effects' synthesized layers (shimmer, ping, brass) are kept in the data for every Book I fugue and silenced by SYNTH_LAYERS_SOUND = false (D505). The subject brightness and the others' dulling (D213) are off by default (LAB_DEFAULT.subject false); vibrato and stereo centring off.",
+  "Subject effects' synthesized layers (shimmer, ping, brass) are kept in the data for every Book I fugue and never sound (silenced D505; the switch was deleted with the retired features, D1050). The subject brightness and the others' dulling (D213) are off by default (LAB_DEFAULT.subject false); vibrato and stereo centring off.",
   "Colour plans for other sounds: most fugues have plans written for 2–4 other sounds (harpsichord, organ, chip, piano). They play only if the player chooses that sound and Busoni does not lead.",
-  "OFFER_READINGS (Keller, Bodky and others as alternative readings) is off: only Busoni's reading is played. EXPRESSIVE_ALL (Busoni on every dynamic sound) is on.",
+  "Only Busoni's reading exists (the Keller, Bodky and Riemann readings were deleted, D1050). EXPRESSIVE_ALL (Busoni on every dynamic sound) is on.",
   "The consort's articulation stops (spiccato, pizzicato, con sordino, tremolo) and the harpsichord's and organ's pistons are the player's only. The band never changes articulation by itself; a form-driven stop change for the band (pizzicato episodes, for example) is an open idea.",
   "The Lab's hard tap (MECH.hardTap) and the motion sensor are off (D506); the strong zone gives the accents.",
 ];

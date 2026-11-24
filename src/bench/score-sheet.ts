@@ -38,8 +38,6 @@ export interface SheetInput {
   graces?: { agogic: number; breath: number; broaden: number; revoked?: number };
   /** D445: each judged entry's share of its notes right (partial credit). */
   entryShares?: number[];
-  /** D862, TWO HANDS: each hand's notes right and of (the left hand's first), shown apart under NOTES. */
-  hands?: { right: number; of: number }[];
 }
 
 export interface Quality {
@@ -102,7 +100,7 @@ export function scoreSheet(r: SheetInput): Sheet {
   const shares = r.entryShares ?? [];
   const W = PERFORMANCE_WEIGHTS;
   const qualities: Quality[] = [
-    { key: "notes", label: "NOTES", share: share(r.right, accOf), detail: `${r.right} OF ${r.of}${r.hands?.length === 2 ? ` · LEFT HAND ${r.hands[0].right}/${r.hands[0].of} · RIGHT HAND ${r.hands[1].right}/${r.hands[1].of}` : ""}${r.stray ? ` · ${r.stray} STRAY` : ""}`, weight: W.notes },
+    { key: "notes", label: "NOTES", share: share(r.right, accOf), detail: `${r.right} OF ${r.of}${r.stray ? ` · ${r.stray} STRAY` : ""}`, weight: W.notes },
     { key: "timing", label: "TIMING", share: share(r.perfects + GOOD_TIMING * r.goods, r.perfects + r.goods), detail: `${r.perfects} PERFECT${expressive ? ` (${expressive} IN EXPRESSIVE TIME)` : ""} · ${r.goods} GOOD`, weight: W.timing },
     { key: "touch", label: "TOUCH", share: share(touchHit, touchOf), detail: touchDetail || "NOTHING TO JUDGE", weight: W.touch },
     { key: "entries", label: "ENTRIES", share: shares.length ? shares.reduce((a, b) => a + b, 0) / shares.length : null, detail: shares.length ? `${shares.filter((x) => x === 1).length} OF ${shares.length} WHOLE` : "NONE IN YOUR VOICE", weight: W.entries },

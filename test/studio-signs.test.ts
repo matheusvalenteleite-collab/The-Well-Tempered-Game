@@ -26,7 +26,6 @@ test("SHORT means one thing: the dot done is SHORT ✓, the fault TOO SOON", () 
   const g = src("src/bench/proto-game.ts");
   assert.ok(g.includes('"SHORT ✓"') && !g.includes('"STACCATO ✓"'));
   assert.ok(g.includes('text: "TOO SOON"') && !/text: "SHORT"/.test(g));
-  for (const p of ["src/bench/manual/coach.ts", "src/bench/manual/course2.ts"]) assert.ok(!src(p).includes('word === "SHORT"'), p);
 });
 
 test("unscored signs say so; the lift tick and the caesura's // gone (the gap's stroke is the one sign for a silence)", () => {
@@ -65,8 +64,6 @@ test("the thumbs: ● ○ under the notes from the plan, each bar's sign; no arr
   assert.ok(!p.includes('d === 0 ? "=" : d > 0 ? "▲" : "▼"'), "no way arrow");
   assert.ok(!p.includes("function thumbCoach") && !p.includes("#f2c9a0"), "no skin-coloured thumb");
   assert.ok(!p.includes('"LEFT THUMB" : "RIGHT THUMB"'));
-  const aids = src("src/bench/manual/aids.ts");
-  assert.ok(!aids.includes("function moveWord") && !aids.includes("NEXT: A BIG JUMP"));
   // Drawing only: the judge never reads the signs.
   assert.ok(!/thumbSigns|FIRST_SIDE/.test(src("src/bench/proto-game.ts")));
 });

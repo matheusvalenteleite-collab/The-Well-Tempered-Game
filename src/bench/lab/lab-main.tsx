@@ -8,7 +8,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { APP } from "../config.ts";
-import { forceUi } from "../../touch/ui/index.ts";
 import { LabApp } from "./LabApp.tsx";
 import { markVersion } from "../version.ts";
 import { labPlayParam } from "../glenn.ts";
@@ -26,7 +25,6 @@ import "./lab.css";
 
 APP.lite = true;
 APP.dev = false;
-forceUi("classic");
 
 markVersion();
 const page = labPlayParam(location.search);
