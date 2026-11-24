@@ -106,9 +106,9 @@ test("breath: brighter toward flat within a step; brightness mode spreads over 4
 
 /* Gyro fusion: a simulated phone. The gyroscope reports with an unknown convention (here: minus sign,
    degrees per second); the accelerometer adds hand jolts. */
-function simulatePhone({ source, tiltTau = 120, conv = [-1, 180 / Math.PI], jolt = 1.5, path, dur, seed = 7 }) {
+function simulatePhone({ source, tiltLookMs = 0, tiltTau = 120, conv = [-1, 180 / Math.PI], jolt = 1.5, path, dur, seed = 7 }) {
   const P = { leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22.5, up2Deg: -11.25, down1Deg: 67.5, down2Deg: 101.25, octHystDeg: 4,
-    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau, invLean: false, invRoll: false, tiltSource: source, gyroCorrS: 0.8 };
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau, tiltLookMs, invLean: false, invRoll: false, tiltSource: source, gyroCorrS: 0.8 };
   let r = seed; const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647 - 0.5);
   const evs = [], tr = new G.TiltReader((e) => evs.push(e));
   const dt = 1000 / 60, out = [];
@@ -162,4 +162,20 @@ test("practice: balanced prompts, tallies, rhythm judging", () => {
   assert.strictEqual(r.missed, 1); assert.strictEqual(r.extra, 2);
   assert.ok(Math.abs(r.meanAbsMs - (20 + 60 + 50) / 3) < 1e-6);
   assert.strictEqual(r.tally.ok, 2);
+});
+
+test("gyro look-ahead: 20 ms of prediction cancels most of the sensor's delay", () => {
+  const path = (t) => (t < 2000 ? 45 + 10 * Math.sin(t / 150) : t < 2500 ? 45 : Math.max(0, 45 - (t - 2500) * 0.15));
+  const trueT = 2500 + (45 - 20.5) / 0.15;
+  const lag = (o) => flipTime(o.out.filter((x) => x.t > 2500), 1) - trueT;
+  const a = simulatePhone({ source: "fused", path, dur: 3200 }), b = simulatePhone({ source: "fused", tiltLookMs: 20, path, dur: 3200 });
+  console.log(`  octave step lag: no look-ahead ${lag(a).toFixed(0)} ms, 20 ms look-ahead ${lag(b).toFixed(0)} ms`);
+  assert.ok(lag(b) < lag(a) && lag(b) <= 10);
+});
+test("slides: with no wait, a slide sounds the moment the thumb enters a row", () => {
+  const evs = [], A = { left: { left: 0, right: 200, top: 0, bottom: 300, height: 300 }, right: { left: 400, right: 600, top: 0, bottom: 300, height: 300 } };
+  const g = new G.TouchGestures(() => A, () => [60, 62, 64, 65, 67], (e) => evs.push(e), () => ({ contactOn: false, decideMs: 0, cal: {}, sizeRange: {}, slideDwellMs: 0 }));
+  g.down(1, 0, 100, 250, null); // bottom row
+  g.move(1, 16, 100, 200, null); // into the next row up
+  assert.deepStrictEqual(evs.map((e) => e.type + "@" + e.t), ["onset@0", "pitch@16"]);
 });

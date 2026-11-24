@@ -167,6 +167,7 @@
       const cur = this.cands[this.best];
       this.cands.forEach((c, i) => { if (c.err < cur.err * 0.7 - 1e-4) this.best = i; });
       this.g = this.cands[this.best].g;
+      this.rot = rot;
       return true;
     }
     gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
@@ -190,9 +191,18 @@
       else { this.g = this.gl.slice(); this.source = "gravity"; if (P.tiltSource !== "fused") this.cands = null; }
       if (!this.ref && !this.takeRef()) return;
       if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
-      let lean = this.leanOf(this.g);
+      // look-ahead: the gyroscope's rotation speed carries the estimate tiltLookMs into the future, to cancel the
+      // sensor's own delay (the owner: no latency in a mechanic). Fused source only.
+      let gNow = this.g;
+      if (this.source === "fused" && P.tiltLookMs > 0 && this.rot) {
+        const c = this.cands[this.best], la = P.tiltLookMs / 1000, r = this.rot;
+        const w = [r.beta * c.sg * c.k, r.gamma * c.sg * c.k, r.alpha * c.sg * c.k], g = this.g;
+        const cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        gNow = [g[0] - cr[0] * la, g[1] - cr[1] * la, g[2] - cr[2] * la];
+      }
+      let lean = this.leanOf(gNow);
       if (P.invLean) lean = 2 * P.centreDeg - lean;
-      let roll = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
+      let roll = Math.atan2(gNow[0], gNow[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
       if (P.invRoll) roll = -roll;
       this.lean = lean; this.roll = roll;
       const v = Math.max(-1.6, Math.min(1.6, (P.centreDeg - lean) / P.spanDeg));
@@ -281,7 +291,8 @@
         if (!hd.fired && t - hd.t0 >= this.opts().decideMs) this.fire(id, hd, t);
         if (!hd.done && t - hd.t0 > 400) this.settle(hd);
         const p = hd.pend;
-        if (!p || t - p.since < SLIDE_DWELL_MS) continue;
+        const dwell = this.opts().slideDwellMs != null ? this.opts().slideDwellMs : SLIDE_DWELL_MS; // the owner: no latency; default 0 (touchapp)
+        if (!p || t - p.since < dwell) continue;
         hd.pend = null; hd.row = p.row; hd.setY = p.y; hd.setX = p.x;
         this.emit({ type: "pitch", id, t, row: p.row, midi: rows[p.row] });
       }

@@ -61,6 +61,19 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
+#lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
+.lstatus { font: 600 12px var(--f-ui); color: var(--fg); min-height: 16px; flex: 1; min-width: 0; }
+.lstatrow { display: flex; gap: 6px; align-items: flex-start; }
+.lstatrow button { padding: 3px 6px; flex: none; }
+#lPanel > * { flex-shrink: 0; }
+#lVoices { font-size: 11px; color: var(--dim); display: flex; flex-direction: column; gap: 3px; }
+.lvrow { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.lvrow button { padding: 3px 6px; }
+.lvname { flex: 1; min-width: 0; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lchip { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.lsform { display: flex; flex-direction: column; gap: 4px; width: min(360px, 100%); text-align: left; }
+#lSetup, #lLatBox { touch-action: manipulation; }
 #prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
 #prOverlay { flex-direction: column; align-items: stretch; }
 #calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
@@ -87,7 +100,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <div id="home" class="overlay">
   <div class="big">Two-thumb test bench</div>
   <p>Hold the phone sideways. Check the ring/silent switch and the volume.</p>
-  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button></div>
+  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button><button id="goLoop" class="choice">Loop maker</button></div>
   <p style="font-size:11px">The touch-area button also asks for motion-sensor access (tilt).</p>
 </div>
 
@@ -162,6 +175,42 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   </div>
 </div>
 
+<div id="loopMode" hidden>
+  <div id="lL" class="zone tarea"></div>
+  <div id="lR" class="zone tarea"></div>
+  <div id="lPanel">
+    <canvas id="lCanvas"></canvas>
+    <div class="lstatrow"><div id="lStatus" class="lstatus"></div><button id="lMenu">◂ Menu</button></div>
+    <div class="bar"><button id="lRec">● Record</button><button id="lKeep" hidden>Keep</button><button id="lRetake" hidden>Retake</button><button id="lStop">Stop</button></div>
+    <div class="bar tsel"><select id="lSound" aria-label="Sound"></select><select id="lReg" aria-label="Register"><option value="-1">low</option><option value="0" selected>middle</option><option value="1">high</option></select></div>
+    <div id="lVoices"></div>
+    <div class="bar"><button id="lPiece">Play piece</button><button id="lAll">Loop all</button><button id="lExport">Export audio</button></div>
+    <div class="bar tsel"><label class="rd">Quantize <select id="lQuant"><option value="off">off</option><option value="light">light</option><option value="strong">strong</option></select></label></div>
+    <label class="sl">Drums <output id="lDrumO"></output><input id="lDrum" type="range" min="0" max="1" step="0.05"></label>
+    <div id="lMsg" class="rd"></div><div id="lSaveMsg" class="rd"></div>
+    <div id="lSetupLine" class="rd"></div>
+    <div class="bar"><button id="lLat">Latency…</button><button id="lCsv">Takes CSV</button><button id="lNew">New session</button></div>
+  </div>
+  <div id="lSetup" class="overlay" hidden>
+    <div class="big">New piece</div>
+    <p>These stay fixed for the whole session.</p>
+    <div class="lsform">
+      <label class="sl">Tempo <output id="lsBpmO"></output><input id="lsBpm" type="range" min="50" max="160" step="1" value="90"></label>
+      <label class="tg">Meter <select id="lsMeter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+      <label class="tg">Loop length <select id="lsBars"><option value="2">2 bars</option><option value="4">4 bars</option></select></label>
+      <label class="sl">Drum volume <output id="lsDrumO"></output><input id="lsDrum" type="range" min="0" max="1" step="0.05" value="0.35"></label>
+    </div>
+    <button id="lsStart" class="choice">Start</button>
+  </div>
+  <div id="lLatBox" class="overlay" hidden>
+    <div class="big">Latency</div>
+    <p>Press Start, then tap anywhere on the screen in time with the clicks. The offset found is taken off every new take, so takes line up with the beat.</p>
+    <div class="bar"><button id="llGo">Start</button><button id="llUse">Use this</button><button id="llClose">Close</button></div>
+    <div id="llCount" class="calcount"></div>
+    <p id="llRes"></p>
+  </div>
+</div>
+
 <div id="csvBox" class="overlay" hidden>
   <div class="bar"><button id="csvSave">Save file</button><button id="csvCopy">Copy</button><button id="csvClose">Close</button><span id="csvMsg" style="color:var(--dim);font-size:11px;align-self:center"></span></div>
   <textarea id="csvText" class="logbox" readonly></textarea>
@@ -175,3 +224,6 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <script src="touchsound.js"></script>
 <script src="touchapp.js"></script>
 <script src="practice.js"></script>
+<script src="loopcore.js"></script>
+<script src="loopsound.js"></script>
+<script src="loopapp.js"></script>

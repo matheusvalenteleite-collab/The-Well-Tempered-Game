@@ -11,11 +11,17 @@
   window.__mode = "home";
   function show(mode) {
     window.__mode = mode;
-    $("home").hidden = mode !== "home"; $("bowedMode").hidden = mode !== "bowed"; $("touchMode").hidden = mode !== "touch";
+    $("home").hidden = mode !== "home"; $("bowedMode").hidden = mode !== "bowed"; $("touchMode").hidden = mode !== "touch"; $("loopMode").hidden = mode !== "loop";
     if (mode === "bowed" && window.__bowedEnter) window.__bowedEnter();
+    if (mode === "loop" && window.__loopEnter) window.__loopEnter();
     if (mode === "touch") enterTouch();
   }
-  window.__home = () => { if (window.__mode === "touch") leaveTouch(); show("home"); };
+  window.__home = () => { if (window.__mode === "touch") leaveTouch(); if (window.__mode === "loop" && window.__loopLeave) window.__loopLeave(); show("home"); };
+  $("goLoop").onclick = () => {
+    ctx = SH.unlockAudio(tlog);
+    if (T.tiltOn && sens.status === "not requested") requestSensors(); // motion permission must be asked from this tap
+    show("loop");
+  };
   $("goBowed").onclick = () => show("bowed");
   $("goTouch").onclick = () => {
     ctx = SH.unlockAudio(tlog); // sound first; the permission prompt below may pause it (resumed on the next tap)
@@ -27,7 +33,7 @@
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 4,
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
@@ -55,7 +61,7 @@
     }
   }
   refit();
-  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE });
+  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE, slideDwellMs: T.slideDwellMs });
   const listeners = [];
   const onEvent = (ev) => {
     for (const f of listeners) f(ev);
@@ -68,7 +74,9 @@
   const gest = new G.TouchGestures(() => ({ left: rect.left, right: rect.right }), () => ROWS, onEvent, gopts);
   const tilt = new G.TiltReader(onEvent);
   let lastEv = null, lastOnset = null;
+  const motionListeners = [];
   function onMotion(e) {
+    for (const f of motionListeners) f(e);
     if (!T.tiltOn || window.__mode !== "touch") return;
     const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
     tilt.feed(now(), g.x, g.y, g.z, T, e.rotationRate);
@@ -84,10 +92,16 @@
     Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
     Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
     Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
-    rect.left = $("tL").getBoundingClientRect(); rect.right = $("tR").getBoundingClientRect();
+    const d = drawAreas($("tL"), $("tR"));
+    rect.left = d.rect.left; rect.right = d.rect.right; gest.hitFn = d.hit;
+  }
+  /* Draws the two thumb areas (rows, or the D330 piano) into elL / elR as they stand on screen, and returns
+     their rects and the hit function for the gesture layer (null: rows by height). Shared with the Loop maker. */
+  function drawAreas(elL, elR) {
+    const rect = { left: elL.getBoundingClientRect(), right: elR.getBoundingClientRect() };
     const KB = {};
     for (const side of ["L", "R"]) {
-      const el = $("t" + side), r = side === "L" ? rect.left : rect.right;
+      const el = side === "L" ? elL : elR, r = side === "L" ? rect.left : rect.right;
       el.innerHTML = "";
       if (T.layout === "piano") {
         // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
@@ -104,10 +118,11 @@
         d.textContent = G.noteName(m); d.dataset.row = i; el.appendChild(d);
       });
     }
-    gest.hitFn = T.layout === "piano" ? (side, x, y) => {
+    const hit = T.layout === "piano" ? (side, x, y) => {
       const r = rect[side], u = side === "left" ? r.right - x : x - r.left;
       return KB[side === "left" ? "L" : "R"].hit(u, y - r.top).row;
     } : null;
+    return { rect, hit };
   }
   const pcName = (m) => G.NAMES[((m % 12) + 12) % 12];
   addEventListener("resize", () => { if (window.__mode === "touch") layout(); });
@@ -146,11 +161,13 @@
   function leaveTouch() { gest.releaseAll(now()); if (sound) { sound.silence(); sound.stopLoop(); } }
 
   /* ---------- CSV box (both modes) ---------- */
-  window.__showCsv = (mode) => {
-    $("csvText").value = SH.csv.text(); $("csvMsg").textContent = `${SH.csv.rows.length} rows`;
+  let csvShown = SH.csv;
+  window.__showCsv = (mode, which) => {
+    csvShown = which || SH.csv;
+    $("csvText").value = csvShown.text(); $("csvMsg").textContent = `${csvShown.rows.length} rows`;
     $("csvBox").hidden = false; $("csvBox").dataset.mode = mode;
   };
-  $("csvSave").onclick = async () => { $("csvMsg").textContent = await SH.csv.save(`input-${$("csvBox").dataset.mode}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`); };
+  $("csvSave").onclick = async () => { $("csvMsg").textContent = await csvShown.save(`input-${$("csvBox").dataset.mode}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`); };
   $("csvCopy").onclick = () => SH.copyText($("csvText"), (m) => { $("csvMsg").textContent = m; });
   $("csvClose").onclick = () => { $("csvBox").hidden = true; };
 
@@ -304,6 +321,8 @@
 
   /* ---------- settings overlay ---------- */
   const SET = [
+    ["Slides"],
+    ["slideDwellMs", "Slide: wait in a new row before it sounds", 0, 120, 1, (v) => (v ? v + " ms (skips rows crossed faster)" : "0 (no delay)")],
     ["Contact size"],
     ["contactOn", "Contact size on (class sets the sound; size moves held notes)"],
     ["decideMs", "Decision delay (wait before sounding)", 0, 120, 1, (v) => v + " ms"],
@@ -314,6 +333,7 @@
     ["tiltOn", "Tilt on"],
     ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
     ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
+    ["tiltLookMs", "Gyro: look-ahead (cancels sensor delay)", 0, 60, 1, (v) => v + " ms"],
     ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
     ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
     ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
@@ -450,6 +470,8 @@
   requestAnimationFrame(frame);
   /* hooks for the practice screen (practice.js) */
   window.__touchHooks = {
+    drawAreas, gopts, rows: () => ROWS, requestSensors: () => { if (sens.status === "not requested") requestSensors(); }, onMotion: (f) => motionListeners.push(f),
+    areaWidth: (W) => Math.round(Math.min(280, Math.max(160, W * 0.3))),
     listen: (f) => listeners.push(f), unlisten: (f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); },
     fit: () => FIT, T: () => T, ctx: () => ctx, sound: () => sound, now, calDate: () => CAL.savedAt,
     setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },

@@ -66,6 +66,19 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
+#lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
+.lstatus { font: 600 12px var(--f-ui); color: var(--fg); min-height: 16px; flex: 1; min-width: 0; }
+.lstatrow { display: flex; gap: 6px; align-items: flex-start; }
+.lstatrow button { padding: 3px 6px; flex: none; }
+#lPanel > * { flex-shrink: 0; }
+#lVoices { font-size: 11px; color: var(--dim); display: flex; flex-direction: column; gap: 3px; }
+.lvrow { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.lvrow button { padding: 3px 6px; }
+.lvname { flex: 1; min-width: 0; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lchip { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.lsform { display: flex; flex-direction: column; gap: 4px; width: min(360px, 100%); text-align: left; }
+#lSetup, #lLatBox { touch-action: manipulation; }
 #prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
 #prOverlay { flex-direction: column; align-items: stretch; }
 #calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
@@ -93,7 +106,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <div id="home" class="overlay">
   <div class="big">Two-thumb test bench</div>
   <p>Hold the phone sideways. Check the ring/silent switch and the volume.</p>
-  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button></div>
+  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button><button id="goLoop" class="choice">Loop maker</button></div>
   <p style="font-size:11px">The touch-area button also asks for motion-sensor access (tilt).</p>
 </div>
 
@@ -165,6 +178,42 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     <div class="bar"><button id="diagCopy">Copy probe report</button><button id="diagClose">Close</button><span id="diagMsg"></span></div>
     <pre id="diagText"></pre>
     <textarea id="diagSel" hidden readonly></textarea>
+  </div>
+</div>
+
+<div id="loopMode" hidden>
+  <div id="lL" class="zone tarea"></div>
+  <div id="lR" class="zone tarea"></div>
+  <div id="lPanel">
+    <canvas id="lCanvas"></canvas>
+    <div class="lstatrow"><div id="lStatus" class="lstatus"></div><button id="lMenu">◂ Menu</button></div>
+    <div class="bar"><button id="lRec">● Record</button><button id="lKeep" hidden>Keep</button><button id="lRetake" hidden>Retake</button><button id="lStop">Stop</button></div>
+    <div class="bar tsel"><select id="lSound" aria-label="Sound"></select><select id="lReg" aria-label="Register"><option value="-1">low</option><option value="0" selected>middle</option><option value="1">high</option></select></div>
+    <div id="lVoices"></div>
+    <div class="bar"><button id="lPiece">Play piece</button><button id="lAll">Loop all</button><button id="lExport">Export audio</button></div>
+    <div class="bar tsel"><label class="rd">Quantize <select id="lQuant"><option value="off">off</option><option value="light">light</option><option value="strong">strong</option></select></label></div>
+    <label class="sl">Drums <output id="lDrumO"></output><input id="lDrum" type="range" min="0" max="1" step="0.05"></label>
+    <div id="lMsg" class="rd"></div><div id="lSaveMsg" class="rd"></div>
+    <div id="lSetupLine" class="rd"></div>
+    <div class="bar"><button id="lLat">Latency…</button><button id="lCsv">Takes CSV</button><button id="lNew">New session</button></div>
+  </div>
+  <div id="lSetup" class="overlay" hidden>
+    <div class="big">New piece</div>
+    <p>These stay fixed for the whole session.</p>
+    <div class="lsform">
+      <label class="sl">Tempo <output id="lsBpmO"></output><input id="lsBpm" type="range" min="50" max="160" step="1" value="90"></label>
+      <label class="tg">Meter <select id="lsMeter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+      <label class="tg">Loop length <select id="lsBars"><option value="2">2 bars</option><option value="4">4 bars</option></select></label>
+      <label class="sl">Drum volume <output id="lsDrumO"></output><input id="lsDrum" type="range" min="0" max="1" step="0.05" value="0.35"></label>
+    </div>
+    <button id="lsStart" class="choice">Start</button>
+  </div>
+  <div id="lLatBox" class="overlay" hidden>
+    <div class="big">Latency</div>
+    <p>Press Start, then tap anywhere on the screen in time with the clicks. The offset found is taken off every new take, so takes line up with the beat.</p>
+    <div class="bar"><button id="llGo">Start</button><button id="llUse">Use this</button><button id="llClose">Close</button></div>
+    <div id="llCount" class="calcount"></div>
+    <p id="llRes"></p>
   </div>
 </div>
 
@@ -539,7 +588,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   /* CSV recorder: one row per raw input event while recording. */
   const COLS = ["t_ms", "mode", "event", "id", "zone", "x", "y", "radiusX", "radiusY", "force", "webkitForce",
     "pressure", "width", "height", "alpha", "beta", "gamma", "accX", "accY", "accZ", "rotA", "rotB", "rotG", "note"];
-  const csv = {
+  const makeCsv = () => ({
     on: false, rows: [], t0: 0,
     start() { this.rows = []; this.t0 = performance.now(); this.on = true; },
     stop() { this.on = false; },
@@ -564,7 +613,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         return "Download started (if nothing happens, copy the text)";
       } catch (e) { return "Download failed: copy the text instead"; }
     },
-  };
+  });
+  const csv = makeCsv();
 
   /* Copy text: clipboard API in the click, else select it for the phone's own Copy. */
   function copyText(ta, done) {
@@ -572,7 +622,21 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => done("Copied"), fallback); else fallback();
   }
 
-  window.Shared = { unlockAudio, evTime, touchProps, csv, copyText, audio: () => ctx };
+  /* Save any bytes as a file: the claude.ai downloads capability inside an Artifact (its allowlist decides the
+     extension: altName is used if the first is refused), a plain download elsewhere. Resolves to a message. */
+  async function saveBytes(filename, bytes, mime, altName, altBytes) {
+    try {
+      const dl = window.claude && window.claude.use ? await Promise.race([window.claude.use("downloads"), new Promise((r) => setTimeout(() => r(null), 1500))]) : null;
+      if (dl) {
+        try { await dl.save({ filename, data: bytes }); return "Saved " + filename; }
+        catch (e) { if (altName && e && (e.code === "rejected_extension" || e.code === "extension_not_enabled")) { await dl.save({ filename: altName, data: altBytes() }); return "Saved " + altName + " (the frame only saves this format)"; } throw e; }
+      }
+    } catch (e) { return "Save refused (" + (e && e.code || e) + ")"; }
+    try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: mime })); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); return "Download started: " + filename; }
+    catch (e) { return "Download failed"; }
+  }
+
+  window.Shared = { unlockAudio, evTime, touchProps, csv, makeCsv, saveBytes, copyText, audio: () => ctx };
 })();
 
 </script>
@@ -1150,6 +1214,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       const cur = this.cands[this.best];
       this.cands.forEach((c, i) => { if (c.err < cur.err * 0.7 - 1e-4) this.best = i; });
       this.g = this.cands[this.best].g;
+      this.rot = rot;
       return true;
     }
     gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
@@ -1173,9 +1238,18 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       else { this.g = this.gl.slice(); this.source = "gravity"; if (P.tiltSource !== "fused") this.cands = null; }
       if (!this.ref && !this.takeRef()) return;
       if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
-      let lean = this.leanOf(this.g);
+      // look-ahead: the gyroscope's rotation speed carries the estimate tiltLookMs into the future, to cancel the
+      // sensor's own delay (the owner: no latency in a mechanic). Fused source only.
+      let gNow = this.g;
+      if (this.source === "fused" && P.tiltLookMs > 0 && this.rot) {
+        const c = this.cands[this.best], la = P.tiltLookMs / 1000, r = this.rot;
+        const w = [r.beta * c.sg * c.k, r.gamma * c.sg * c.k, r.alpha * c.sg * c.k], g = this.g;
+        const cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        gNow = [g[0] - cr[0] * la, g[1] - cr[1] * la, g[2] - cr[2] * la];
+      }
+      let lean = this.leanOf(gNow);
       if (P.invLean) lean = 2 * P.centreDeg - lean;
-      let roll = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
+      let roll = Math.atan2(gNow[0], gNow[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
       if (P.invRoll) roll = -roll;
       this.lean = lean; this.roll = roll;
       const v = Math.max(-1.6, Math.min(1.6, (P.centreDeg - lean) / P.spanDeg));
@@ -1264,7 +1338,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         if (!hd.fired && t - hd.t0 >= this.opts().decideMs) this.fire(id, hd, t);
         if (!hd.done && t - hd.t0 > 400) this.settle(hd);
         const p = hd.pend;
-        if (!p || t - p.since < SLIDE_DWELL_MS) continue;
+        const dwell = this.opts().slideDwellMs != null ? this.opts().slideDwellMs : SLIDE_DWELL_MS; // the owner: no latency; default 0 (touchapp)
+        if (!p || t - p.since < dwell) continue;
         hd.pend = null; hd.row = p.row; hd.setY = p.y; hd.setX = p.x;
         this.emit({ type: "pitch", id, t, row: p.row, midi: rows[p.row] });
       }
@@ -1412,11 +1487,17 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   window.__mode = "home";
   function show(mode) {
     window.__mode = mode;
-    $("home").hidden = mode !== "home"; $("bowedMode").hidden = mode !== "bowed"; $("touchMode").hidden = mode !== "touch";
+    $("home").hidden = mode !== "home"; $("bowedMode").hidden = mode !== "bowed"; $("touchMode").hidden = mode !== "touch"; $("loopMode").hidden = mode !== "loop";
     if (mode === "bowed" && window.__bowedEnter) window.__bowedEnter();
+    if (mode === "loop" && window.__loopEnter) window.__loopEnter();
     if (mode === "touch") enterTouch();
   }
-  window.__home = () => { if (window.__mode === "touch") leaveTouch(); show("home"); };
+  window.__home = () => { if (window.__mode === "touch") leaveTouch(); if (window.__mode === "loop" && window.__loopLeave) window.__loopLeave(); show("home"); };
+  $("goLoop").onclick = () => {
+    ctx = SH.unlockAudio(tlog);
+    if (T.tiltOn && sens.status === "not requested") requestSensors(); // motion permission must be asked from this tap
+    show("loop");
+  };
   $("goBowed").onclick = () => show("bowed");
   $("goTouch").onclick = () => {
     ctx = SH.unlockAudio(tlog); // sound first; the permission prompt below may pause it (resumed on the next tap)
@@ -1428,7 +1509,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 4,
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
@@ -1456,7 +1537,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     }
   }
   refit();
-  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE });
+  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE, slideDwellMs: T.slideDwellMs });
   const listeners = [];
   const onEvent = (ev) => {
     for (const f of listeners) f(ev);
@@ -1469,7 +1550,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   const gest = new G.TouchGestures(() => ({ left: rect.left, right: rect.right }), () => ROWS, onEvent, gopts);
   const tilt = new G.TiltReader(onEvent);
   let lastEv = null, lastOnset = null;
+  const motionListeners = [];
   function onMotion(e) {
+    for (const f of motionListeners) f(e);
     if (!T.tiltOn || window.__mode !== "touch") return;
     const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
     tilt.feed(now(), g.x, g.y, g.z, T, e.rotationRate);
@@ -1485,10 +1568,16 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
     Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
     Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
-    rect.left = $("tL").getBoundingClientRect(); rect.right = $("tR").getBoundingClientRect();
+    const d = drawAreas($("tL"), $("tR"));
+    rect.left = d.rect.left; rect.right = d.rect.right; gest.hitFn = d.hit;
+  }
+  /* Draws the two thumb areas (rows, or the D330 piano) into elL / elR as they stand on screen, and returns
+     their rects and the hit function for the gesture layer (null: rows by height). Shared with the Loop maker. */
+  function drawAreas(elL, elR) {
+    const rect = { left: elL.getBoundingClientRect(), right: elR.getBoundingClientRect() };
     const KB = {};
     for (const side of ["L", "R"]) {
-      const el = $("t" + side), r = side === "L" ? rect.left : rect.right;
+      const el = side === "L" ? elL : elR, r = side === "L" ? rect.left : rect.right;
       el.innerHTML = "";
       if (T.layout === "piano") {
         // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
@@ -1505,10 +1594,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         d.textContent = G.noteName(m); d.dataset.row = i; el.appendChild(d);
       });
     }
-    gest.hitFn = T.layout === "piano" ? (side, x, y) => {
+    const hit = T.layout === "piano" ? (side, x, y) => {
       const r = rect[side], u = side === "left" ? r.right - x : x - r.left;
       return KB[side === "left" ? "L" : "R"].hit(u, y - r.top).row;
     } : null;
+    return { rect, hit };
   }
   const pcName = (m) => G.NAMES[((m % 12) + 12) % 12];
   addEventListener("resize", () => { if (window.__mode === "touch") layout(); });
@@ -1547,11 +1637,13 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   function leaveTouch() { gest.releaseAll(now()); if (sound) { sound.silence(); sound.stopLoop(); } }
 
   /* ---------- CSV box (both modes) ---------- */
-  window.__showCsv = (mode) => {
-    $("csvText").value = SH.csv.text(); $("csvMsg").textContent = `${SH.csv.rows.length} rows`;
+  let csvShown = SH.csv;
+  window.__showCsv = (mode, which) => {
+    csvShown = which || SH.csv;
+    $("csvText").value = csvShown.text(); $("csvMsg").textContent = `${csvShown.rows.length} rows`;
     $("csvBox").hidden = false; $("csvBox").dataset.mode = mode;
   };
-  $("csvSave").onclick = async () => { $("csvMsg").textContent = await SH.csv.save(`input-${$("csvBox").dataset.mode}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`); };
+  $("csvSave").onclick = async () => { $("csvMsg").textContent = await csvShown.save(`input-${$("csvBox").dataset.mode}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`); };
   $("csvCopy").onclick = () => SH.copyText($("csvText"), (m) => { $("csvMsg").textContent = m; });
   $("csvClose").onclick = () => { $("csvBox").hidden = true; };
 
@@ -1705,6 +1797,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   /* ---------- settings overlay ---------- */
   const SET = [
+    ["Slides"],
+    ["slideDwellMs", "Slide: wait in a new row before it sounds", 0, 120, 1, (v) => (v ? v + " ms (skips rows crossed faster)" : "0 (no delay)")],
     ["Contact size"],
     ["contactOn", "Contact size on (class sets the sound; size moves held notes)"],
     ["decideMs", "Decision delay (wait before sounding)", 0, 120, 1, (v) => v + " ms"],
@@ -1715,6 +1809,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["tiltOn", "Tilt on"],
     ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
     ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
+    ["tiltLookMs", "Gyro: look-ahead (cancels sensor delay)", 0, 60, 1, (v) => v + " ms"],
     ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
     ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
     ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
@@ -1851,6 +1946,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   requestAnimationFrame(frame);
   /* hooks for the practice screen (practice.js) */
   window.__touchHooks = {
+    drawAreas, gopts, rows: () => ROWS, requestSensors: () => { if (sens.status === "not requested") requestSensors(); }, onMotion: (f) => motionListeners.push(f),
+    areaWidth: (W) => Math.round(Math.min(280, Math.max(160, W * 0.3))),
     listen: (f) => listeners.push(f), unlisten: (f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); },
     fit: () => FIT, T: () => T, ctx: () => ctx, sound: () => sound, now, calDate: () => CAL.savedAt,
     setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
@@ -2045,6 +2142,636 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   root.Practice = { makeDeck, tally, rhythmScore, rand, KINDS };
   if (typeof document !== "undefined" && document.getElementById) boot();
 })(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker, CORE: the pure parts (no page, no sound), tested in node.
+   Times are in seconds. A take's times are relative to the top of the loop pass it was recorded in, on the
+   audio clock, already corrected by the latency offset; they may run past the loop's end (a note held across
+   the boundary) and are kept verbatim: quantizing happens only when a take is played or drawn. */
+(function (root) {
+  "use strict";
+
+  function loopLen(s) { return s.bars * s.beats * (60 / s.bpm); }
+  function barLen(s) { return s.beats * (60 / s.bpm); }
+  const mod = (x, m) => ((x % m) + m) % m;
+
+  /* Quantize an onset time: off = raw; light = halfway to the nearest sixteenth; strong = onto it.
+     Returns the shift to apply to the whole note (its sub-events move with it). */
+  function qShift(at, s, mode) {
+    if (mode === "off") return 0;
+    const grid = 60 / s.bpm / 4, target = Math.round(at / grid) * grid;
+    return (target - at) * (mode === "light" ? 0.5 : 1);
+  }
+
+  /* A finished take's notes for playback: each note's start folded into the loop [0, L), quantized,
+     its duration capped just under one loop (so a note never overlaps its own next pass). */
+  function playNotes(take, s, mode) {
+    const L = loopLen(s);
+    return take.notes.map((n) => {
+      const sh = qShift(n.on, s, mode);
+      const on = mod(n.on + sh, L);
+      // a note still held (no release yet: the take is being reviewed while the thumb is down) runs open
+      const dur = n.off != null ? Math.max(0.03, Math.min(L - 0.01, n.off - n.on)) : L - 0.01;
+      return { ...n, start: on, dur, shift: sh, src: n };
+    });
+  }
+  /* Tilt events within the pass (wrapped), sorted; the state at the pass's top is the last one before. */
+  function playTilt(take, s) {
+    const L = loopLen(s);
+    return (take.tilt || []).filter((e) => e.at < L).map((e) => ({ ...e, at: mod(e.at, L) })).sort((a, b) => a.at - b.at);
+  }
+
+  /* The finale: the voices enter one at a time in the order they were recorded (one pass each, the earlier
+     ones carrying on), then everything twice. Returns a list of passes: [voice ids], and the total length. */
+  function finalePlan(voiceIds) {
+    const passes = [];
+    for (let i = 0; i < voiceIds.length; i++) passes.push(voiceIds.slice(0, i + 1));
+    if (voiceIds.length) { passes.push(voiceIds.slice()); passes.push(voiceIds.slice()); }
+    return passes;
+  }
+
+  /* Latency calibration: taps against click times -> the offset (median), its spread, and how many matched. */
+  function latencyFrom(clicks, taps, win = 0.25) {
+    const d = [];
+    for (const t of taps) { let best = null; for (const c of clicks) if (Math.abs(t - c) <= win && (best === null || Math.abs(t - c) < Math.abs(best))) best = t - c; if (best !== null) d.push(best); }
+    if (d.length < 4) return null;
+    const s = d.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)];
+    const mad = s.map((x) => Math.abs(x - med)).sort((a, b) => a - b)[Math.floor(s.length / 2)];
+    return { offset: med, spread: mad, n: d.length };
+  }
+
+  /* WAV (16-bit PCM) and a stored (uncompressed) ZIP holding it (the artifact frame only saves .zip, not .wav). */
+  function wavBytes(chans, sr) {
+    const n = chans[0].length, nc = chans.length, b = new ArrayBuffer(44 + n * nc * 2), d = new DataView(b);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) d.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); d.setUint32(4, 36 + n * nc * 2, true); w(8, "WAVE"); w(12, "fmt "); d.setUint32(16, 16, true);
+    d.setUint16(20, 1, true); d.setUint16(22, nc, true); d.setUint32(24, sr, true); d.setUint32(28, sr * nc * 2, true);
+    d.setUint16(32, nc * 2, true); d.setUint16(34, 16, true); w(36, "data"); d.setUint32(40, n * nc * 2, true);
+    let o = 44;
+    for (let i = 0; i < n; i++) for (let c = 0; c < nc; c++) { const v = Math.max(-1, Math.min(1, chans[c][i])); d.setInt16(o, v < 0 ? v * 0x8000 : v * 0x7fff, true); o += 2; }
+    return new Uint8Array(b);
+  }
+  let CRC = null;
+  function crc32(u8) {
+    if (!CRC) { CRC = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC[n] = c >>> 0; } }
+    let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  function zipOne(name, data) {
+    const nm = new TextEncoder().encode(name), crc = crc32(data), size = data.length;
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true); lh.setUint16(26, nm.length, true);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true); ch.setUint16(28, nm.length, true);
+    const cdOff = 30 + nm.length + size;
+    const end = new DataView(new ArrayBuffer(22)); end.setUint32(0, 0x06054b50, true); end.setUint16(8, 1, true); end.setUint16(10, 1, true); end.setUint32(12, 46 + nm.length, true); end.setUint32(16, cdOff, true);
+    const parts = [new Uint8Array(lh.buffer), nm, data, new Uint8Array(ch.buffer), nm, new Uint8Array(end.buffer)];
+    const out = new Uint8Array(parts.reduce((a, p) => a + p.length, 0)); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+
+  root.LoopCore = { loopLen, barLen, mod, qShift, playNotes, playTilt, finalePlan, latencyFrom, wavBytes, zipOne, crc32 };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker, SOUND: the five instruments, the drums, the count-in click, and a Channel per voice.
+   Everything takes an AudioContext and a time, so the same code plays live and renders offline (Export).
+   A Channel carries the voice's tilt (octave + bend as one pitch offset in cents, vibrato depth, brightness)
+   to all its notes, its pan, and its mute/solo gain. Notes carry the contact class (tip brighter, flat
+   short and muted) and contact-size expression (loudness and brightness), as in the touch-area prototype. */
+(function (root) {
+  "use strict";
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const noiseOf = new WeakMap();
+  function noise(ctx) {
+    let b = noiseOf.get(ctx);
+    if (!b) { b = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; noiseOf.set(ctx, b); }
+    return b;
+  }
+
+  class Channel {
+    constructor(ctx, dest, pan) {
+      this.ctx = ctx;
+      this.out = ctx.createGain(); this.out.gain.value = 1;
+      const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (p) { p.pan.value = pan; this.out.connect(p); p.connect(dest); } else this.out.connect(dest);
+      this.pitch = ctx.createConstantSource(); this.pitch.offset.value = 0; this.pitch.start();
+      this.lfo = ctx.createOscillator(); this.lfo.frequency.value = 5.5; this.lfo.start();
+      this.vib = ctx.createGain(); this.vib.gain.value = 0; this.lfo.connect(this.vib);
+      this.bright = ctx.createConstantSource(); this.bright.offset.value = 0; this.bright.start();
+      this.oct = 0;
+    }
+    modPitch(param) { this.pitch.connect(param); this.vib.connect(param); }
+    modBright(param) { this.bright.connect(param); }
+    tilt(t, e) {
+      const cents = (e.octave || 0) * 1200 + (e.bend || 0) * 100;
+      if ((e.octave || 0) !== this.oct) { this.oct = e.octave || 0; this.pitch.offset.cancelScheduledValues(t); this.pitch.offset.setValueAtTime(cents, t); }
+      else this.pitch.offset.setTargetAtTime(cents, t, 0.015);
+      this.vib.gain.setTargetAtTime(e.vib || 0, t, 0.03);
+      this.bright.offset.setTargetAtTime(e.bright || 0, t, 0.03);
+    }
+    stopAll(t) { this.out.gain.cancelScheduledValues(t); this.out.gain.setTargetAtTime(0, t, 0.02); }
+  }
+
+  /* ---- instruments: start(ch, t, midi, o) -> note {pitch(t, midi), expr(t, gainMul, centsBright), stop(t)} ---- */
+  // o.cls: "tip" | "normal" | "flat" | null; o.level 0..1
+  function shell(ch, t, o, cutoff, q) {
+    const c = ch.ctx, lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain();
+    lp.type = "lowpass"; lp.Q.value = q || 0.7;
+    lp.frequency.value = Math.min(16000, cutoff * (o.cls === "tip" ? 1.7 : o.cls === "flat" ? 0.45 : 1));
+    ch.modBright(lp.detune);
+    env.gain.value = 0; lp.connect(env); env.connect(expr); expr.connect(ch.out);
+    return { lp, env, expr };
+  }
+  const flatCut = (env, t, o, peak) => { if (o.cls === "flat") env.gain.setTargetAtTime(0, t + 0.06, 0.05); else return peak; };
+  function noteApi(c, oscs, sh, extra) {
+    return {
+      oscs,
+      pitch(t, m) { for (const [o, r] of oscs) (o.frequency || o.playbackRate).setTargetAtTime(r(m), t, 0.008); },
+      expr(t, gm, cents) { sh.expr.gain.setTargetAtTime(gm, t, extra.tau); sh.lp.detune.setTargetAtTime(cents, t, extra.tau); },
+      stop(t, rel = 0.06) { sh.env.gain.cancelScheduledValues(t); sh.env.gain.setTargetAtTime(0, t, rel); for (const [o] of oscs) o.stop(t + rel * 8 + 0.05); if (extra.after) extra.after(t + rel * 8 + 0.05); },
+    };
+  }
+  const ksCache = new WeakMap();
+  function ksBuffer(c, midi) {
+    let m = ksCache.get(c); if (!m) { m = new Map(); ksCache.set(c, m); }
+    const key = Math.round(midi); if (m.has(key)) return m.get(key);
+    const sr = c.sampleRate, N = Math.max(2, Math.round(sr / hz(key))), len = Math.floor(sr * 2.5);
+    const b = c.createBuffer(1, len, sr), y = b.getChannelData(0);
+    let prev = 0; for (let i = 0; i < N; i++) { const v = Math.random() * 2 - 1; y[i] = (v + prev) * 0.5; prev = v; } // a softened burst
+    for (let i = N; i < len; i++) y[i] = 0.4985 * (y[i - N] + (i - N - 1 >= 0 ? y[i - N - 1] : 0)); // Karplus-Strong
+    const r = { b, f0: sr / N }; m.set(key, r); return r;
+  }
+
+  const INSTR = {
+    flute: { name: "Flute", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 4, 0.5), oscs = [];
+      const a = c.createOscillator(); a.type = "sine"; a.frequency.value = f; ch.modPitch(a.detune); a.connect(sh.lp); oscs.push([a, (m) => hz(m)]);
+      const b2 = c.createOscillator(); b2.type = "sine"; b2.frequency.value = 2 * f; ch.modPitch(b2.detune); const g2 = c.createGain(); g2.gain.value = 0.12; b2.connect(g2); g2.connect(sh.lp); oscs.push([b2, (m) => 2 * hz(m)]);
+      const n = c.createBufferSource(); n.buffer = noise(c); n.loop = true; const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = Math.min(9000, f * 3); bp.Q.value = 1.5; const gn = c.createGain(); gn.gain.value = 0.07; n.connect(bp); bp.connect(gn); gn.connect(sh.env); oscs.push([n, () => 1]);
+      a.start(t); b2.start(t); n.start(t, Math.random());
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.3, t + 0.045);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.24, t + 0.05, 0.2); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs.slice(0, 2), sh, o); api.stop = ((s) => (tt, rel = 0.07) => { s(tt, rel); n.stop(tt + 0.7); })(api.stop); return api;
+    } },
+    pluck: { name: "Plucked string", start(ch, t, midi, o) {
+      const c = ch.ctx, ks = ksBuffer(c, midi), sh = shell(ch, t, o, hz(midi) * 10, 0.6);
+      const s = c.createBufferSource(); s.buffer = ks.b; s.playbackRate.value = hz(midi) / ks.f0; ch.modPitch(s.detune); s.connect(sh.lp); s.start(t);
+      sh.env.gain.setValueAtTime(o.cls === "flat" ? 0.5 : 0.62, t); if (o.cls === "flat") sh.env.gain.setTargetAtTime(0, t + 0.04, 0.06);
+      return noteApi(c, [[s, (m) => hz(m) / ks.f0]], sh, o);
+    } },
+    bowed: { name: "Bowed", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 5, 0.8), oscs = [];
+      const v = c.createOscillator(); v.frequency.value = 4.8; const vg = c.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(14, t + 0.5); v.connect(vg); v.start(t);
+      for (const d of [-7, 7]) { const s = c.createOscillator(); s.type = "sawtooth"; s.frequency.value = f; s.detune.value = d; ch.modPitch(s.detune); vg.connect(s.detune); s.connect(sh.lp); s.start(t); oscs.push([s, (m) => hz(m)]); }
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.2, t + (o.cls === "tip" ? 0.03 : 0.1));
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.17, t + 0.12, 0.3); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs, sh, o); api.stop = ((st) => (tt, rel = 0.09) => { st(tt, rel); v.stop(tt + 1); })(api.stop); return api;
+    } },
+    voice: { name: "Voice (ah)", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, 5000, 0.5), oscs = [];
+      const s = c.createOscillator(); s.type = "sawtooth"; s.frequency.value = f; ch.modPitch(s.detune); oscs.push([s, (m) => hz(m)]);
+      const v = c.createOscillator(); v.frequency.value = 5.2; const vg = c.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(22, t + 0.4); v.connect(vg); vg.connect(s.detune); v.start(t);
+      for (const [fr, g, q] of [[730, 1, 9], [1090, 0.5, 10], [2440, 0.22, 12]]) { const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr; bp.Q.value = q; const gg = c.createGain(); gg.gain.value = g * 3.2; s.connect(bp); bp.connect(gg); gg.connect(sh.lp); }
+      s.start(t);
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.6, t + 0.06);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.52, t + 0.08, 0.3); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs, sh, o); api.stop = ((st) => (tt, rel = 0.08) => { st(tt, rel); v.stop(tt + 1); })(api.stop); return api;
+    } },
+    lead: { name: "Synth lead", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 3, 5), oscs = [];
+      for (const [type, d, g] of [["square", 0, 0.5], ["sawtooth", 6, 0.5]]) { const s = c.createOscillator(); s.type = type; s.frequency.value = f; s.detune.value = d; ch.modPitch(s.detune); const gg = c.createGain(); gg.gain.value = g; s.connect(gg); gg.connect(sh.lp); s.start(t); oscs.push([s, (m) => hz(m)]); }
+      const base = sh.lp.frequency.value; sh.lp.frequency.setValueAtTime(Math.min(16000, base * 4), t); sh.lp.frequency.setTargetAtTime(base, t + 0.01, 0.08);
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.3, t + 0.006);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.24, t + 0.02, 0.2); else flatCut(sh.env, t, o);
+      return noteApi(c, oscs, sh, o);
+    } },
+  };
+
+  /* ---- drums (subtle) and the count-in click ---- */
+  function drumsBar(ctx, dest, t, s) {
+    const spb = 60 / s.bpm;
+    for (let b = 0; b < s.beats; b++) {
+      const tb = t + b * spb;
+      if (b === 0 || (s.beats === 4 && b === 2)) kick(ctx, dest, tb, b === 0 ? 1 : 0.7);
+      hat(ctx, dest, tb, b === 0 ? 0.5 : 0.38); hat(ctx, dest, tb + spb / 2, 0.24);
+    }
+  }
+  function kick(ctx, dest, t, v) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.9 * v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.3); }
+  function hat(ctx, dest, t, v) { const n = ctx.createBufferSource(); n.buffer = noise(ctx); const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7500; const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045); n.connect(f); f.connect(g); g.connect(dest); n.start(t, Math.random() * 0.5); n.stop(t + 0.06); }
+  function click(ctx, dest, t, accent) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = accent ? 2000 : 1400; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(accent ? 0.35 : 0.22, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.05); }
+
+  root.LoopSound = { INSTR, Channel, drumsBar, kick, click, hz };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker: build a piece one voice at a time over a fixed loop. A toy, not a game: nothing is judged.
+   Input: the touch-area prototype's own gesture layer (TouchGestures), thumb areas (drawAreas), pitch rows,
+   contact classes and tilt (TiltReader), with the touch-area settings. Sound: loopsound.js. Pure timing
+   helpers: loopcore.js. Every take is kept verbatim (raw times on the audio clock, minus the latency offset);
+   quantizing is applied only when playing or drawing. */
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const G = window.TouchGest, C = window.LoopCore, S = window.LoopSound, SH = window.Shared;
+  const H = () => window.__touchHooks;
+  const nowMs = () => performance.now();
+  const COLORS = ["#e0a64a", "#7fb0c9", "#c98fb8", "#93c47d"];
+  const PAN = [-0.35, 0.35, -0.12, 0.12];
+  const SOUNDS = ["flute", "pluck", "bowed", "voice", "lead"];
+  const REG = { "-1": "low", "0": "middle", "1": "high" };
+
+  /* ---------- session (saved on the device) ---------- */
+  let ses = null;
+  const load = () => { try { const s = JSON.parse(localStorage.getItem("loopsession") || "null"); return s && s.setup ? s : null; } catch (e) { return null; } };
+  function save() {
+    if (!ses) return;
+    try { localStorage.setItem("loopsession", JSON.stringify(ses)); $("lSaveMsg").textContent = ""; }
+    catch (e) { // too big: keep the music, drop the raw input logs
+      try { const lite = JSON.parse(JSON.stringify(ses)); for (const v of lite.voices) v.take.csv = []; localStorage.setItem("loopsession", JSON.stringify(lite)); $("lSaveMsg").textContent = "Saved without the raw input logs (storage full)."; }
+      catch (e2) { $("lSaveMsg").textContent = "Could not save on this device."; }
+    }
+  }
+  let latency = 0;
+  try { latency = +(localStorage.getItem("loopLatency") || 0) || 0; } catch (e) { /* none */ }
+
+  /* ---------- audio ---------- */
+  let ctx = null, master = null, liveCh = null;
+  function audio() {
+    ctx = SH.audio();
+    if (!ctx) return false;
+    if (!master) {
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -6; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.15;
+      master = ctx.createGain(); master.gain.value = 0.8; master.connect(comp); comp.connect(ctx.destination);
+      const lb = ctx.createGain(); lb.connect(master); liveCh = new S.Channel(ctx, lb, 0);
+    }
+    return true;
+  }
+  /* the audio-clock time a touch happened at (what was being heard then) */
+  function ctxAt(perfMs) {
+    const ts = ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
+    if (ts && ts.performanceTime > 0 && ts.contextTime > 0) return ts.contextTime + (perfMs - ts.performanceTime) / 1000;
+    return ctx.currentTime - (nowMs() - perfMs) / 1000;
+  }
+
+  /* ---------- the transport: per-note look-ahead scheduling of drums and voices ---------- */
+  function schedNote(ch, sound, reg, n, t0, P, handles) {
+    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * reg, { cls: n.cls, tau: (P.tau || 80) / 1000 });
+    for (const e of n.ev || []) {
+      const te = t0 + (e.at - n.on); if (te >= t0 + n.dur) continue;
+      if (e.type === "pitch") h.pitch(te, e.midi + 12 * reg);
+      else if (e.type === "contact") { const d = e.norm - e.norm0; h.expr(te, Math.pow(10, (d * (P.ctDb || 0)) / 20), d * (P.ctBright || 0) * 1200); }
+    }
+    if (n.off != null) h.stop(t0 + n.dur); else handles.push({ h, n: n.src || n, t0 });
+    return h;
+  }
+  class Transport {
+    /* provider(k) -> null (the end) or {voices: [{id, slot, sound, reg, take, muted}], drums: bool} */
+    constructor(c, dest, setup, T0, provider, opts) {
+      this.ctx = c; this.s = setup; this.T0 = T0; this.L = C.loopLen(setup); this.provider = provider; this.opts = opts || {};
+      this.bus = c.createGain(); this.bus.connect(dest);
+      this.drums = c.createGain(); this.drums.gain.value = setup.drumVol; this.drums.connect(this.bus);
+      this.chans = new Map(); this.open = []; this.h = T0 - 0.001; this.ended = false;
+    }
+    chan(v) { let ch = this.chans.get(v.id); if (!ch) { ch = new S.Channel(this.ctx, this.bus, PAN[v.slot] || 0); if (this.opts.audible && !this.opts.audible(v)) ch.out.gain.value = 0; this.chans.set(v.id, ch); } return ch; }
+    scheduleUntil(horizon) {
+      if (this.ended || horizon <= this.h) return;
+      const L = this.L, s = this.s, spb = 60 / s.bpm, a = this.h, b = horizon;
+      for (let k = Math.max(0, Math.floor((a - this.T0) / L)); this.T0 + k * L < b; k++) {
+        const ps = this.T0 + k * L, inWin = (t) => t >= a && t < b;
+        const pass = this.provider(k);
+        if (!pass) { // the end: a last downbeat, then a fade
+          if (inWin(ps)) { S.kick(this.ctx, this.drums, ps, 1); this.bus.gain.setTargetAtTime(0, ps + 0.4, 0.35); this.ended = true; this.endAt = ps + 2; }
+          break;
+        }
+        if (pass.drums) for (let e = 0; e < s.bars * s.beats * 2; e++) { const t = ps + e * spb / 2; if (!inWin(t)) continue; const beat = e / 2; if (e % 2 === 0) { const bInBar = beat % s.beats; if (bInBar === 0 || (s.beats === 4 && bInBar === 2)) S.kick(this.ctx, this.drums, t, bInBar === 0 ? 1 : 0.7); hatAt(this.ctx, this.drums, t, bInBar === 0 ? 0.5 : 0.38); } else hatAt(this.ctx, this.drums, t, 0.24); }
+        for (const v of pass.voices) {
+          const ch = this.chan(v), P = v.take.expr || {};
+          const tl = C.playTilt(v.take, s);
+          if (inWin(ps)) ch.tilt(ps, v.take.tilt0 || { octave: 0 }); // the tilt as it stood when the take began
+          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, e);
+          for (const n of C.playNotes(v.take, s, this.opts.quant())) if (inWin(ps + n.start)) schedNote(ch, v.sound, v.reg, n, ps + n.start, P, this.open);
+        }
+      }
+      this.h = horizon;
+    }
+    mix(voices) { for (const v of voices) { const ch = this.chans.get(v.id); if (ch) ch.out.gain.setTargetAtTime(audible(v) ? 1 : 0, this.ctx.currentTime, 0.02); } }
+    closeOpen(n) { // a held note was released: stop its scheduled copies at their proper length
+      this.open = this.open.filter((o) => { if (o.n !== n) return true; o.h.stop(Math.max(this.ctx.currentTime, o.t0 + Math.min(this.L - 0.01, n.off - n.on))); return false; });
+    }
+    stop() {
+      const t = this.ctx.currentTime;
+      this.ended = true; this.bus.gain.cancelScheduledValues(t); this.bus.gain.setTargetAtTime(0, t, 0.03);
+      for (const o of this.open) o.h.stop(t + 0.1); this.open = [];
+      const b = this.bus; setTimeout(() => { try { b.disconnect(); } catch (e) { /* gone */ } }, 600);
+    }
+  }
+  function hatAt(c, dest, t, v) { // the drum kit's hi-hat (loopsound's drumsBar draws the same; inline for windowing)
+    const n = c.createBufferSource(); n.buffer = hatNoise(c); const f = c.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7500; const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+    n.connect(f); f.connect(g); g.connect(dest); n.start(t, Math.random() * 0.5); n.stop(t + 0.06);
+  }
+  const hn = new WeakMap();
+  function hatNoise(c) { let b = hn.get(c); if (!b) { b = c.createBuffer(1, c.sampleRate, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; hn.set(c, b); } return b; }
+
+  let tr = null, trTimer = null;
+  function startTransport(T0, provider) {
+    stopTransport();
+    tr = new Transport(ctx, master, ses.setup, T0, provider, { quant: () => ses.quant, audible });
+    trTimer = setInterval(tick, 25); tick();
+  }
+  function stopTransport() { if (tr) tr.stop(); tr = null; clearInterval(trTimer); trTimer = null; }
+
+  /* ---------- state ---------- */
+  let state = "idle"; // idle | countin | rec | review | loop | piece
+  let rec = null, review = null; // rec: the take being recorded; review: {take, sound, reg}
+  const audible = (v) => { const solo = ses.voices.some((x) => x.solo); return !v.muted && (!solo || v.solo); };
+  const committed = () => ses.voices.slice().sort((a, b) => a.order - b.order);
+  const freeSlot = () => [0, 1, 2, 3].find((s) => !ses.voices.some((v) => v.slot === s));
+
+  function tick() {
+    if (!tr) return;
+    const now = ctx.currentTime;
+    if (state === "countin" && now >= tr.T0) state = "rec";
+    if (state === "rec" && now >= tr.T0 + tr.L) { state = "review"; rec.closed = true; paint(); }
+    tr.scheduleUntil(now + 0.2);
+    if (tr.ended && tr.endAt && now > tr.endAt) { stopTransport(); state = "idle"; paint(); }
+  }
+
+  function record() {
+    if (!audio()) return;
+    if (ses.voices.length >= 4) return msg("Four voices is the most. Delete one to make room.");
+    const slot = freeSlot(), sound = $("lSound").value, reg = +$("lReg").value;
+    const T = H().T(), bar = C.barLen(ses.setup), T0 = ctx.currentTime + 0.25 + bar;
+    rec = { top: T0, offset: latency, slot, sound, reg, notes: new Map(), list: [], tilt: [], tilt0: lastTilt || { octave: 0, bend: 0, vib: 0, bright: 0 }, closed: false,
+      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn };
+    rec.csv.start();
+    review = { id: "new", slot, sound, reg, muted: false,
+      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr } };
+    state = "countin";
+    for (let b = 0; b < ses.setup.beats; b++) S.click(ctx, master, T0 - bar + b * (60 / ses.setup.bpm), b === 0);
+    startTransport(T0, (k) => ({ drums: true, voices: committed().filter(audible).concat(k >= 1 ? [review] : []) }));
+    paint();
+  }
+  function takeOf(r) { // a plain, storable take
+    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev })), tilt: r.tilt, tilt0: r.tilt0,
+      offset: r.offset, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
+  }
+  function keep() {
+    if (state !== "review") return;
+    for (const n of rec.list) if (n.off == null) n.off = n.on + Math.min(C.loopLen(ses.setup) - 0.01, ctxAt(nowMs()) - rec.top - rec.offset - n.on);
+    const order = ses.voices.reduce((m, v) => Math.max(m, v.order), 0) + 1;
+    const v = { id: "v" + Date.now(), slot: rec.slot, order, sound: rec.sound, reg: rec.reg, take: takeOf(rec), muted: false, solo: false };
+    ses.voices.push(v); save();
+    rec = null; review = null;
+    state = "loop";
+    // carry on looping everything, in time: the same transport, now with the kept voice among the committed
+    if (tr) tr.provider = () => ({ drums: true, voices: committed() }); else loopAll();
+    paint();
+  }
+  function retake() { if (state !== "review" && state !== "rec" && state !== "countin") return; rec = null; review = null; record(); }
+  function loopAll() { if (!audio()) return; if (state === "countin" || state === "rec" || state === "review") { rec = null; review = null; } state = "loop"; startTransport(ctx.currentTime + 0.15, () => ({ drums: true, voices: committed() })); tr.mix(ses.voices); paint(); }
+  function piece() {
+    if (!audio()) return; if (!ses.voices.length) return msg("Record a voice first.");
+    rec = null; review = null; state = "piece";
+    const vs = committed().filter((v) => !v.muted), plan = C.finalePlan(vs.map((v) => v.id));
+    startTransport(ctx.currentTime + 0.15, (k) => (k < plan.length ? { drums: true, voices: vs.filter((v) => plan[k].includes(v.id)) } : null));
+    paint();
+  }
+  function stop() { stopTransport(); if (state !== "idle") { rec = null; review = null; } state = "idle"; releaseLive(); paint(); }
+
+  /* ---------- export: the finale rendered offline ---------- */
+  async function exportAudio() {
+    if (!ses.voices.length) return msg("Record a voice first.");
+    $("lExport").disabled = true; msg("Rendering…");
+    try {
+      const vs = committed().filter((v) => !v.muted), plan = C.finalePlan(vs.map((v) => v.id)), L = C.loopLen(ses.setup);
+      const sr = 44100, dur = 0.2 + plan.length * L + 2.2, oc = new OfflineAudioContext(2, Math.ceil(sr * dur), sr);
+      const comp = oc.createDynamicsCompressor(); comp.threshold.value = -6; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.15;
+      const m = oc.createGain(); m.gain.value = 0.8; m.connect(comp); comp.connect(oc.destination);
+      const t = new Transport(oc, m, ses.setup, 0.2, (k) => (k < plan.length ? { drums: true, voices: vs.filter((v) => plan[k].includes(v.id)) } : null), { quant: () => ses.quant });
+      t.scheduleUntil(dur);
+      const buf = await oc.startRendering();
+      const wav = C.wavBytes([buf.getChannelData(0), buf.getChannelData(1)], sr);
+      const name = `loop-piece-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}`;
+      msg(await SH.saveBytes(name + ".wav", wav, "audio/wav", name + ".zip", () => C.zipOne(name + ".wav", wav)));
+    } catch (e) { msg("Export failed: " + (e && e.message || e)); }
+    $("lExport").disabled = false;
+  }
+
+  /* ---------- input: the touch-area prototype's gesture layer ---------- */
+  const live = new Map(); // gesture id -> live note handle
+  const activeRows = new Map();
+  let gest = null, tilt = null, lastTilt = null, areas = null;
+  function onEvent(ev) {
+    if (!ctx || !liveCh) return;
+    const t = ctx.currentTime, voiceSound = rec && !rec.closed ? rec.sound : $("lSound").value, reg = rec && !rec.closed ? rec.reg : +$("lReg").value;
+    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
+    if (ev.type === "onset") {
+      activeRows.set(ev.id, { row: ev.row, side: ev.side });
+      const old = live.get(ev.id); if (old) old.h.stop(t);
+      const cls = H().T().contactOn ? ev.cls : null;
+      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * reg, { cls, tau: H().T().ctTau / 1000 });
+      const entry = { h, rec: null };
+      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [] }; rec.list.push(entry.rec); } }
+      live.set(ev.id, entry);
+    } else if (ev.type === "pitch") {
+      activeRows.set(ev.id, { row: ev.row, side: (activeRows.get(ev.id) || {}).side });
+      const e = live.get(ev.id); if (!e) return;
+      e.h.pitch(t, ev.midi + 12 * reg);
+      if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "pitch", midi: ev.midi });
+    } else if (ev.type === "contact") {
+      const e = live.get(ev.id); if (!e || !H().T().contactOn) return;
+      const T = H().T(), d = ev.norm - ev.norm0;
+      e.h.expr(t, Math.pow(10, (d * T.ctDb) / 20), d * T.ctBright * 1200);
+      if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "contact", norm: ev.norm, norm0: ev.norm0 });
+    } else if (ev.type === "release") {
+      activeRows.delete(ev.id);
+      const e = live.get(ev.id); if (!e) return;
+      e.h.stop(t); live.delete(ev.id);
+      if (e.rec && rec) { e.rec.off = takeTime(ev.t); if (tr) tr.closeOpen(e.rec); }
+    }
+  }
+  const recording = () => rec && !rec.closed && (state === "countin" || state === "rec");
+  const takeTime = (perfMs) => ctxAt(perfMs) - rec.top - rec.offset;
+  function releaseLive() { if (gest) gest.releaseAll(nowMs()); for (const e of live.values()) e.h.stop(ctx.currentTime); live.clear(); activeRows.clear(); }
+
+  function layout() {
+    const W = innerWidth, Hh = innerHeight, MX = 48, MY = 44, aw = H().areaWidth(W), h = Hh - 2 * MY;
+    Object.assign($("lL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    Object.assign($("lR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    Object.assign($("lPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "6px", height: Hh - 12 + "px" });
+    areas = H().drawAreas($("lL"), $("lR"));
+    gest.hitFn = areas.hit;
+    const cv = $("lCanvas"), w = W - 2 * MX - 2 * aw - 20;
+    cv.width = Math.round(w * devicePixelRatio); cv.height = Math.round(118 * devicePixelRatio); cv.style.width = w + "px"; cv.style.height = "118px";
+  }
+
+  function boot() {
+    gest = new G.TouchGestures(() => areas ? areas.rect : { left: { left: 0, right: 0, top: 0, bottom: 0 }, right: { left: 0, right: 0, top: 0, bottom: 0 } }, () => H().rows(), onEvent, () => H().gopts());
+    tilt = new G.TiltReader(onEvent);
+    H().onMotion((e) => { if (window.__mode !== "loop" || !H().T().tiltOn) return; const g = e.accelerationIncludingGravity; if (!g || g.x == null) return; tilt.feed(nowMs(), g.x, g.y, g.z, H().T(), e.rotationRate); });
+    const inLoop = () => window.__mode === "loop" && $("lSetup").hidden && $("lLatBox").hidden && $("csvBox").hidden;
+    const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label,canvas"));
+    document.addEventListener("pointerdown", (e) => {
+      if (!inLoop() || onControl(e) || !areas) return;
+      if (!gest.sideAt(e.clientX, e.clientY)) return;
+      e.preventDefault();
+      const t = SH.evTime(e);
+      if (recording()) rec.csv.add({ t_ms: t, mode: "loop", event: "pointerdown", id: e.pointerId, zone: gest.sideAt(e.clientX, e.clientY), x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height, note: "take " + (ses.voices.length + 1) });
+      gest.down(e.pointerId, t, e.clientX, e.clientY, { width: e.width, height: e.height });
+    }, { passive: false });
+    document.addEventListener("pointermove", (e) => {
+      if (window.__mode !== "loop" || !gest.held.has(e.pointerId)) return;
+      e.preventDefault();
+      const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+      for (const s of list.length ? list : [e]) {
+        const t = SH.evTime(s);
+        if (recording()) rec.csv.add({ t_ms: t, mode: "loop", event: s === e ? "pointermove" : "coalesced", id: e.pointerId, x: s.clientX, y: s.clientY, pressure: s.pressure, width: s.width, height: s.height, note: "take " + (ses.voices.length + 1) });
+        gest.move(e.pointerId, t, s.clientX, s.clientY, { width: s.width, height: s.height });
+      }
+    }, { passive: false });
+    const up = (e) => {
+      if (window.__mode !== "loop" || !gest.held.has(e.pointerId)) return;
+      const t = SH.evTime(e);
+      if (rec && !rec.csvDone) rec.csv.add({ t_ms: t, mode: "loop", event: e.type, id: e.pointerId, x: e.clientX, y: e.clientY, note: "take " + (ses.voices.length + 1) });
+      gest.up(e.pointerId, t);
+    };
+    document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+    ["touchstart", "touchmove"].forEach((k) => document.addEventListener(k, (e) => { if (inLoop() && !onControl(e) && [...e.changedTouches].some((tc) => gest.sideAt(tc.clientX, tc.clientY) || gest.held.size)) e.preventDefault(); }, { passive: false }));
+
+    /* controls */
+    $("lSound").innerHTML = SOUNDS.map((k) => `<option value="${k}">${S.INSTR[k].name}</option>`).join("");
+    $("lRec").onclick = record; $("lKeep").onclick = keep; $("lRetake").onclick = retake; $("lStop").onclick = stop;
+    $("lAll").onclick = loopAll; $("lPiece").onclick = piece; $("lExport").onclick = exportAudio;
+    $("lQuant").onchange = () => { ses.quant = $("lQuant").value; save(); };
+    $("lDrum").oninput = () => { ses.setup.drumVol = +$("lDrum").value; $("lDrumO").textContent = (+$("lDrum").value).toFixed(2); if (tr) tr.drums.gain.setTargetAtTime(ses.setup.drumVol, ctx.currentTime, 0.03); save(); };
+    $("lMenu").onclick = () => window.__home();
+    $("lNew").onclick = () => { if ($("lNew").dataset.sure) { delete $("lNew").dataset.sure; $("lNew").textContent = "New session"; stop(); ses = null; try { localStorage.removeItem("loopsession"); } catch (e) { /* none */ } openSetup(); } else { $("lNew").dataset.sure = "1"; $("lNew").textContent = "Sure? Tap again"; setTimeout(() => { delete $("lNew").dataset.sure; $("lNew").textContent = "New session"; }, 2500); } };
+    $("lCsv").onclick = () => {
+      const all = SH.makeCsv();
+      for (const v of committed()) all.rows.push(...(v.take.csv || []));
+      if (review && rec) all.rows.push(...rec.csv.rows);
+      window.__showCsv("loop", all);
+    };
+    // setup
+    const sv = (id, o, f) => { $(id).oninput = () => { $(o).textContent = f(+$(id).value); }; $(id).oninput(); };
+    sv("lsBpm", "lsBpmO", (v) => v + " BPM"); sv("lsDrum", "lsDrumO", (v) => v.toFixed(2));
+    $("lsStart").onclick = () => {
+      audio();
+      ses = { setup: { bpm: +$("lsBpm").value, beats: +$("lsMeter").value, bars: +$("lsBars").value, drumVol: +$("lsDrum").value }, voices: [], quant: "off", created: new Date().toISOString() };
+      save(); $("lSetup").hidden = true; syncControls(); paint();
+    };
+    // latency calibration
+    $("lLat").onclick = () => { $("lLatBox").hidden = false; $("llRes").textContent = `Current offset: ${(latency * 1000).toFixed(0)} ms.`; };
+    $("llClose").onclick = () => { $("lLatBox").hidden = true; };
+    $("llGo").onclick = latencyRun;
+    $("llUse").onclick = () => { if (latRes) { latency = latRes.offset; try { localStorage.setItem("loopLatency", String(latency)); } catch (e) { /* none */ } $("llRes").textContent += "  Saved."; } };
+    $("lLatBox").addEventListener("pointerdown", (e) => { if (latRun && !onControl(e)) { e.preventDefault(); latRun.taps.push(ctxAt(SH.evTime(e))); $("llCount").textContent = `${latRun.taps.length} taps`; } }, { passive: false });
+    addEventListener("resize", () => { if (window.__mode === "loop") layout(); });
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------- latency: tap along to 16 clicks; the first 4 are a lead-in ---------- */
+  let latRun = null, latRes = null;
+  function latencyRun() {
+    if (!audio()) return;
+    const spb = 60 / (ses ? ses.setup.bpm : 90), t0 = ctx.currentTime + 0.4, clicks = [];
+    for (let i = 0; i < 16; i++) { const t = t0 + i * spb; S.click(ctx, master, t, i % 4 === 0); clicks.push(t); }
+    latRun = { taps: [], clicks }; latRes = null;
+    $("llRes").textContent = "Tap anywhere in time with the clicks (the first four are a lead-in)…"; $("llCount").textContent = "";
+    setTimeout(() => {
+      const r = C.latencyFrom(clicks.slice(4), latRun.taps);
+      latRun = null; latRes = r;
+      $("llRes").textContent = r ? `Your taps land ${(r.offset * 1000).toFixed(0)} ms ${r.offset >= 0 ? "after" : "before"} the clicks (spread ±${(r.spread * 1000).toFixed(0)} ms, ${r.n} taps). Tap "Use this" to correct new takes by it.` : "Too few taps matched the clicks: try again.";
+    }, (16 * spb + 0.8) * 1000);
+  }
+
+  /* ---------- screen ---------- */
+  function msg(t) { $("lMsg").textContent = t; }
+  function syncControls() {
+    if (!ses) return;
+    $("lQuant").value = ses.quant; $("lDrum").value = ses.setup.drumVol; $("lDrumO").textContent = ses.setup.drumVol.toFixed(2);
+  }
+  function paint() {
+    if (!ses) return;
+    const s = ses.setup;
+    $("lSetupLine").textContent = `${s.bpm} BPM · ${s.beats}/4 · ${s.bars} bars · latency ${(latency * 1000).toFixed(0)} ms`;
+    $("lKeep").hidden = $("lRetake").hidden = state !== "review";
+    $("lRec").disabled = ses.voices.length >= 4 || state === "countin" || state === "rec" || state === "review";
+    const box = $("lVoices"); box.innerHTML = "";
+    for (const v of committed()) {
+      const row = document.createElement("div"); row.className = "lvrow";
+      row.innerHTML = `<span class="lchip" style="background:${COLORS[v.slot]}"></span><span class="lvname">${v.order}. ${S.INSTR[v.sound].name}, ${REG[v.reg]}</span>`;
+      const b = (label, on, f) => { const x = document.createElement("button"); x.textContent = label; if (on) x.classList.add("sel"); x.onclick = f; row.appendChild(x); return x; };
+      b("M", v.muted, () => { v.muted = !v.muted; save(); if (tr) tr.mix(ses.voices); paint(); });
+      b("S", v.solo, () => { v.solo = !v.solo; save(); if (tr) tr.mix(ses.voices); paint(); });
+      const del = b("×", false, () => {
+        if (!del.dataset.sure) { del.dataset.sure = "1"; del.textContent = "sure?"; setTimeout(() => { if (del.isConnected) { delete del.dataset.sure; del.textContent = "×"; } }, 2500); return; }
+        ses.voices = ses.voices.filter((x) => x !== v); save(); if (state === "loop") loopAll(); paint();
+      });
+      box.appendChild(row);
+    }
+    if (!ses.voices.length) box.textContent = "No voices yet.";
+  }
+  function status() {
+    if (!ctx || !ses) return "";
+    const L = C.loopLen(ses.setup), spb = 60 / ses.setup.bpm;
+    if (state === "countin") return `Count-in: ${Math.max(1, Math.ceil((tr.T0 - ctx.currentTime) / spb))}`;
+    if (state === "rec") return "● Recording";
+    if (state === "review") return "Listening back: Keep or Retake?";
+    if (state === "loop") return "Looping everything";
+    if (state === "piece") { const k = Math.floor((ctx.currentTime - tr.T0) / L); const n = committed().filter((v) => !v.muted).length; return k < n ? `Piece: voice ${k + 1} enters` : k < n + 2 ? "Piece: all together" : "Piece: ending"; }
+    return ses.voices.length >= 4 ? "Four voices: play the piece, or delete one." : "Choose a sound and register, then Record.";
+  }
+
+  /* lanes: one per voice slot, notes as bars over the loop, a playhead */
+  function draw() {
+    requestAnimationFrame(draw);
+    if (window.__mode !== "loop" || !ses) return;
+    if (gest) gest.tick(nowMs());
+    const cv = $("lCanvas"), g = cv.getContext("2d"), dpr = devicePixelRatio, W = cv.width / dpr, Hc = cv.height / dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hc);
+    const s = ses.setup, L = C.loopLen(s), lh = (Hc - 6) / 4, rows = H().rows(), lo = Math.min(...rows) - 12, hi = Math.max(...rows) + 12;
+    // bar lines
+    g.fillStyle = "rgba(255,255,255,0.06)";
+    for (let b = 0; b <= s.bars * s.beats; b++) g.fillRect((b / (s.bars * s.beats)) * W, 0, b % s.beats ? 0.5 : 1, Hc);
+    const lane = (slot, take, reg, live) => {
+      const y0 = 3 + slot * lh;
+      g.fillStyle = COLORS[slot] + "18"; g.fillRect(0, y0 + 1, W, lh - 2);
+      if (!take) return;
+      g.fillStyle = COLORS[slot];
+      const notes = live ? take.list.map((n) => ({ ...n, start: C.mod(n.on + C.qShift(n.on, s, ses.quant), L), dur: Math.max(0.03, Math.min(L - 0.01, (n.off != null ? n.off : ctxAt(nowMs()) - take.top - take.offset) - n.on)) })) : C.playNotes(take, s, ses.quant);
+      for (const n of notes) {
+        const p = Math.max(0, Math.min(1, (n.midi + 12 * reg - lo) / (hi - lo))), y = y0 + lh - 3 - p * (lh - 6), x = (n.start / L) * W, w = Math.max(2, (n.dur / L) * W);
+        g.fillRect(x, y - 1.5, Math.min(w, W - x), 3); if (x + w > W) g.fillRect(0, y - 1.5, x + w - W, 3);
+      }
+    };
+    const used = new Set();
+    for (const v of ses.voices) { used.add(v.slot); g.globalAlpha = audible(v) ? 1 : 0.35; lane(v.slot, v.take, v.reg, false); }
+    g.globalAlpha = 1;
+    if (rec) lane(rec.slot, rec, rec.reg, true);
+    for (let k = 0; k < 4; k++) if (!used.has(k) && !(rec && rec.slot === k)) lane(k, null);
+    if (tr && ctx.currentTime >= tr.T0) { const x = (C.mod(ctx.currentTime - tr.T0, L) / L) * W; g.fillStyle = "#e8e4da"; g.fillRect(x, 0, 1.5, Hc); }
+    $("lStatus").textContent = status();
+    // the thumbs' rows, as in the touch-area prototype
+    for (const [side, el] of [["left", $("lL")], ["right", $("lR")]]) {
+      const on = new Set([...activeRows.values()].filter((a) => a.side === side).map((a) => a.row));
+      for (const d of el.querySelectorAll("[data-row]")) d.classList.toggle("on", on.has(+d.dataset.row));
+    }
+  }
+
+  function openSetup() { $("lSetup").hidden = false; }
+  window.__loopEnter = () => {
+    audio(); layout();
+    if (!ses) ses = load();
+    if (!ses) openSetup(); else { $("lSetup").hidden = true; syncControls(); paint(); }
+  };
+  window.__loopLeave = () => { stop(); };
+  window.__loop = { state: () => state, ses: () => ses, rec: () => rec, tr: () => tr, latency: () => latency, setLatency: (x) => { latency = x; }, ctxAt: (p) => ctxAt(p), gest: () => gest, onEvent };
+  boot();
+})();
 
 </script>
 

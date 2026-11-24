@@ -50,7 +50,7 @@
   /* CSV recorder: one row per raw input event while recording. */
   const COLS = ["t_ms", "mode", "event", "id", "zone", "x", "y", "radiusX", "radiusY", "force", "webkitForce",
     "pressure", "width", "height", "alpha", "beta", "gamma", "accX", "accY", "accZ", "rotA", "rotB", "rotG", "note"];
-  const csv = {
+  const makeCsv = () => ({
     on: false, rows: [], t0: 0,
     start() { this.rows = []; this.t0 = performance.now(); this.on = true; },
     stop() { this.on = false; },
@@ -75,7 +75,8 @@
         return "Download started (if nothing happens, copy the text)";
       } catch (e) { return "Download failed: copy the text instead"; }
     },
-  };
+  });
+  const csv = makeCsv();
 
   /* Copy text: clipboard API in the click, else select it for the phone's own Copy. */
   function copyText(ta, done) {
@@ -83,5 +84,19 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => done("Copied"), fallback); else fallback();
   }
 
-  window.Shared = { unlockAudio, evTime, touchProps, csv, copyText, audio: () => ctx };
+  /* Save any bytes as a file: the claude.ai downloads capability inside an Artifact (its allowlist decides the
+     extension: altName is used if the first is refused), a plain download elsewhere. Resolves to a message. */
+  async function saveBytes(filename, bytes, mime, altName, altBytes) {
+    try {
+      const dl = window.claude && window.claude.use ? await Promise.race([window.claude.use("downloads"), new Promise((r) => setTimeout(() => r(null), 1500))]) : null;
+      if (dl) {
+        try { await dl.save({ filename, data: bytes }); return "Saved " + filename; }
+        catch (e) { if (altName && e && (e.code === "rejected_extension" || e.code === "extension_not_enabled")) { await dl.save({ filename: altName, data: altBytes() }); return "Saved " + altName + " (the frame only saves this format)"; } throw e; }
+      }
+    } catch (e) { return "Save refused (" + (e && e.code || e) + ")"; }
+    try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: mime })); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); return "Download started: " + filename; }
+    catch (e) { return "Download failed"; }
+  }
+
+  window.Shared = { unlockAudio, evTime, touchProps, csv, makeCsv, saveBytes, copyText, audio: () => ctx };
 })();
