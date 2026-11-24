@@ -29,7 +29,7 @@ import { PRELUDE_TEMPO, tempoOf } from "../touch/tempi.ts";
 import { fugueOfPrelude, preludeReady, slowOnly } from "../touch/prelude-plan.ts";
 import { presetById, setBacking, setPreset } from "../touch/sound.ts";
 import { PIECE_SOUND, soundFor } from "../touch/piece-sound.ts";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
 import { builds } from "./journey.ts";
@@ -96,7 +96,8 @@ import { BasicsHost, type HostView } from "./basics/BasicsHost.tsx";
 import { ClipSound, clipScore } from "./basics/clip-sound.ts";
 import { glennShown } from "./glenn-host.ts";
 import { filmOf } from "./films.ts";
-import { GlennFilm } from "./GlennFilm.tsx";
+// Code audit, Phase 2: Glenn's film is the developer view's, so its code is fetched only when a film is opened.
+const GlennFilm = lazy(() => import("./GlennFilm.tsx").then((m) => ({ default: m.GlennFilm })));
 import { keepRun, LabRecorder } from "./lab/log.ts";
 import type { ReactNode } from "react";
 import { bookTwoNews, bookTwoOpen, BOOK_TWO_SEEN, LITE_HINT, liteAll, liteVoice, saveLastVoice, forgetLastVoice, liteExtra, liteNextOrder, litePlatform, liteTabOf, liteTabs, litePlatformPref, readLite, saveLitePlatform, recordLite, recordLiteBest, recordLiteSlow, RULE_LEVELS, soundUnlocked, tempoEarned, startHere, writeLite } from "./lite.ts";
@@ -2087,7 +2088,11 @@ export function BenchApp() {
       )}
       {APP.lite && intro && <Intro begin={introBegin} end={introEnd} />}
       {APP.lite && howTo && <HowTo sound={{ play: playClip, stop: stopHearing }} chip={ensureChip} restore={() => (setPreset(presetById(soundNow).id), prepareSound())} close={() => (stopHearing(), setHowTo(false))} />}
-      {film && filmOf(film) && <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />}
+      {film && filmOf(film) && (
+        <Suspense fallback={null}>
+          <GlennFilm film={filmOf(film)!} chip={ensureChip} close={() => setFilm(null)} />
+        </Suspense>
+      )}
       {APP.lite && platform !== "mobile" && (phase.kind === "home" || phase.kind === "title" || phase.kind === "settings") && <LiteGrid soundOf={soundAt} beaten={lite.beaten} best={lite.best} scores={lite.scores} bestOld={lite.bestOld} scoresOld={lite.scoresOld} current={opened && pick.piece} open={open} hear={(id) => (setPick({ piece: id, share: 0, voice: -1 }), setHearing(id))} settings={() => setPhase({ kind: "settings" })} setLang={(l: Lang) => (setLang(l), setLite(readLite()))} beside={full ? <ToolsButton open={() => (setPhase({ kind: "home" }), setToolsOpen(true))} /> : undefined} />}
       {APP.lite && full && toolsOpen && phase.kind === "home" && <ToolsPanel f={f} voice={pick.voice} pieces={liteAll(platform === "mobile")} setPiece={(id) => setPick({ piece: id, share: 0, voice: -1 })} setVoice={(v) => setPick({ voice: v })} practice={practise} close={() => setToolsOpen(false)} last={practiced?.piece === f.id ? practiced : null} />}
       {APP.lite && hearing && phase.kind === "home" && <HearSubject id={hearing} play={playSubject} stop={stopHearing} close={() => setHearing(null)} />}
