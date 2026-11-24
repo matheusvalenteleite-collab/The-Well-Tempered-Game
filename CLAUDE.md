@@ -28,7 +28,8 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 - Start fresh sessions rather than letting one run for days; this file plus BACKLOG carries the context.
 
 ## Released and pending (as of 24 Nov 2026)
-- **Live:** WTC 3.34 (adds the per-piece notes split, D1054), which includes Canons batch B (#496), the Musical Offering voicing (#498) and the Phase 2 quick wins (retired features deleted, the root redirects to play.html, the MP3 encoder loads when used).
+- **Live:** WTC 3.35: string bowing (D1055-D1059, `MECH.bow`) in the New Lab (lab.html → NEW LAB) and behind the developer view's NEW MECHANICS switch; normal players unchanged. Before it: 3.34 (per-piece notes split, D1054; Canons batch B #496; the Musical Offering voicing #498; the Phase 2 quick wins).
+- **Owner's top priority (24 Nov):** horizontal and vertical gestures that let the player improvise on the sound ("I'm rediscovering the game, and it rocks"). Next: Batch 2, the PSYCH guitar and the tilt reader; the plan and every approved rule are in BACKLOG ("Instrument gestures and tilt, by batches"). New mechanics go in the developer view only.
 - **Owner to do:** run `sh tools/delete-merged-branches.sh` from a computer with push rights (211 merged branches, see `docs/audits/MERGED-BRANCHES.md`); set GitHub's default branch to the dev branch.
 - **Open, unmerged:**
   - #499, retiring FLUTE & HARP and ZELENKA: conflicts with dev, and II/23 needs the owner's pick;
