@@ -3,6 +3,17 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
+
+Report: docs/audits/CODE-AUDIT-PHASE1.md. Owner decisions: "delete all retired features outright"; "the older
+counterpoint app is not a product anymore and should stop being published"; start with the quick safe wins. The job was
+handed to the design studio session (rows D1050-D1069), then stopped at once; any WIP is on its branches, unreviewed.
+Order: A delete retired features (MANUAL, TWO HANDS, unoffered readings, FILM, SYNTH_LAYERS_SOUND, five unused skins);
+B lazy-load lamejs and developer-only code (not the pieces.json split yet); C stop publishing index.html, root redirects to
+play.html; D quick/full test tiers; E JSON type declarations so tsc runs without the 4096 MB flag; F x.tmp.ts, merged
+branches (list to the board before deleting), DECISIONS.md split. Owner to do: set GitHub's default branch to the dev branch.
+Merged but not yet released (deploy when work resumes): Canons batch B (#496), the Musical Offering voicing (#498).
+
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
 
 All worker sessions were stopped at the owner's request; resume only when the owner says so.
