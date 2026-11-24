@@ -10,8 +10,8 @@ and hand-written JSON types (tsc needs no memory flag); the retired features del
 FILM, SYNTH_LAYERS_SOUND, five skins); index.html is a redirect and the counterpoint app is no longer published
 (`counterpoint.html`, developer only); lamejs and Glenn's film load when used; x.tmp.ts gone; DECISIONS.md split.
 The play page's first download went from 1.67 to 1.41 MB compressed, the whole site's code from 10.6 to about 5.3 MB.
-Still open, by payoff: split `pieces.json` into an index plus one file per piece (medium risk: touches every piece's loading;
-the audit's largest remaining item, 2.5 MB raw); split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
+Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
+Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
 phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) and `public/sheet` (11 MB) still ship, probably the
 old app's. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
 branch to the dev branch.
