@@ -16,7 +16,7 @@
  */
 import type { Chip, Play, Sounding, Voicing } from "./chip.ts";
 import { beatOf, type TouchFugue } from "./fugue.ts";
-import type { Patch, Wave } from "./sound.ts";
+import type { Wave } from "./sound.ts";
 
 /** The LAB switches (the bench's ⚙). */
 export interface Lab {
@@ -450,41 +450,14 @@ export function fxFor(id: string, sn: Pick<SubjectNote, "theme" | "inverted" | "
 
 const fires = (on: Trigger | undefined, sn: SubjectNote) => (on === "long" ? sn.long || sn.head : on === "leap" ? sn.leap : on === "head" ? sn.head : true);
 
-/** The small patches of the layers (built once). */
-const patches = new Map<string, Patch>();
-function patchOf(l: Layer): Patch {
-  const key = l.kind === "shimmer" || l.kind === "ping" ? `${l.kind}:${l.wave}:${l.level}:${l.kind === "ping" ? l.decay : 0}` : `${l.kind}:${l.level}`;
-  let p = patches.get(key);
-  if (!p) {
-    if (l.kind === "shimmer") p = { osc: [{ wave: l.wave }], amp: { a: 0.04, d: 0.3, s: 0.85, r: 0.12 }, level: l.level };
-    else if (l.kind === "ping") p = { osc: [{ wave: l.wave }], amp: { a: 0.002, d: l.decay, s: 0, r: 0.08 }, level: l.level };
-    else p = { osc: [{ wave: "fmBrass" }], filter: { freq: 4, q: 1, env: 2.5, envDecay: 0.07 }, amp: { a: 0.006, d: 0.12, s: 0.25, r: 0.05 }, level: l.level };
-    patches.set(key, p);
-  }
-  return p;
-}
-
 /** D405: the layers made of a synthesized patch (the rest, echo and halo, are the voice's own instrument). */
 export const SYNTH_LAYERS: ReadonlySet<Layer["kind"]> = new Set(["ping", "brass", "shimmer"]);
-/** D405: a voice that takes no synthesized layer: the recorded piano (its strings and the reading carry the subject). */
-// D428: on every real instrument now (recorded, piped, bowed, sung: the piano, harpsichord, organ, lute, consort,
-// voices; the consoles and synthesizer records keep theirs, bands on purpose) (the owner: "I'm still hearing the weird glockenspiel sound on many samples"; D411: the
-// jumping cube the only subject effect): I/2's glass spark rang over the harpsichord, the lute, the consort and the
-// synths, and the other fugues' bells, brass blips and shimmers likewise. The voice's own echo and second choir stay.
-export const synthFree = (v: Voicing) => {
-  const pt = v.patch;
-  return !!pt && !!(pt.sample || pt.pipe || pt.one || pt.bow || pt.sing || pt.syllable);
-};
 /**
  * D505 (the owner, again: "I'm still getting the weird glockenspiel sound sometimes … probably a vestige of the
- * times when we had effects upon correct play"): no synthesized layer on any sound now, the consoles and the
- * synthesizers too. D428 had kept them there, and the scan (scratchpad glock2/, 21 sounds × 6 passages, the
- * player's voice played) found them the only notes the chip played that were not the sound's own: 100 layer
- * notes on each of CLASSIC CHIP, GAME BOY, SWITCHED-ON, MEGA FM, SID 64 and TOMITA (MEGA FM's I/2 an FM bell at C6
- * over the alto's eighths, 16 of 56 notes in 3 bars, inharmonic partials at 5.2-6.8 kHz); none now. The layers
- * kept are the voice's own instrument: its echo and its second choir (halo).
+ * times when we had effects upon correct play"): no synthesized layer (a ping, a brass blip, a shimmer) on any sound.
+ * The layers kept are the voice's own instrument: its echo and its second choir (halo). D1050 (code audit A): the
+ * switch that could bring them back (SYNTH_LAYERS_SOUND) and their sounding deleted.
  */
-export const SYNTH_LAYERS_SOUND = false;
 
 /**
  * D213: the effect's layers for one subject note (at `at`, `len` s, in voicing `v`, at the note's
@@ -492,31 +465,15 @@ export const SYNTH_LAYERS_SOUND = false;
  */
 export function playFx(chip: Chip, fx: SubjectFx, sn: SubjectNote, midi: number, at: number, len: number, v: Voicing, level = 1, lead = false): Sounding[] {
   const out: Sounding[] = [];
-  // D304: singers' subjects not belled (VOCAL SYNTH, SOLO VOICES): a bell's ping or a brass blip an
-  // octave over voices was the "tinkling sound in the background" (I/2's glass spark: in SOLO VOICES
-  // -12 dB of everything above 2.5 kHz, measured; a harpsichord's own highs hide it at -22); the room stays.
-  const sung = !!(v.patch?.sing || v.patch?.syllable);
-  // D405: nor the recorded piano's: a synthesized layer (a ping, a brass blip, a shimmer) over its strings
-  // was the owner's "weird glockenspiel sound … sometimes stuck" (I/2's glass spark, an FM bell an octave
-  // over the subject's eighths, +8-11 dB over 3 kHz in its p opening, measured; a sine held at 0.85 while
-  // the string under it dies away). Its echo and second choir are the piano itself, and stay; the room stays.
-  const struck = synthFree(v);
   for (const l of fx.layers) {
     if (!fires(l.on, sn)) continue;
-    // D505: a synthesized layer (a ping, a brass blip, a shimmer) on no sound at all.
-    if (!SYNTH_LAYERS_SOUND && SYNTH_LAYERS.has(l.kind)) continue;
-    if (sung && (l.kind === "ping" || l.kind === "brass")) continue;
-    if (struck && SYNTH_LAYERS.has(l.kind)) continue;
+    // D505: a synthesized layer (a ping, a brass blip, a shimmer) on no sound at all (D304, D405 had begun with the singers and the piano).
+    if (SYNTH_LAYERS.has(l.kind)) continue;
     if (l.kind === "echo") {
       // D505: a layer of the player's note let go as the note is (Play.lead: D308's release), not by the band's dampers.
       out.push(chip.note(midi, at + l.delay, len * 0.9, { ...v, pan: v.pan ? -v.pan * 0.8 : 0.4 }, { level: level * l.level, tone: -4, room: fx.room, ...(lead ? { lead: true } : {}) }));
     } else if (l.kind === "halo") {
       out.push(chip.note(midi, at, len, { ...v, pan: v.pan * 0.6 }, { level: level * l.level, detune: l.cents, ...(lead ? { lead: true } : {}) }));
-    } else {
-      const m = midi + (l.kind === "brass" ? 0 : l.interval);
-      if (m < 24 || m > 108) continue;
-      const dur = l.kind === "ping" ? Math.min(len, l.decay * 3) : l.kind === "brass" ? Math.min(len, 0.25) : len;
-      out.push(chip.note(m, at, Math.max(0.05, dur), { ...v, patch: patchOf(l) }, { level, room: fx.room }));
     }
   }
   return out;

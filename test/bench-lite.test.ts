@@ -5,7 +5,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { register } from "node:module";
 import { fugueById } from "../src/touch/fugue.ts";
 import { voicesFrom } from "../src/touch/voice-mode.ts";
@@ -196,7 +196,7 @@ test("D237: play.html: built beside bench.html, the grid only: no tutorial, achi
   assert.match(src("vite.config.ts"), /play: fileURLToPath\(new URL\("\.\/play\.html"/);
   const main = src("src/bench/lite-main.tsx");
   assert.match(main, /APP\.lite = true;/);
-  assert.match(main, /forceUi\("classic"\)/);
+  assert.ok(!existsSync(new URL("../src/touch/ui", import.meta.url)), "D265, D1050: one look, the other interfaces deleted");
   assert.doesNotMatch(main, /keepUiUnder/, "D265: one look");
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");

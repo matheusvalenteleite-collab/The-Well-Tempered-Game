@@ -6,12 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
-import { MANUAL, TOUR } from "../src/bench/manual/lessons.ts";
-import { DRESS } from "../src/bench/manual/dress.ts";
 import { FILMS, sayFor } from "../src/bench/films.ts";
 import { tickOf, timeline } from "../src/bench/films.ts";
-import { APP } from "../src/bench/config.ts";
-import { GLENN_LINES, glennHosts, hostLine, setHost } from "../src/bench/glenn-host.ts";
 
 test("D441: every film keeps the rules: short excerpts, never the ending, a second chapter", () => {
   for (const film of Object.values(FILMS)) {
@@ -36,19 +32,4 @@ test("D441: every film keeps the rules: short excerpts, never the ending, a seco
     assert.ok(tl.total > 120 && tl.total < 300, `${film.piece}: ${Math.round(tl.total)} s`);
   }
   assert.ok(sayFor("x") >= 2.5);
-});
-
-test("D441: Glenn has his own wording of every line of Part 1, and hosts only in the pilot", () => {
-  const p1 = MANUAL.filter((l) => l.part === "1");
-  const lines = [...TOUR.map((t) => t.text), ...p1.flatMap((l) => [...l.before, ...l.after, ...l.again, ...l.stages.map((s) => s.say ?? "")]), ...DRESS.filter((d) => d.at.startsWith("1.")).map((d) => d.line.text)].filter(Boolean);
-  for (const t of lines) assert.ok(GLENN_LINES[t], `Glenn's wording of: ${t}`);
-  assert.equal(glennHosts("1"), false, "off outside the pilot");
-  APP.glennPilot = true;
-  assert.equal(glennHosts("1"), true);
-  assert.equal(glennHosts("2"), false);
-  setHost("glenn");
-  assert.notEqual(hostLine(TOUR[0].text), TOUR[0].text);
-  setHost("bach");
-  assert.equal(hostLine(TOUR[0].text), TOUR[0].text);
-  APP.glennPilot = false;
 });

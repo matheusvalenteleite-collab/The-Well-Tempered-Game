@@ -41,11 +41,12 @@ interface Extracted {
   rest: { articulation_quote: string | null; articulation_summary: string | null; dynamics_plan: { bar: number; level: string }[] };
 }
 
-const SOURCES = [
-  { id: "keller", author: "KELLER", work: "The Well-Tempered Clavier (1965; Eng. 1976)", year: 1965 },
-  { id: "bodky", author: "BODKY", work: "The Interpretation of Bach's Keyboard Works", year: 1960 },
-  { id: "riemann", author: "RIEMANN", work: "Analysis of J. S. Bach's Wohltemperirtes Clavier (1890; Eng. 1893)", year: 1890 },
-];
+/**
+ * D1050 (design studio; code audit A): the books' subject-only readings (KELLER 1965, BODKY 1960, RIEMANN 1890),
+ * unoffered since D393, no longer written: only the whole-piece readings (BUSONI, the print's) reach the game. Their
+ * extractions stay in docs/wtc/readings/; listing the three here again writes them back.
+ */
+const SOURCES: { id: string; author: string; work: string; year: number }[] = [];
 const LEVELS = ["pp", "p", "mp", "mf", "f", "ff"];
 /** D370: each reading's legato rule and slur groups (docs/wtc/readings/slurs.json), by fugue and author. */
 const SLURS: Record<string, Record<string, { legato: boolean; slurs: [number, number][] }>> = JSON.parse(readFileSync("docs/wtc/readings/slurs.json", "utf8"));

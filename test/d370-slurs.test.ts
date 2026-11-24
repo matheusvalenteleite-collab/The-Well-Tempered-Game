@@ -7,14 +7,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { READINGS, readingMarks, slurRole, slurredJoin, type Reading } from "../src/touch/readings.ts";
+import { readingMarks, slurRole, slurredJoin, type Reading } from "../src/touch/readings.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { ART_HOLD, OVERLAP_S, phrase, SLUR_SHAPE, type Marks, type Style } from "../src/touch/phrasing.ts";
 import type { OtherNote } from "../src/touch/voice-mode.ts";
 import { slurShapeDb } from "../src/touch/whole-reading.ts";
 import { SLUR_DB, SLUR_HANDOVER_S, SLUR_LAST_DB, slurHandoverS } from "../src/bench/proto-game.ts";
+import { ALL_READINGS } from "./book-readings.ts";
 
-const all = () => Object.entries(READINGS).filter(([id]) => /^wtc/.test(id)).flatMap(([id, rs]) => rs.map((r) => ({ id, r })));
+const all = () => Object.entries(ALL_READINGS).filter(([id]) => /^wtc/.test(id)).flatMap(([id, rs]) => rs.map((r) => ({ id, r })));
 
 test("D370: every reading's joins are its slurs' insides or its legato; a slur's inside joined, its span in the subject; every choice documented", () => {
   const doc = JSON.parse(readFileSync(new URL("../docs/wtc/readings/slurs.json", import.meta.url), "utf8")) as Record<string, Record<string, { legato: boolean; slurs: [number, number][]; why: string }>>;
@@ -42,7 +43,7 @@ test("D370: every reading's joins are its slurs' insides or its legato; a slur's
   }
   assert.ok(slurs > 100 && legato > 30, `${slurs} slurs, ${legato} legato readings`);
   // Glenn's two examples: Keller's II/18 "everything is legato" a legato, no slur; Keller's I/2 mordent figure three slurs.
-  const keller = (id: string) => READINGS[id].find((r) => r.id === "keller")!;
+  const keller = (id: string) => ALL_READINGS[id].find((r) => r.id === "keller")!;
   assert.deepEqual([keller("wtc2f18").legato, keller("wtc2f18").slurs.length], [true, 0]);
   assert.deepEqual(keller("wtc1f02").slurs.map((s) => [s.from, s.to]), [[0, 2], [5, 7], [10, 12]]);
   assert.equal(keller("wtc1f02").legato, false);
@@ -51,7 +52,7 @@ test("D370: every reading's joins are its slurs' insides or its legato; a slur's
 
 test("D370: the reading's marks on every entry carry each note's place in a slur (its last too)", () => {
   const f = fugueById("wtc1f02");
-  const r = READINGS.wtc1f02.find((x) => x.id === "keller")!;
+  const r = ALL_READINGS.wtc1f02.find((x) => x.id === "keller")!;
   const m = readingMarks(f.entries, r);
   for (const e of f.entries.filter((x) => !x.theme)) {
     assert.equal(m.get(`${e.voice}:${e.notes[0][0]}`)?.slur, "first");

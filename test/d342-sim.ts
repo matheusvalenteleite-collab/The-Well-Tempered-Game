@@ -7,8 +7,15 @@ import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
-import { LensTally } from "../src/bench/manual/lens.ts";
-import { runOf, type DemoStyle, type Material } from "../src/bench/manual/lessons.ts";
+import { LensTally } from "../src/bench/basics/lens.ts";
+import type { DemoManner } from "../src/bench/protos.ts";
+import { runOf, type Material as BasicsMaterial } from "../src/bench/basics/material.ts";
+
+/** D1050: THE MANUAL deleted; its demonstration manners and a passage of the game's own kept here for the engine's tests. */
+export type DemoStyle = "plain" | DemoManner;
+export type Material = BasicsMaterial & { label?: string; badge?: string; reading?: string };
+/** A passage of the game's own, as a material (THE MANUAL's kit.ts ex). */
+export const ex = (piece: string, voice: number, fromBar: number, toBar: number, tempo: Material["tempo"], label: string, o: Partial<Material> = {}): Material => ({ piece, voice, fromBar, toBar, tempo, label, badge: "IN GAME", ...o });
 import { readingsOf } from "../src/touch/readings.ts";
 
 export function fakeChip(clock: { t: number }) {
@@ -25,8 +32,8 @@ export function fakeChip(clock: { t: number }) {
 export const ROWS: Rows = { yOf: (s) => 900 - s * 16, stepAt: (y) => Math.round((900 - y) / 16), rowH: 16, xOf: () => 400 };
 
 export function gameFor(m: Material, clock: { t: number }, demo?: DemoStyle, ornaments = false) {
-  const r = runOf(m, demo, undefined, ornaments);
-  const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById("ladder"), { bpm: r.bpm, legato: false, until: r.until, wait: r.wait, solo: r.solo, easy: r.easy, fail: false, ...(demo ? { demo: true } : {}), ...(r.demoStyle ? { demoStyle: r.demoStyle } : {}), ...(r.click ? { click: r.click } : {}), ...(r.reading ? { reading: readingsOf(r.piece).find((x) => x.id === r.reading) ?? null } : {}), ...(r.quiet ? { quiet: r.quiet } : {}), ...(r.coach ? { coach: r.coach } : {}), ...(r.tut ?? {}) }, fakeChip(clock));
+  const r = { ...runOf(m, ornaments), ...(demo && demo !== "plain" ? { demoStyle: demo } : {}), ...(m.reading ? { reading: m.reading } : {}) };
+  const g = new ProtoGame(fugueById(r.piece), r.voice, r.from, protoById("ladder"), { bpm: r.bpm, legato: false, until: r.until, wait: r.wait, solo: r.solo, easy: r.easy, fail: false, ...(demo ? { demo: true } : {}), ...(r.demoStyle ? { demoStyle: r.demoStyle } : {}), ...(r.reading ? { reading: readingsOf(r.piece).find((x) => x.id === r.reading) ?? null } : {}), ...(r.quiet ? { quiet: r.quiet } : {}), }, fakeChip(clock));
   g.rows = ROWS;
   const lens = new LensTally(g, () => clock.t * 1000);
   g.tap = lens.feed;

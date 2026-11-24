@@ -12,8 +12,9 @@ import { CHARACTER, characterOf } from "../src/touch/character.ts";
 import { FUGUES, PRELUDES, fugueById, inBar, beatOf } from "../src/touch/fugue.ts";
 import { accompaniment, subjectMarks, type OtherNote } from "../src/touch/voice-mode.ts";
 import { tempoOf } from "../src/touch/tempi.ts";
-import { performSubject, readingsOf } from "../src/touch/readings.ts";
+import { performSubject } from "../src/touch/readings.ts";
 import { PATCHES } from "../src/touch/sound.ts";
+import { allReadingsOf } from "./book-readings.ts";
 
 const gapMs = (d: Decision) => Math.round(("gap" in d ? d.gap * 1000 : -d.join * 1000) * 1e6) / 1e6;
 
@@ -214,7 +215,7 @@ test("D309: HEAR THE SUBJECT plays the reading's unmarked notes by the instrumen
   // The first two notes, semiquavers C-B: as before held 0.92; by the table running, joined.
   assert.ok(!plain[0].tie && harps[0].tie && harps[1].legato);
   // A marked note keeps the reading's way.
-  const keller = readingsOf("wtc1f02").find((r) => r.id === "keller")!;
+  const keller = allReadingsOf("wtc1f02").find((r) => r.id === "keller")!;
   const k = performSubject(keller, e.notes, f.tpq, tempoOf(f.id), { kind: "piano" });
   assert.ok(k[2].apart && !k[2].tie);
 });

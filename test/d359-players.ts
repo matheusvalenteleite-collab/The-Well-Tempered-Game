@@ -11,7 +11,7 @@
  *   lean       strong-beat notes struck so many ms late (an agogic lean), the next back on time
  */
 import { gameFor, ROWS } from "./d342-sim.ts";
-import type { DemoStyle, Material } from "../src/bench/manual/lessons.ts";
+import type { DemoStyle, Material } from "./d342-sim.ts";
 
 export interface PlayerStyle {
   offsetMs?: number;

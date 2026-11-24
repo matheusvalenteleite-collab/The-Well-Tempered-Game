@@ -3,16 +3,18 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
-## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
+## Code audit, Phase 2 (quick wins done 24 November 2026; the rest not started)
 
-Report: docs/audits/CODE-AUDIT-PHASE1.md. Owner decisions: "delete all retired features outright"; "the older
-counterpoint app is not a product anymore and should stop being published"; start with the quick safe wins. The job was
-handed to the design studio session (rows D1050-D1069), then stopped at once; any WIP is on its branches, unreviewed.
-Order: A delete retired features (MANUAL, TWO HANDS, unoffered readings, FILM, SYNTH_LAYERS_SOUND, five unused skins);
-B lazy-load lamejs and developer-only code (not the pieces.json split yet); C stop publishing index.html, root redirects to
-play.html; D quick/full test tiers; E JSON type declarations so tsc runs without the 4096 MB flag; F x.tmp.ts, merged
-branches (list to the board before deleting), DECISIONS.md split. Owner to do: set GitHub's default branch to the dev branch.
-Merged but not yet released (deploy when work resumes): Canons batch B (#496), the Musical Offering voicing (#498).
+Report: docs/audits/CODE-AUDIT-PHASE1.md. Done and live (WTC 3.28-3.33; D1050-D1053): deploy of #496/#498; quick/full test tiers
+and hand-written JSON types (tsc needs no memory flag); the retired features deleted (MANUAL, TWO HANDS, unoffered readings,
+FILM, SYNTH_LAYERS_SOUND, five skins); index.html is a redirect and the counterpoint app is no longer published
+(`counterpoint.html`, developer only); lamejs and Glenn's film load when used; x.tmp.ts gone; DECISIONS.md split.
+The play page's first download went from 1.67 to 1.41 MB compressed, the whole site's code from 10.6 to about 5.3 MB.
+Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
+Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
+phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) and `public/sheet` (11 MB) still ship, probably the
+old app's. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
+branch to the dev branch.
 
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
 

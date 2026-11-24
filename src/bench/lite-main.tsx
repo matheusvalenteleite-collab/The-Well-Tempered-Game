@@ -6,11 +6,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { APP } from "./config.ts";
-import { forceUi } from "../touch/ui/index.ts";
 import { BenchApp } from "./BenchApp.tsx";
 import { markVersion } from "./version.ts";
 import { isSurelyComputer } from "./home.ts";
 import { unlocked } from "./unlock.ts";
+import { litePlatform, startHere } from "./lite.ts";
+import { loadPiecePair, prefetchPieces } from "../touch/fugue.ts";
 import { MobileOnly } from "./MobileOnly.tsx";
 import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
 import { isInstalled, watchInstall } from "./install.ts";
@@ -22,9 +23,7 @@ import "./selection.css";
 
 APP.lite = true;
 APP.dev = false;
-// D265: one look on every platform (CLASSIC): the other interfaces withdrawn (the owner: "disable other
-// visualization modes. let's focus on making the default visualization mode as good as possible").
-forceUi("classic");
+// D265: one look on every platform (CLASSIC). D1050: the other interfaces (touch/ui/) deleted.
 
 // D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else,
 // unless the device is unlocked (unlock.ts): then the game, as before, with ⚙ PLAY ON.
@@ -37,9 +36,17 @@ lockOnFirstTap();
 // (opened from the Home Screen: no browser bars; the sideways screen and the safe areas as ever).
 watchInstall();
 if (isInstalled()) document.documentElement.classList.add("tb-installed");
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}
-    <Sideways />
-  </StrictMode>,
-);
+// D1054: the card grid is drawn from light stubs; the notes of the piece the game starts on (and of the default, which the game falls
+// back to) are fetched first, then the rest quietly once the grid is up (fugue.ts prefetchPieces; setPick waits for any it lacks).
+const first = startHere(litePlatform() === "mobile");
+void Promise.all([loadPiecePair(first), loadPiecePair("wtc1f02")])
+  .catch(() => undefined)
+  .then(() => {
+    createRoot(document.getElementById("root")!).render(
+      <StrictMode>
+        {isSurelyComputer() && !unlocked() ? <MobileOnly /> : <BenchApp />}
+        <Sideways />
+      </StrictMode>,
+    );
+    setTimeout(() => prefetchPieces(first), 1500);
+  });

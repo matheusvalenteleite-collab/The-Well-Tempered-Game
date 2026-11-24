@@ -11,7 +11,7 @@
  * `ready`; its card says the seal is coming instead of pretending.
  */
 
-import { fugueById } from "../touch/fugue.ts";
+import { entryKinds, fugueById } from "../touch/fugue.ts";
 
 export type SealKind = "STRETTO" | "MIRROR" | "SLOW GIANT" | "SUBJECTS" | "PERFECT LINE" | "HOLD" | "NO SLIP" | "DUET" | "TEMPERAMENT";
 
@@ -186,8 +186,8 @@ export function pieceBwv(c: FugueCard, stage: "prelude" | "fugue" = "fugue"): st
 
 /** D196: the entries a seal needs, now in the data (D189): inverted, augmented, later subjects. */
 function hasData(kind: SealKind, id: string): boolean {
-  const es = fugueById(id).entries;
-  return kind === "MIRROR" ? es.some((e) => e.inverted) : kind === "SLOW GIANT" ? es.some((e) => e.scale === 2) : kind === "SUBJECTS" ? es.some((e) => e.theme) : true;
+  const has = entryKinds(fugueById(id));
+  return kind === "MIRROR" ? has.inverted : kind === "SLOW GIANT" ? has.augmented : kind === "SUBJECTS" ? has.laterSubjects : true;
 }
 
 function card(book: 0 | 1 | 2, r: Row): FugueCard {

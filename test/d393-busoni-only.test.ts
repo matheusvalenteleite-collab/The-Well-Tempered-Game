@@ -16,17 +16,16 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 const ALL = [1, 2].flatMap((b) => Array.from({ length: 24 }, (_, i) => `wtc${b}f${String(i + 1).padStart(2, "0")}`));
 
 test("D393, D394: BUSONI on by default for all 48 fugues on every instrument; the switch turns it off everywhere; a fugue with no whole reading none", async () => {
-  const { busoniOn, setBusoniOn, playReading, readingsOf, wholeReadingOf, OFFER_READINGS } = await import("../src/touch/readings.ts");
+  const { busoniOn, setBusoniOn, playReading, readingsOf, wholeReadingOf } = await import("../src/touch/readings.ts");
   const { FUGUES } = await import("../src/touch/fugue.ts");
   store.clear();
-  assert.equal(OFFER_READINGS, false, "only BUSONI offered");
   assert.equal(busoniOn(), true, "on by default");
   for (const id of ALL) {
     const r = playReading(id);
     assert.equal(r?.id, "busoni", id);
     assert.ok(r?.whole, id);
-    // The books' readings are kept (data and code), only not offered.
-    assert.ok(readingsOf(id).some((x) => !x.whole), `${id}: the books' readings kept`);
+    // D1050: the books' readings, never offered since D393, deleted: BUSONI alone.
+    assert.ok(readingsOf(id).every((x) => x.whole), `${id}: the books' readings gone`);
   }
   // D394: a fugue with no whole-piece reading at all plays with none.
   const bare = FUGUES.filter((x) => !wholeReadingOf(x.id));
@@ -34,7 +33,7 @@ test("D393, D394: BUSONI on by default for all 48 fugues on every instrument; th
   for (const f of bare) assert.equal(playReading(f.id), null, `${f.id}: no reading`);
   // The play page takes the reading by playReading, not by the sound (every instrument alike).
   const app = src("src/bench/BenchApp.tsx");
-  assert.match(app, /OFFER_READINGS \? chosenReading\(f\.id, presetById\(soundNow\)\.id\) : busoni \? playReading\(f\.id\) : null/);
+  assert.match(app, /f\.kind === "fugue" \? \(busoni \? playReading\(f\.id\) : null\) : null;/);
   setBusoniOn(false);
   assert.equal(busoniOn(), false);
   assert.equal(store.get("tb-busoni-v1"), "off", "persisted");

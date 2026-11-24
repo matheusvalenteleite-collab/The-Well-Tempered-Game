@@ -660,7 +660,7 @@ export function App({ onVoices, suspended, command, onTutorial }: { onVoices(n: 
         window.setTimeout(() => {
           if (data && data.channels[0].length > 0) {
             const base = `${stepStudy(STEP.id).name} ${VIEW.modalFinal}`.replace(/[^\p{L}\p{N} -]+/gu, "").trim() || "counterpoint";
-            void saveFile(encode(format, data.channels, data.sampleRate), `${base}.${format}`).then((r) => {
+            void encode(format, data.channels, data.sampleRate).then((blob) => saveFile(blob, `${base}.${format}`)).then((r) => {
               setToast(t(`ui.export.${r}`, { format: format.toUpperCase() }));
               setExportPhase(null);
             });
