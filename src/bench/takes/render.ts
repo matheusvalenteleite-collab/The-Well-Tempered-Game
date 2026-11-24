@@ -7,7 +7,6 @@
  * as it works. Everything is measured for the owner's iPhone test: the length, the rate, the memory the
  * render's output takes, how long loading, rendering and encoding took, the file's size.
  */
-import { Mp3Encoder } from "@breezystack/lamejs";
 import { Chip, openingOf } from "../../touch/chip.ts";
 import { fugueById } from "../../touch/fugue.ts";
 import { playReading, readingsOf } from "../../touch/readings.ts";
@@ -125,6 +124,7 @@ export async function renderMp3(job: RenderJob, progress: Progress = () => {}): 
   }
   const loadMs = performance.now() - t0;
   const parts = partsOf(job);
+  const { Mp3Encoder } = await import("@breezystack/lamejs"); // fetched when a take is saved, not with the page
   const enc = new Mp3Encoder(2, sampleRate, MP3_KBPS);
   const mp3: Uint8Array[] = [];
   const xf = Math.round(XFADE_S * sampleRate);
