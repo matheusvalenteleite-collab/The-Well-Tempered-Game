@@ -177,7 +177,7 @@ export function usePartsExport(o: { start(): void; stop(): void; playing: boolea
         window.setTimeout(() => {
           if (data && data.channels[0].length > 0) {
             const base = o.fileBase.replace(/[^\p{L}\p{N} -]+/gu, "").trim() || "counterpoint";
-            void saveFile(encode(format, data.channels, data.sampleRate), `${base}.${format}`).then((r) => {
+            void encode(format, data.channels, data.sampleRate).then((blob) => saveFile(blob, `${base}.${format}`)).then((r) => {
               o.onToast(t(`ui.export.${r}`, { format: format.toUpperCase() }));
               setPhase(null);
             });
