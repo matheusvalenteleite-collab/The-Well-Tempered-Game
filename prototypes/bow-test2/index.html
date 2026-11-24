@@ -64,7 +64,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .wk.on, .bk.on { fill: var(--rosin); }
 .kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
 .tarea svg { pointer-events: none; }
-#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
+#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-sizing: border-box; z-index: 5; }
+#tCentre { position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+#tCentre .bar { justify-content: center; }
+#tCentre .rd { font-size: 9px; }
+.calbig { overflow-wrap: anywhere; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
 #lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
 #lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
@@ -143,11 +147,15 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <div id="touchMode" hidden>
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
-  <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+  <div id="tPanel" hidden>
+    <div class="bar"><button id="tClose">✕ Close</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button></div>
     <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
+  </div>
+  <div id="tCentre">
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tOpen">☰ Panel</button></div>
+    <button id="tNeutral">Set neutral</button>
     <div id="tRd" class="rd"></div>
   </div>
   <div id="calPanel" hidden>
@@ -1422,6 +1430,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   class TouchSound {
     constructor(ctx) {
       this.ctx = ctx; this.voices = new Map(); this.oct = 0; // tilt's octave step (recorder-style overblowing)
+      // octave latch (the owner, 24 Nov 2026): on, a held note keeps the octave it began in; tilt sets the next note's
+      this.latch = true;
       this.P = { ctDb: 4, ctBright: 0.6, ctTau: 80 };
       this.out = ctx.createGain(); this.out.gain.value = 0.5; this.out.connect(ctx.destination);
       const sr = ctx.sampleRate, nb = ctx.createBuffer(1, sr, sr), d = nb.getChannelData(0);
@@ -1458,20 +1468,21 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
           env.gain.setTargetAtTime(0.22, t, 0.004); env.gain.setTargetAtTime(0.13, t + 0.03, 0.25);
         }
         lp.connect(env); env.connect(expr); expr.connect(this.out);
-        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi });
+        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi, oct: this.oct });
       } else if (ev.type === "pitch") {
         const v = this.voices.get(ev.id); if (!v) return;
         v.midi = ev.midi;
-        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * this.oct) * r, t, 0.01);
+        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * v.oct) * r, t, 0.01);
       } else if (ev.type === "contact") {
         const v = this.voices.get(ev.id); if (!v || v.cls === "flat") return;
         const d = ev.norm - ev.norm0, tau = this.P.ctTau / 1000;
         v.expr.gain.setTargetAtTime(Math.pow(10, (d * this.P.ctDb) / 20), t, tau);
         v.lp.detune.setTargetAtTime(d * this.P.ctBright * 1200, t, tau);
       } else if (ev.type === "tilt") {
-        if ((ev.octave || 0) !== this.oct) { // held notes jump with the octave, slurred (no new attack)
+        if ((ev.octave || 0) !== this.oct) {
           this.oct = ev.octave || 0;
-          for (const v of this.voices.values()) for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * this.oct) * r, t, 0.006);
+          // latch off: held notes jump with the octave, slurred (no new attack); latch on: they keep theirs
+          if (!this.latch) for (const v of this.voices.values()) { v.oct = this.oct; for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * v.oct) * r, t, 0.006); }
         }
         this.bend.offset.setTargetAtTime(ev.bend * 100, t, 0.02);
         this.vib.gain.setTargetAtTime(ev.vib, t, 0.03);
@@ -1549,7 +1560,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   };
 
   /* ---------- settings ---------- */
-  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 1, octLatch: true, ver: 3, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     layout: "piano", kbSplit: 0.6, kbBlack: 0.5, kbEdge: 0.9, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
     tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
@@ -1560,6 +1571,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   // settings version 2 (24 Nov 2026, the owner: no latency): bring the delay-related settings saved by older
   // versions to the new defaults once
   if ((T.ver || 0) < 2) { for (const k of ["octHystDeg", "tiltLookMs", "slideDwellMs", "tiltSource", "tiltTau", "gyroCorrS", "decideMs"]) T[k] = T_DEFAULTS[k]; T.ver = 2; }
+  // version 3 (the owner: keys too small): one octave on screen (tilt reaches the others), octave latch on
+  if (T.ver < 3) { T.octaves = 1; T.octLatch = true; T.ver = 3; }
   T.layout = "piano"; // the owner, 24 Nov 2026: the piano only ("we don't want to go back")
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
@@ -1611,12 +1624,15 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   const rect = { left: null, right: null };
   function layout() {
     const W = innerWidth, H = innerHeight, MX = 48, MY = 44;
-    const aw = Math.round(Math.min(280, Math.max(160, W * 0.3))), h = H - 2 * MY;
+    // wide thumb areas (the owner: keys too small); a narrow centre strip; the panel opens over them
+    const CW = Math.round(Math.max(96, Math.min(130, W * 0.14))), aw = Math.min(360, Math.floor((W - 2 * MX - CW - 16) / 2)), h = H - 2 * MY;
     Object.assign($("tL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
-    Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
-    Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
-    Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
+    const cl = MX + aw + 8, cw = W - 2 * MX - 2 * aw - 16, pw = Math.min(340, W - 2 * MX);
+    Object.assign($("tPanel").style, { left: (W - pw) / 2 + "px", width: pw + "px", top: "8px", height: H - 16 + "px" });
+    Object.assign($("tCentre").style, { left: cl + "px", width: cw + "px", top: "8px" });
+    Object.assign($("calPanel").style, { left: cl + "px", width: cw + "px", top: MY + "px" });
+    Object.assign($("prPanel").style, { left: cl + "px", width: cw + "px", top: "10px" });
     const d = drawAreas($("tL"), $("tR"));
     rect.left = d.rect.left; rect.right = d.rect.right; gest.hitFn = d.hit;
   }
@@ -1671,6 +1687,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     if (T.loopOn) sound.startLoop(T.bpm, T.mid, T.loopLevel); else sound.stopLoop();
   };
   $("tMenu").onclick = () => window.__home();
+  $("tOpen").onclick = () => { $("tPanel").hidden = false; };
+  $("tClose").onclick = () => { $("tPanel").hidden = true; };
   $("tDiag").onclick = () => { $("diag").hidden = !$("diag").hidden; };
   $("tCsv").onclick = () => {
     if (!SH.csv.on) { SH.csv.start(); $("tCsv").textContent = "Stop CSV"; $("tCsv").classList.add("sel"); return; }
@@ -1679,7 +1697,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   function enterTouch() {
     layout();
-    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); }
+    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
     if (ctx && ctx.state !== "running") ctx.resume();
     if (T.loopOn && sound) sound.startLoop(T.bpm, T.mid, T.loopLevel);
   }
@@ -1726,7 +1744,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
 
   /* ---------- raw input ---------- */
-  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden;
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden && $("tPanel").hidden;
   const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
   const inArea = (x, y) => gest.sideAt(x, y) !== null;
   document.addEventListener("pointerdown", (e) => {
@@ -1782,7 +1800,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   let calib = null, calRec = null;
   function calStart() {
     calib = { step: 0, taps: STEPS.map(() => []) };
-    $("tSet").hidden = true; $("tPanel").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
+    $("tSet").hidden = true; $("tPanel").hidden = true; $("tCentre").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
     calPaint();
   }
   function calPaint() {
@@ -1817,7 +1835,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
     tlog("calibration saved"); openSettings();
   }
-  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tPanel").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
+  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tCentre").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
   $("calRedo").onclick = () => { calib.taps[calib.step] = []; calPaint(); };
   $("calBack").onclick = () => { if (calib.step > 0) { calib.taps[calib.step] = []; calib.step--; calib.taps[calib.step] = []; } calPaint(); };
   $("calCancel").onclick = () => calEnd();
@@ -1857,6 +1875,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
+    ["octLatch", "Octave latch: a held note keeps its octave; tilt sets the next note's"],
     ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
     ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
     ["tiltLookMs", "Gyro: look-ahead (cancels sensor delay)", 0, 60, 1, (v) => v + " ms"],
@@ -1886,7 +1905,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   const setInputs = {};
   function applyT(k) {
     save();
-    if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
+    if (sound) { Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
     if (k === "kbSplit" || k === "kbBlack" || k === "kbEdge") layout();
@@ -2004,7 +2023,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
     loopOn: (on) => { if (!sound) return null; T.loopOn = on; $("tLoop").textContent = "Loop: " + (on ? "on" : "off"); $("tLoop").classList.toggle("sel", on); if (on) return sound.startLoop(T.bpm, T.mid, T.loopLevel); sound.stopLoop(); return null; },
     target: (side) => { $("tL").classList.toggle("target", side === "left" || side === "both"); $("tR").classList.toggle("target", side === "right" || side === "both"); },
-    panel: (show) => { $("tPanel").hidden = show; $("prPanel").hidden = !show; },
+    panel: (show) => { $("tPanel").hidden = true; $("tCentre").hidden = show; $("prPanel").hidden = !show; },
     releaseAll: () => { gest.releaseAll(now()); if (sound) sound.silence(); },
   };
   window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };
@@ -2468,10 +2487,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   /* ---------- the transport: per-note look-ahead scheduling of drums and voices ---------- */
   function schedNote(ch, sound, reg, n, t0, P, handles) {
-    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * reg, { cls: n.cls, tau: (P.tau || 80) / 1000 });
+    const o = n.oct || 0; // the note's own octave (octave latch), else 0 and the channel carries tilt's octave
+    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * (reg + o), { cls: n.cls, tau: (P.tau || 80) / 1000 });
     for (const e of n.ev || []) {
       const te = t0 + (e.at - n.on); if (te >= t0 + n.dur) continue;
-      if (e.type === "pitch") h.pitch(te, e.midi + 12 * reg);
+      if (e.type === "pitch") h.pitch(te, e.midi + 12 * (reg + o));
       else if (e.type === "contact") { const d = e.norm - e.norm0; h.expr(te, Math.pow(10, (d * (P.ctDb || 0)) / 20), d * (P.ctBright || 0) * 1200); }
     }
     if (n.off != null) h.stop(t0 + n.dur); else handles.push({ h, n: n.src || n, t0 });
@@ -2500,8 +2520,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         for (const v of pass.voices) {
           const ch = this.chan(v), P = v.take.expr || {};
           const tl = C.playTilt(v.take, s);
-          if (inWin(ps)) ch.tilt(ps, v.take.tilt0 || { octave: 0 }); // the tilt as it stood when the take began
-          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, e);
+          const tv = (e) => (v.take.octLatch ? { ...e, octave: 0 } : e); // latched takes: octaves are per note
+          if (inWin(ps)) ch.tilt(ps, tv(v.take.tilt0 || { octave: 0 })); // the tilt as it stood when the take began
+          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, tv(e));
           for (const n of C.playNotes(v.take, s, this.opts.quant())) if (inWin(ps + n.start)) schedNote(ch, v.sound, v.reg, n, ps + n.start, P, this.open);
         }
       }
@@ -2556,18 +2577,18 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     const slot = freeSlot(), sound = $("lSound").value, reg = +$("lReg").value;
     const T = H().T(), bar = C.barLen(ses.setup), T0 = ctx.currentTime + 0.25 + bar;
     rec = { top: T0, offset: latency, slot, sound, reg, notes: new Map(), list: [], tilt: [], tilt0: lastTilt || { octave: 0, bend: 0, vib: 0, bright: 0 }, closed: false,
-      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn };
+      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn, octLatch: !!T.octLatch };
     rec.csv.start();
     review = { id: "new", slot, sound, reg, muted: false,
-      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr } };
+      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr, octLatch: rec.octLatch } };
     state = "countin";
     for (let b = 0; b < ses.setup.beats; b++) S.click(ctx, master, T0 - bar + b * (60 / ses.setup.bpm), b === 0);
     startTransport(T0, (k) => ({ drums: true, voices: committed().filter(audible).concat(k >= 1 ? [review] : []) }));
     paint();
   }
   function takeOf(r) { // a plain, storable take
-    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev })), tilt: r.tilt, tilt0: r.tilt0,
-      offset: r.offset, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
+    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev, oct: n.oct || 0 })), tilt: r.tilt, tilt0: r.tilt0,
+      offset: r.offset, octLatch: r.octLatch, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
   }
   function keep() {
     if (state !== "review") return;
@@ -2618,19 +2639,21 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   function onEvent(ev) {
     if (!ctx || !liveCh) return;
     const t = ctx.currentTime, voiceSound = rec && !rec.closed ? rec.sound : $("lSound").value, reg = rec && !rec.closed ? rec.reg : +$("lReg").value;
-    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
+    const latch = !!H().T().octLatch;
+    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, latch ? { ...lastTilt, octave: 0 } : lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
     if (ev.type === "onset") {
       activeRows.set(ev.id, { row: ev.row, side: ev.side });
       const old = live.get(ev.id); if (old) old.h.stop(t);
       const cls = H().T().contactOn ? ev.cls : null;
-      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * reg, { cls, tau: H().T().ctTau / 1000 });
-      const entry = { h, rec: null };
-      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [] }; rec.list.push(entry.rec); } }
+      const oct = latch && lastTilt ? lastTilt.octave : 0;
+      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * (reg + oct), { cls, tau: H().T().ctTau / 1000 });
+      const entry = { h, rec: null, oct };
+      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [], oct }; rec.list.push(entry.rec); } }
       live.set(ev.id, entry);
     } else if (ev.type === "pitch") {
       activeRows.set(ev.id, { row: ev.row, side: (activeRows.get(ev.id) || {}).side });
       const e = live.get(ev.id); if (!e) return;
-      e.h.pitch(t, ev.midi + 12 * reg);
+      e.h.pitch(t, ev.midi + 12 * (reg + e.oct));
       if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "pitch", midi: ev.midi });
     } else if (ev.type === "contact") {
       const e = live.get(ev.id); if (!e || !H().T().contactOn) return;

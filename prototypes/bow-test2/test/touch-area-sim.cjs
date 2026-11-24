@@ -17,7 +17,17 @@ async function run(W, H) {
   await page.goto(url);
   const cdp = await context.newCDPSession(page);
   const touch = (type, pts, r = 8) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: pts.map(([id, x, y]) => ({ id, x, y, radiusX: r, radiusY: r, force: 0.4 })) });
-  const tapEl = async (sel) => { const b = await page.locator(sel).boundingBox(); const p = [0, b.x + b.width / 2, b.y + b.height / 2]; await touch("touchStart", [p]); await touch("touchEnd", [p]); await sleep(350); };
+  // panel buttons sit behind "☰ Panel" now: open it first, and close it after if it is still open
+  const tapRaw = async (sel, r) => { const b = await page.locator(sel).boundingBox(); const p = [0, b.x + b.width / 2, b.y + b.height / 2]; await touch("touchStart", [p], r); await touch("touchEnd", [p], r); await sleep(350); };
+  const tapEl = async (sel) => {
+    const inPanel = await page.evaluate((s) => !!document.querySelector("#tPanel " + s), sel);
+    const inOverlay = await page.evaluate((s) => !!document.querySelector(s).closest(".overlay"), sel);
+    const open = !(await page.evaluate(() => document.getElementById("tPanel").hidden));
+    if (inPanel && !open) await tapRaw("#tOpen", 8);
+    if (!inPanel && !inOverlay && open) await tapRaw("#tClose", 8);
+    await tapRaw(sel, 8);
+    if (inPanel && !(await page.evaluate(() => document.getElementById("tPanel").hidden))) await tapRaw("#tClose", 8);
+  };
 
   check(await page.isVisible("#home") && await page.isVisible("#goBowed") && await page.isVisible("#goTouch"), "start screen offers both prototypes");
   await tapEl("#goTouch");
@@ -26,7 +36,9 @@ async function run(W, H) {
   const m = Math.min(g.L.left, W - g.R.right), mt = Math.min(g.L.top, H - g.L.bottom);
   check(m >= 48 && mt >= 44 && g.L.width === g.R.width && g.L.height === g.R.height, `two equal areas ${g.L.width.toFixed(0)}×${g.L.height.toFixed(0)}, ≥${m.toFixed(0)} px from the sides, ≥${mt.toFixed(0)} px from top/bottom`);
   check(g.sw <= W && g.sh <= H, "page does not scroll");
-  check(g.rows.length === 25 && g.rows[0] === 48 && g.rows[24] === 72, `the piano by default, do to do: C3–C5, ${g.rows.length} keys`);
+  check(g.rows.length === 13 && g.rows[0] === 60 && g.rows[12] === 72, `the piano by default, one octave do to do: C4–C5, ${g.rows.length} keys`);
+  const kh = await page.evaluate(() => document.querySelector("#tL rect").getBoundingClientRect().height);
+  check(g.L.width >= (W > 800 ? 290 : 220) && kh >= 30, `bigger keys: areas ${g.L.width.toFixed(0)} px wide, white keys ${kh.toFixed(0)} px tall`);
   check(await page.evaluate(() => document.getElementById("tLayout").hidden && document.getElementById("tDiag").hidden && document.getElementById("tMinor").hidden), "layout, mode and diagnostics buttons gone");
   if (shotDir) await page.screenshot({ path: path.join(shotDir, `touch-${W}x${H}.png`) });
 
@@ -47,7 +59,7 @@ async function run(W, H) {
   await touch("touchEnd", [[1, ...at(g.L, 2)], [2, ...at(g.R, 7)]]);
   await sleep(80);
   const got = await page.evaluate(() => window.__evs);
-  check(got[0] === "onset:48" && got[1] === "onset:55" && got.includes("pitch:50") && got.filter((e) => e.startsWith("release")).length === 2, "events: " + got.join(" "));
+  check(got[0] === "onset:60" && got[1] === "onset:67" && got.includes("pitch:62") && got.filter((e) => e.startsWith("release")).length === 2, "events: " + got.join(" "));
   check(await page.evaluate(() => window.__touch.sound().voices.size === 0), "both lifted: silence");
 
   // (the diagnostics overlay is hidden since the probe is done; its code stays)
@@ -105,14 +117,25 @@ async function run(W, H) {
   const lean = async (L) => { for (let k = 0; k < 25; k++) { await page.evaluate((g2) => window.__touch.onMotion({ accelerationIncludingGravity: g2 }), grav(L)); await sleep(8); } await sleep(120); };
   const freqOf = () => page.evaluate(() => { const v = [...window.__touch.sound().voices.values()][0]; return v ? v.oscs[0][0].frequency.value : null; });
   await lean(45);
-  id++; await touch("touchStart", [[id, ...at(g.L, 7)]], 36); await sleep(80); // D4, held
+  // octave latch ON (the default): a held note keeps its octave; the next note takes the new one
+  id++; const held = id; await touch("touchStart", [[id, ...at(g.L, 7)]], 36); await sleep(80);
+  const h0 = await freqOf(); await lean(10); const h1 = await freqOf();
+  const id2 = ++id; await touch("touchStart", [[held, ...at(g.L, 7)], [id2 + 1000, ...at(g.R, 7)]], 36); await sleep(80);
+  const both = await page.evaluate(() => [...window.__touch.sound().voices.values()].map((v) => v.oscs[0][0].frequency.value));
+  check(Math.abs(h1 / h0 - 1) < 0.01 && both.some((f) => Math.abs(f / h0 - 2) < 0.02) && both.some((f) => Math.abs(f / h0 - 1) < 0.01),
+    `octave latch: the held note stays at ${h0.toFixed(0)} Hz while leaning; the next note (other thumb) starts an octave up (${both.map((f) => f.toFixed(0)).join(" + ")} Hz)`);
+  await touch("touchEnd", [[held, ...at(g.L, 7)], [id2 + 1000, ...at(g.R, 7)]], 36); await sleep(60);
+  await lean(45);
+  // octave latch OFF: a held note slurs into the new octave
+  await page.evaluate(() => { const c = document.getElementById("s_octLatch"); c.checked = false; c.dispatchEvent(new Event("change")); });
+  id++; await touch("touchStart", [[id, ...at(g.L, 7)]], 36); await sleep(80); // held
   const f0 = await freqOf();
   await lean(10); const fUp = await freqOf();
   await lean(45); const fBack = await freqOf();
   await lean(80); const fDown = await freqOf();
   const st = await page.evaluate(() => ({ voices: window.__touch.sound().voices.size, oct: window.__touch.tilt.octave }));
   check(Math.abs(fUp / f0 - 2) < 0.02 && Math.abs(fBack / f0 - 1) < 0.02 && Math.abs(fDown / f0 - 0.5) < 0.02 && st.voices === 1,
-    `held D4 (${f0.toFixed(0)} Hz) slurs with the lean: 10° → ${fUp.toFixed(0)} Hz (octave up), 45° → ${fBack.toFixed(0)}, 80° → ${fDown.toFixed(0)} (octave down), one voice throughout`);
+    `latch off: a held note (${f0.toFixed(0)} Hz) slurs with the lean: 10° → ${fUp.toFixed(0)} Hz (octave up), 45° → ${fBack.toFixed(0)}, 80° → ${fDown.toFixed(0)} (octave down), one voice throughout`);
   await touch("touchEnd", [[id, ...at(g.L, 7)]], 36);
   await sleep(60);
   id++; await touch("touchStart", [[id, ...at(g.L, 7)]], 36); await sleep(80);

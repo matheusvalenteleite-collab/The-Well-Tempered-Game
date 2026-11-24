@@ -59,7 +59,11 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .wk.on, .bk.on { fill: var(--rosin); }
 .kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
 .tarea svg { pointer-events: none; }
-#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
+#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-sizing: border-box; z-index: 5; }
+#tCentre { position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+#tCentre .bar { justify-content: center; }
+#tCentre .rd { font-size: 9px; }
+.calbig { overflow-wrap: anywhere; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
 #lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
 #lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
@@ -137,11 +141,15 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <div id="touchMode" hidden>
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
-  <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+  <div id="tPanel" hidden>
+    <div class="bar"><button id="tClose">✕ Close</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button></div>
     <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
+  </div>
+  <div id="tCentre">
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tOpen">☰ Panel</button></div>
+    <button id="tNeutral">Set neutral</button>
     <div id="tRd" class="rd"></div>
   </div>
   <div id="calPanel" hidden>

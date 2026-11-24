@@ -30,7 +30,7 @@
   };
 
   /* ---------- settings ---------- */
-  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 1, octLatch: true, ver: 3, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
     layout: "piano", kbSplit: 0.6, kbBlack: 0.5, kbEdge: 0.9, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
     tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
@@ -41,6 +41,8 @@
   // settings version 2 (24 Nov 2026, the owner: no latency): bring the delay-related settings saved by older
   // versions to the new defaults once
   if ((T.ver || 0) < 2) { for (const k of ["octHystDeg", "tiltLookMs", "slideDwellMs", "tiltSource", "tiltTau", "gyroCorrS", "decideMs"]) T[k] = T_DEFAULTS[k]; T.ver = 2; }
+  // version 3 (the owner: keys too small): one octave on screen (tilt reaches the others), octave latch on
+  if (T.ver < 3) { T.octaves = 1; T.octLatch = true; T.ver = 3; }
   T.layout = "piano"; // the owner, 24 Nov 2026: the piano only ("we don't want to go back")
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
@@ -92,12 +94,15 @@
   const rect = { left: null, right: null };
   function layout() {
     const W = innerWidth, H = innerHeight, MX = 48, MY = 44;
-    const aw = Math.round(Math.min(280, Math.max(160, W * 0.3))), h = H - 2 * MY;
+    // wide thumb areas (the owner: keys too small); a narrow centre strip; the panel opens over them
+    const CW = Math.round(Math.max(96, Math.min(130, W * 0.14))), aw = Math.min(360, Math.floor((W - 2 * MX - CW - 16) / 2)), h = H - 2 * MY;
     Object.assign($("tL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
-    Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
-    Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
-    Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
+    const cl = MX + aw + 8, cw = W - 2 * MX - 2 * aw - 16, pw = Math.min(340, W - 2 * MX);
+    Object.assign($("tPanel").style, { left: (W - pw) / 2 + "px", width: pw + "px", top: "8px", height: H - 16 + "px" });
+    Object.assign($("tCentre").style, { left: cl + "px", width: cw + "px", top: "8px" });
+    Object.assign($("calPanel").style, { left: cl + "px", width: cw + "px", top: MY + "px" });
+    Object.assign($("prPanel").style, { left: cl + "px", width: cw + "px", top: "10px" });
     const d = drawAreas($("tL"), $("tR"));
     rect.left = d.rect.left; rect.right = d.rect.right; gest.hitFn = d.hit;
   }
@@ -152,6 +157,8 @@
     if (T.loopOn) sound.startLoop(T.bpm, T.mid, T.loopLevel); else sound.stopLoop();
   };
   $("tMenu").onclick = () => window.__home();
+  $("tOpen").onclick = () => { $("tPanel").hidden = false; };
+  $("tClose").onclick = () => { $("tPanel").hidden = true; };
   $("tDiag").onclick = () => { $("diag").hidden = !$("diag").hidden; };
   $("tCsv").onclick = () => {
     if (!SH.csv.on) { SH.csv.start(); $("tCsv").textContent = "Stop CSV"; $("tCsv").classList.add("sel"); return; }
@@ -160,7 +167,7 @@
 
   function enterTouch() {
     layout();
-    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); }
+    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
     if (ctx && ctx.state !== "running") ctx.resume();
     if (T.loopOn && sound) sound.startLoop(T.bpm, T.mid, T.loopLevel);
   }
@@ -207,7 +214,7 @@
   }
 
   /* ---------- raw input ---------- */
-  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden;
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden && $("tPanel").hidden;
   const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
   const inArea = (x, y) => gest.sideAt(x, y) !== null;
   document.addEventListener("pointerdown", (e) => {
@@ -263,7 +270,7 @@
   let calib = null, calRec = null;
   function calStart() {
     calib = { step: 0, taps: STEPS.map(() => []) };
-    $("tSet").hidden = true; $("tPanel").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
+    $("tSet").hidden = true; $("tPanel").hidden = true; $("tCentre").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
     calPaint();
   }
   function calPaint() {
@@ -298,7 +305,7 @@
     calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
     tlog("calibration saved"); openSettings();
   }
-  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tPanel").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
+  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tCentre").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
   $("calRedo").onclick = () => { calib.taps[calib.step] = []; calPaint(); };
   $("calBack").onclick = () => { if (calib.step > 0) { calib.taps[calib.step] = []; calib.step--; calib.taps[calib.step] = []; } calPaint(); };
   $("calCancel").onclick = () => calEnd();
@@ -338,6 +345,7 @@
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
+    ["octLatch", "Octave latch: a held note keeps its octave; tilt sets the next note's"],
     ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
     ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
     ["tiltLookMs", "Gyro: look-ahead (cancels sensor delay)", 0, 60, 1, (v) => v + " ms"],
@@ -367,7 +375,7 @@
   const setInputs = {};
   function applyT(k) {
     save();
-    if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
+    if (sound) { Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
     if (k === "kbSplit" || k === "kbBlack" || k === "kbEdge") layout();
@@ -485,7 +493,7 @@
     setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
     loopOn: (on) => { if (!sound) return null; T.loopOn = on; $("tLoop").textContent = "Loop: " + (on ? "on" : "off"); $("tLoop").classList.toggle("sel", on); if (on) return sound.startLoop(T.bpm, T.mid, T.loopLevel); sound.stopLoop(); return null; },
     target: (side) => { $("tL").classList.toggle("target", side === "left" || side === "both"); $("tR").classList.toggle("target", side === "right" || side === "both"); },
-    panel: (show) => { $("tPanel").hidden = show; $("prPanel").hidden = !show; },
+    panel: (show) => { $("tPanel").hidden = true; $("tCentre").hidden = show; $("prPanel").hidden = !show; },
     releaseAll: () => { gest.releaseAll(now()); if (sound) sound.silence(); },
   };
   window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };

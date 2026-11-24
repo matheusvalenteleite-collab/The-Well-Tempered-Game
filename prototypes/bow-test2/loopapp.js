@@ -49,10 +49,11 @@
 
   /* ---------- the transport: per-note look-ahead scheduling of drums and voices ---------- */
   function schedNote(ch, sound, reg, n, t0, P, handles) {
-    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * reg, { cls: n.cls, tau: (P.tau || 80) / 1000 });
+    const o = n.oct || 0; // the note's own octave (octave latch), else 0 and the channel carries tilt's octave
+    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * (reg + o), { cls: n.cls, tau: (P.tau || 80) / 1000 });
     for (const e of n.ev || []) {
       const te = t0 + (e.at - n.on); if (te >= t0 + n.dur) continue;
-      if (e.type === "pitch") h.pitch(te, e.midi + 12 * reg);
+      if (e.type === "pitch") h.pitch(te, e.midi + 12 * (reg + o));
       else if (e.type === "contact") { const d = e.norm - e.norm0; h.expr(te, Math.pow(10, (d * (P.ctDb || 0)) / 20), d * (P.ctBright || 0) * 1200); }
     }
     if (n.off != null) h.stop(t0 + n.dur); else handles.push({ h, n: n.src || n, t0 });
@@ -81,8 +82,9 @@
         for (const v of pass.voices) {
           const ch = this.chan(v), P = v.take.expr || {};
           const tl = C.playTilt(v.take, s);
-          if (inWin(ps)) ch.tilt(ps, v.take.tilt0 || { octave: 0 }); // the tilt as it stood when the take began
-          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, e);
+          const tv = (e) => (v.take.octLatch ? { ...e, octave: 0 } : e); // latched takes: octaves are per note
+          if (inWin(ps)) ch.tilt(ps, tv(v.take.tilt0 || { octave: 0 })); // the tilt as it stood when the take began
+          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, tv(e));
           for (const n of C.playNotes(v.take, s, this.opts.quant())) if (inWin(ps + n.start)) schedNote(ch, v.sound, v.reg, n, ps + n.start, P, this.open);
         }
       }
@@ -137,18 +139,18 @@
     const slot = freeSlot(), sound = $("lSound").value, reg = +$("lReg").value;
     const T = H().T(), bar = C.barLen(ses.setup), T0 = ctx.currentTime + 0.25 + bar;
     rec = { top: T0, offset: latency, slot, sound, reg, notes: new Map(), list: [], tilt: [], tilt0: lastTilt || { octave: 0, bend: 0, vib: 0, bright: 0 }, closed: false,
-      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn };
+      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn, octLatch: !!T.octLatch };
     rec.csv.start();
     review = { id: "new", slot, sound, reg, muted: false,
-      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr } };
+      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr, octLatch: rec.octLatch } };
     state = "countin";
     for (let b = 0; b < ses.setup.beats; b++) S.click(ctx, master, T0 - bar + b * (60 / ses.setup.bpm), b === 0);
     startTransport(T0, (k) => ({ drums: true, voices: committed().filter(audible).concat(k >= 1 ? [review] : []) }));
     paint();
   }
   function takeOf(r) { // a plain, storable take
-    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev })), tilt: r.tilt, tilt0: r.tilt0,
-      offset: r.offset, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
+    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev, oct: n.oct || 0 })), tilt: r.tilt, tilt0: r.tilt0,
+      offset: r.offset, octLatch: r.octLatch, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
   }
   function keep() {
     if (state !== "review") return;
@@ -199,19 +201,21 @@
   function onEvent(ev) {
     if (!ctx || !liveCh) return;
     const t = ctx.currentTime, voiceSound = rec && !rec.closed ? rec.sound : $("lSound").value, reg = rec && !rec.closed ? rec.reg : +$("lReg").value;
-    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
+    const latch = !!H().T().octLatch;
+    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, latch ? { ...lastTilt, octave: 0 } : lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
     if (ev.type === "onset") {
       activeRows.set(ev.id, { row: ev.row, side: ev.side });
       const old = live.get(ev.id); if (old) old.h.stop(t);
       const cls = H().T().contactOn ? ev.cls : null;
-      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * reg, { cls, tau: H().T().ctTau / 1000 });
-      const entry = { h, rec: null };
-      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [] }; rec.list.push(entry.rec); } }
+      const oct = latch && lastTilt ? lastTilt.octave : 0;
+      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * (reg + oct), { cls, tau: H().T().ctTau / 1000 });
+      const entry = { h, rec: null, oct };
+      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [], oct }; rec.list.push(entry.rec); } }
       live.set(ev.id, entry);
     } else if (ev.type === "pitch") {
       activeRows.set(ev.id, { row: ev.row, side: (activeRows.get(ev.id) || {}).side });
       const e = live.get(ev.id); if (!e) return;
-      e.h.pitch(t, ev.midi + 12 * reg);
+      e.h.pitch(t, ev.midi + 12 * (reg + e.oct));
       if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "pitch", midi: ev.midi });
     } else if (ev.type === "contact") {
       const e = live.get(ev.id); if (!e || !H().T().contactOn) return;

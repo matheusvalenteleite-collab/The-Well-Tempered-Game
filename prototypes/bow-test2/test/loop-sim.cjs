@@ -64,7 +64,7 @@ const check = (c, m) => { console.log((c ? "  ok   " : "  FAIL ") + m); if (!c) 
 
     // TAKE 2: plucked string, high, with tilt on (an octave step mid-take); retake once first
     // the simulated motion has no gyroscope (rotation 0 while the angle changes), so this check uses gravity sensing
-    await page.evaluate(() => { const T = window.__touchHooks.T(); T.tiltOn = true; T.tiltSource = "gravity"; T.tiltTau = 20; document.getElementById("lSound").value = "pluck"; document.getElementById("lReg").value = "1"; });
+    await page.evaluate(() => { const T = window.__touchHooks.T(); T.tiltOn = true; T.tiltSource = "gravity"; T.tiltTau = 20; T.octLatch = false; /* the channel-level octave replay */ document.getElementById("lSound").value = "pluck"; document.getElementById("lReg").value = "1"; });
     const lean = (deg) => page.evaluate((d) => { const l = d * Math.PI / 180; for (let i = 0; i < 4; i++) window.__touchHooks.onMotion; window.__loopMotion && 0; }, deg);
     void lean;
     const motion = (deg) => page.evaluate((d) => { const l = d * Math.PI / 180; const e = { accelerationIncludingGravity: { x: Math.sin(l) * 9.8, y: 0, z: -Math.cos(l) * 9.8 }, rotationRate: { alpha: 0, beta: 0, gamma: 0 } }; window.__touch.onMotion(e); }, deg);

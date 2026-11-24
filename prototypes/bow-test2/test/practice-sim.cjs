@@ -25,7 +25,17 @@ const R = { normal: 24, flat: 72 }; // Chromium: pointer width = 2 × radius →
     await page.goto(url);
     const cdp = await context.newCDPSession(page);
     const touch = (type, pts, r = 36) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: pts.map(([id, x, y]) => ({ id, x, y, radiusX: r, radiusY: r })) });
-    const tapEl = async (sel) => { const b = await page.locator(sel).boundingBox(); const p = [0, b.x + b.width / 2, b.y + b.height / 2]; await touch("touchStart", [p], 8); await touch("touchEnd", [p], 8); await sleep(350); };
+  // panel buttons sit behind "☰ Panel" now: open it first, and close it after if it is still open
+  const tapRaw = async (sel, r) => { const b = await page.locator(sel).boundingBox(); const p = [0, b.x + b.width / 2, b.y + b.height / 2]; await touch("touchStart", [p], r); await touch("touchEnd", [p], r); await sleep(350); };
+  const tapEl = async (sel) => {
+    const inPanel = await page.evaluate((s) => !!document.querySelector("#tPanel " + s), sel);
+    const inOverlay = await page.evaluate((s) => !!document.querySelector(s).closest(".overlay"), sel);
+    const open = !(await page.evaluate(() => document.getElementById("tPanel").hidden));
+    if (inPanel && !open) await tapRaw("#tOpen", 8);
+    if (!inPanel && !inOverlay && open) await tapRaw("#tClose", 8);
+    await tapRaw(sel, 8);
+    if (inPanel && !(await page.evaluate(() => document.getElementById("tPanel").hidden))) await tapRaw("#tClose", 8);
+  };
     let id = 10;
     const tapAt = async (pts, r) => { const ps = pts.map(([x, y]) => [++id, x, y]); await touch("touchStart", ps, r); await sleep(40); await touch("touchEnd", ps, r); await sleep(40); };
 
@@ -39,7 +49,7 @@ const R = { normal: 24, flat: 72 }; // Chromium: pointer width = 2 × radius →
       }
       return { rows, keys: out };
     });
-    check(kb.rows.length === 25 && kb.rows[0] === 48 && kb.rows[24] === 72 && kb.keys.filter((k) => k.side === "left" && k.white).length === 15, `piano rows (2 octaves, do to do): C3–C5, ${kb.rows.length} semitones on 15 white keys`);
+    check(kb.rows.length === 13 && kb.rows[0] === 60 && kb.keys.filter((k) => k.side === "left" && k.white).length === 8, `piano, one octave do to do: C4–C5, ${kb.rows.length} semitones on 8 white keys`);
     if (shotDir) await page.screenshot({ path: path.join(shotDir, `piano-${W}x${H}.png`) });
     // tap every key on the left at a point inside it (whites at the outer edge, blacks near the inner edge)
     const heard = [];

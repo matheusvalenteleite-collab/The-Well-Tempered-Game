@@ -15,6 +15,8 @@
   class TouchSound {
     constructor(ctx) {
       this.ctx = ctx; this.voices = new Map(); this.oct = 0; // tilt's octave step (recorder-style overblowing)
+      // octave latch (the owner, 24 Nov 2026): on, a held note keeps the octave it began in; tilt sets the next note's
+      this.latch = true;
       this.P = { ctDb: 4, ctBright: 0.6, ctTau: 80 };
       this.out = ctx.createGain(); this.out.gain.value = 0.5; this.out.connect(ctx.destination);
       const sr = ctx.sampleRate, nb = ctx.createBuffer(1, sr, sr), d = nb.getChannelData(0);
@@ -51,20 +53,21 @@
           env.gain.setTargetAtTime(0.22, t, 0.004); env.gain.setTargetAtTime(0.13, t + 0.03, 0.25);
         }
         lp.connect(env); env.connect(expr); expr.connect(this.out);
-        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi });
+        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi, oct: this.oct });
       } else if (ev.type === "pitch") {
         const v = this.voices.get(ev.id); if (!v) return;
         v.midi = ev.midi;
-        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * this.oct) * r, t, 0.01);
+        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * v.oct) * r, t, 0.01);
       } else if (ev.type === "contact") {
         const v = this.voices.get(ev.id); if (!v || v.cls === "flat") return;
         const d = ev.norm - ev.norm0, tau = this.P.ctTau / 1000;
         v.expr.gain.setTargetAtTime(Math.pow(10, (d * this.P.ctDb) / 20), t, tau);
         v.lp.detune.setTargetAtTime(d * this.P.ctBright * 1200, t, tau);
       } else if (ev.type === "tilt") {
-        if ((ev.octave || 0) !== this.oct) { // held notes jump with the octave, slurred (no new attack)
+        if ((ev.octave || 0) !== this.oct) {
           this.oct = ev.octave || 0;
-          for (const v of this.voices.values()) for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * this.oct) * r, t, 0.006);
+          // latch off: held notes jump with the octave, slurred (no new attack); latch on: they keep theirs
+          if (!this.latch) for (const v of this.voices.values()) { v.oct = this.oct; for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * v.oct) * r, t, 0.006); }
         }
         this.bend.offset.setTargetAtTime(ev.bend * 100, t, 0.02);
         this.vib.gain.setTargetAtTime(ev.vib, t, 0.03);
