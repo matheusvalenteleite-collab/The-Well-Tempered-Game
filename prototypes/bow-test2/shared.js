@@ -2,7 +2,7 @@
    the raw touch-property reader, and the CSV recorder. */
 (function () {
   "use strict";
-  let ctx = null;
+  let ctx = null, silent = null, logFn = () => {};
 
   function silentWavUrl() {
     const sr = 8000, n = sr, b = new ArrayBuffer(44 + n * 2), d = new DataView(b);
@@ -17,13 +17,25 @@
   function unlockAudio(log) {
     if (ctx) { if (ctx.state !== "running") ctx.resume(); return ctx; }
     try { if (navigator.audioSession) { navigator.audioSession.type = "playback"; log("audioSession.type = playback (" + navigator.audioSession.type + ")"); } else log("navigator.audioSession not available"); } catch (e) { log("audioSession error " + e.message); }
-    try { const a = new Audio(silentWavUrl()); a.loop = true; a.setAttribute("playsinline", ""); a.play().then(() => log("silent <audio> loop playing"), (e) => log("silent <audio> refused: " + e.message)); } catch (e) { log("silent audio error " + e.message); }
+    logFn = log;
+    try { const a = (silent = new Audio(silentWavUrl())); a.loop = true; a.setAttribute("playsinline", ""); a.play().then(() => log("silent <audio> loop playing"), (e) => log("silent <audio> refused: " + e.message)); } catch (e) { log("silent audio error " + e.message); }
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC({ latencyHint: "interactive" });
     ctx.resume();
+    ctx.onstatechange = () => log("AudioContext state: " + ctx.state);
     if (navigator.wakeLock) navigator.wakeLock.request("screen").then(() => log("screen wake lock on"), () => log("screen wake lock refused"));
     return ctx;
   }
+
+  /* iOS pauses the AudioContext when a system dialog (the motion-permission prompt), a call or another
+     app takes the audio; it then stays "suspended"/"interrupted" until a page resumes it from a tap.
+     So every tap anywhere, in either mode, resumes it if needed. */
+  function wake() {
+    if (!ctx) return;
+    if (ctx.state !== "running") ctx.resume().then(() => logFn("AudioContext resumed from a tap"), () => {});
+    if (silent && silent.paused) silent.play().catch(() => {});
+  }
+  for (const k of ["pointerdown", "pointerup", "touchend", "click"]) document.addEventListener(k, wake, { capture: true, passive: true });
 
   /* Event time on the performance.now() clock. */
   function evTime(e) { const t = e.timeStamp; return t > 1e12 ? t - performance.timeOrigin : t; }

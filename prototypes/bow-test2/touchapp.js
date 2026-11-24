@@ -18,8 +18,8 @@
   window.__home = () => { if (window.__mode === "touch") leaveTouch(); show("home"); };
   $("goBowed").onclick = () => show("bowed");
   $("goTouch").onclick = () => {
+    ctx = SH.unlockAudio(tlog); // sound first; the permission prompt below may pause it (resumed on the next tap)
     requestSensors(); // must run inside this tap (iOS asks for motion permission only from a user gesture)
-    ctx = SH.unlockAudio(tlog);
     show("touch");
   };
 
@@ -397,7 +397,7 @@
       if (now() - lastD > 100) {
         lastD = now();
         if (!$("diag").hidden) $("diagText").textContent = probeReport();
-        $("tRd").textContent = `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
+        $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
           (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
           (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
           (T.tiltOn ? `\nroll ${tilt.roll.toFixed(1)}°  pitch ${tilt.pitch.toFixed(1)}°` + (sens.nMot ? "" : "  (no motion data)") : "") +
