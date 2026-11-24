@@ -10,7 +10,7 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 - **docs/audits/CODE-AUDIT-PHASE1.md:** the code audit. Phase 2 is approved but paused (see BACKLOG); unreviewed work on it is on branch `claude/design-studio-audit-a`.
 
 ## Checks before any merge or deploy
-`NODE_OPTIONS=--max-old-space-size=4096 npx tsc --noEmit -p .` · `npm test` · `npx vite build` · `node tools/touch/thumb-reach.cjs` (needs `npx vite preview --port 5310` running). End commits with the attribution lines the session gives.
+`npx tsc --noEmit -p .` (no memory flag needed any more) · `npm run test:full` (everyday work: `npm test`, the quick tier, which skips the 14 exhaustive files listed in `test/full-tier.txt`; the Pages build runs the full tier) · `npx vite build` · `node tools/touch/thumb-reach.cjs` (needs `npx vite preview --port 5310` running). End commits with the attribution lines the session gives.
 
 ## The owner's standing rules (never break without asking)
 - Whole works only; **never add notes**. Ornaments come from the print, and written trills are always played. Editors' standard solutions of puzzle canons are allowed.

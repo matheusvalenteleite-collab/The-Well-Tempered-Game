@@ -1,0 +1,17 @@
+# Phase 2 (code audit, finding 5): the exhaustive test files, each over 8 s on four cores (each plays every fugue, voice,
+# prototype or sound through). `npm test` (quick tier) skips them; `npm run test:full` and the Pages build run everything.
+# One path per line, relative to the repository root. Add a file here when it grows slow; remove it when it gets quick.
+test/bench-protos.test.ts
+test/d378-glenn-default.test.ts
+test/bench-subject.test.ts
+test/d640-all-pieces.test.ts
+test/d601-drum-peaks.test.ts
+test/d445-scoring.test.ts
+test/bench-relative.test.ts
+test/kimiko.test.ts
+test/subject-fx.test.ts
+test/choices.test.ts
+test/d860-crowd-time.test.ts
+test/d308-release.test.ts
+test/d631-octaves.test.ts
+test/audio-load.test.ts
