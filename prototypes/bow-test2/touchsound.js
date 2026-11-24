@@ -86,11 +86,13 @@
       this.stopLoop();
       const c = this.ctx, bus = c.createGain(); bus.gain.value = level; bus.connect(c.destination);
       const L = { bus, bpm, tonic: tonicMidi, next: c.currentTime + 0.08, step: 0 };
+      L.t0 = L.next; // the first downbeat (context time); beat k at t0 + k × 60/bpm while the tempo is unchanged
       L.timer = setInterval(() => {
         const spb = 60 / L.bpm / 2; // eighth notes
         while (L.next < c.currentTime + 0.12) { this.loopStep(L, L.step, L.next); L.next += spb; L.step = (L.step + 1) % 8; }
       }, 25);
       this.loop = L;
+      return L.t0;
     }
     setLoop(bpm, tonicMidi, level) { if (!this.loop) return; this.loop.bpm = bpm; this.loop.tonic = tonicMidi; this.loop.bus.gain.setTargetAtTime(level, this.ctx.currentTime, 0.05); }
     stopLoop() { if (!this.loop) return; clearInterval(this.loop.timer); const b = this.loop.bus; b.gain.setTargetAtTime(0, this.ctx.currentTime, 0.03); setTimeout(() => b.disconnect(), 300); this.loop = null; }

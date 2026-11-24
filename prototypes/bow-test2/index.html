@@ -58,8 +58,16 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
 .trow.tonic { background: rgba(127, 176, 201, 0.07); }
 .trow.on { background: var(--rosin); color: #1a1408; }
+.wk { fill: #cbc6b8; stroke: #6f6c64; stroke-width: 1; }
+.wk.tonic { fill: #ddd2b4; }
+.bk { fill: #101114; stroke: #000; stroke-width: 1; }
+.wk.on, .bk.on { fill: var(--rosin); }
+.kt { font: 9px var(--f-num); fill: #3d3b36; pointer-events: none; }
+.tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
+#prOverlay { flex-direction: column; align-items: stretch; }
 #calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
 .calbig { font: 600 16px/1.3 var(--f-ui); white-space: pre-line; color: var(--fg); }
 .calcount { font: 500 20px var(--f-num); color: var(--rosin); }
@@ -123,8 +131,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
   <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tNeutral">Set neutral</button></div>
-    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout"><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
     <div id="tRd" class="rd"></div>
@@ -135,6 +143,18 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     <div id="calCount" class="calcount"></div>
     <div id="calLast" class="rd"></div>
     <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
+  </div>
+  <div id="prPanel" hidden>
+    <div id="prTitle" class="rd"></div>
+    <div id="prPrompt" class="calbig"></div>
+    <div id="prInfo" class="calcount"></div>
+    <div id="prLast" class="rd"></div>
+    <div id="prMenu" class="bar"><button id="prMixed">1 Mixed</button><button id="prRhythm">2 Rhythm</button><button id="prTwo">3 Two thumbs</button><button id="prProgress">4 Progress</button><button id="prClose">Close</button></div>
+    <div id="prRun" class="bar" hidden><button id="prStop">Stop</button></div>
+  </div>
+  <div id="prOverlay" class="overlay" hidden>
+    <div class="bar"><button id="prOvClose">Close</button><button id="prOvCopy">Copy</button><span id="prOvMsg" class="rd"></span></div>
+    <textarea id="prOvText" class="logbox" readonly></textarea>
   </div>
   <div id="tSet" class="overlay" hidden>
     <div class="bar"><button id="setClose">Close</button><button id="calCopy">Copy results</button><span id="calCopyMsg" class="rd"></span></div>
@@ -991,6 +1011,73 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     for (let m = mid - half; m <= mid + half; m++) if (inKey.has(pcOf(m))) out.push(m);
     return out;
   }
+  /* free.ts freeRows, scale "keyboard" (D330): every semitone, seven white keys an octave from the white at or
+     below the range's foot (a piano's whites). */
+  const PIANO_WHITES = [0, 2, 4, 5, 7, 9, 11];
+  function keyboardRows(mid, octaves, whites = PIANO_WHITES) {
+    const half = Math.round((octaves * 12) / 2), w = new Set(whites);
+    let a = mid - half;
+    while (!w.has(pcOf(a))) a--;
+    let b = a;
+    for (let n = 1; n < 7 * octaves; ) if (w.has(pcOf(++b))) n++;
+    const out = []; for (let m = a; m <= b; m++) out.push(m);
+    return out;
+  }
+  /* free.ts Keyboard (D330), ported line for line: a piano stood on end on each bar, pitch rising upward,
+     black keys toward the inner edge (the screen's centre), white keys running on into the inner zone between
+     them. Hit test: weighted nearest centre (a power diagram); a black key's tip tapers over `slant` of the
+     bar's width round the zone split. u = px across from the bar's inner edge, y = px from its top. */
+  const KB_DEFAULT = { split: 0.6, black: 0.58, slant: 0.2 };
+  class Keyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites);
+      const wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      this.whites = wi.length;
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const uB = (shape.split * bw) / 2, uW = ((1 + shape.split) * bw) / 2, D = uW - uB;
+      const hh0 = shape.black * wh, g0 = wh / 2, tau = Math.max(0.5, shape.slant * bw), k = hh0 / 2 / tau;
+      this.wx = Math.sqrt((k * g0) / D);
+      const bias0 = g0 * hh0 - g0 * g0, sU = shape.split * bw;
+      const biasOut = g0 * g0 + this.wx * this.wx * D * (uW + uB - 2 * sU) + bias0 - (g0 * hh0) / 2;
+      const keys = [], centres = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        centres.push({ row: r, u: uB, y, bias: 0, zone: "inner" }, { row: r, u: uW, y, bias: biasOut, zone: "outer" });
+        const next = wi[j + 1];
+        if (next === undefined) return;
+        const n = next - r - 1;
+        if (n <= 0) return;
+        const yb = y - wh / 2, hh = Math.min(shape.black, 0.95 / n) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * hh, g = Math.min(Math.abs(yc - y), Math.abs(yc - (y - wh)));
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: hh });
+          centres.push({ row: r + 1 + q, u: uB, y: yc, bias: g * hh - g * g, zone: "inner" });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.byRow = new Map(this.keys.map((q) => [q.row, q]));
+      this.centres = centres;
+    }
+    hit(u, y) {
+      let best = this.centres[0], bd = Infinity;
+      for (const c of this.centres) { const du = this.wx * (u - c.u), dy = y - c.y, d = du * du + dy * dy - c.bias; if (d < bd) { bd = d; best = c; } }
+      return { row: best.row, white: this.byRow.get(best.row).white, zone: best.zone };
+    }
+  }
+
+  /* The owner (24 Nov 2026): "octave goes from do to do". Rows from the tonic up to the tonic (key notes) or
+     from C up to C (piano), `octaves` octaves, starting in octave 4 (one octave lower for 2 or 3). This
+     replaces the Lab's centred range (freeRows / keyboardRows above, kept for the port test). */
+  function doToDo(tonic, minor, octaves, piano) {
+    const start = 60 + (piano ? 0 : tonic) - 12 * Math.floor(octaves / 2), end = start + 12 * octaves;
+    const deg = new Set((minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]).map((d) => (tonic + d) % 12));
+    const out = []; for (let m = start; m <= end; m++) if (piano || deg.has(pcOf(m))) out.push(m);
+    return out;
+  }
+
   const rowH = (n, h) => Math.max(4, (h - 2 * MARGIN) / n);
   function rowAt(n, y, h) { const r = n - 1 - Math.floor((y - MARGIN) / rowH(n, h)); return Math.max(0, Math.min(n - 1, r)); }
   const rowMid = (n, row, h) => MARGIN + (n - 1 - row + 0.5) * rowH(n, h);
@@ -1038,9 +1125,34 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
      v = (centre − lean) / span: 0 at the centre, +1 at flat, −1 at upright (span 45°); flatter is positive.
      ROLL = turning the phone like a steering wheel, relative to the neutral (set neutral).
      The face-up direction of the sensor's z axis and the in-plane "down" are taken from the first reading
-     (the phone held, not lying flat), so the sign conventions of the browser do not matter. */
+     (the phone held, not lying flat), so the sign conventions of the browser do not matter.
+     SOURCE "fused" (default): the gravity direction is carried forward by the gyroscope (fast, no jolts)
+     and pulled slowly toward the accelerometer's gravity (no drift): a complementary filter. The
+     gyroscope's sign and unit conventions are not assumed: four candidate trackers run side by side
+     (±, degrees or radians per second) and the one that best predicts the accelerometer is used.
+     SOURCE "gravity": the accelerometer alone, low-passed (P.tiltTau), as before. */
+  const CANDS = [[1, Math.PI / 180], [-1, Math.PI / 180], [1, 1], [-1, 1]];
   class TiltReader {
-    constructor(emit) { this.emit = emit; this.g = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; }
+    constructor(emit) { this.emit = emit; this.g = null; this.gl = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; this.cands = null; this.best = 0; this.source = "gravity"; }
+    /* the fused gravity estimate: returns false if no gyroscope data */
+    fuse(dt, gm, rot, P) {
+      if (!rot || rot.alpha == null || rot.beta == null || rot.gamma == null) return false;
+      if (!this.cands) this.cands = CANDS.map(([sg, k]) => ({ sg, k, g: gm.slice(), err: 0 }));
+      const corr = Math.min(1, dt / Math.max(0.05, P.gyroCorrS));
+      for (const c of this.cands) {
+        const w = [rot.beta * c.sg * c.k, rot.gamma * c.sg * c.k, rot.alpha * c.sg * c.k]; // about x, y, z
+        const g = c.g, cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        const pred = [g[0] - cr[0] * dt, g[1] - cr[1] * dt, g[2] - cr[2] * dt]; // a world-fixed vector seen from a rotating body
+        const cos = (pred[0] * this.gl[0] + pred[1] * this.gl[1] + pred[2] * this.gl[2]) / (Math.hypot(...pred) * Math.hypot(...this.gl) || 1);
+        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 2);
+        c.g = pred.map((v, i) => v + (gm[i] - v) * corr);
+      }
+      const cur = this.cands[this.best];
+      this.cands.forEach((c, i) => { if (c.err < cur.err * 0.7 - 1e-4) this.best = i; });
+      this.g = this.cands[this.best].g;
+      return true;
+    }
+    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
     takeRef() {
       const g = this.g, m = Math.hypot(g[0], g[1]);
       if (m < 1) return false; // lying flat: wait for a held reading
@@ -1049,11 +1161,16 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     }
     leanOf(g) { const m = Math.hypot(g[0], g[1]), dot = g[0] * this.ref.ux + g[1] * this.ref.uy; return Math.atan2(Math.sign(dot || 1) * m, this.ref.s * g[2]) * 180 / Math.PI; }
     setNeutral() { if (!this.g) return null; if (!this.ref) this.takeRef(); this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI; return this.ref ? { lean: this.leanOf(this.g), roll: 0 } : null; }
-    feed(t, gx, gy, gz, P) {
+    feed(t, gx, gy, gz, P, rot) {
       if (gx == null) return;
-      const a = this.g ? 1 - Math.exp(-Math.max(0, t - this.lastT) / Math.max(1, P.tiltTau)) : 1;
+      const first = !this.g, dtMs = first ? 0 : Math.max(0, Math.min(100, t - this.lastT));
       this.lastT = t;
-      this.g = this.g ? this.g.map((v, i) => v + ([gx, gy, gz][i] - v) * a) : [gx, gy, gz];
+      const gm = [gx, gy, gz];
+      // the accelerometer, low-passed: the "gravity only" estimate, and the reference the gyro trackers are judged by
+      const a = this.gl ? 1 - Math.exp(-dtMs / Math.max(1, P.tiltTau)) : 1;
+      this.gl = this.gl ? this.gl.map((v, i) => v + (gm[i] - v) * a) : gm.slice();
+      if (P.tiltSource === "fused" && !first && this.fuse(dtMs / 1000, gm, rot, P)) this.source = "fused";
+      else { this.g = this.gl.slice(); this.source = "gravity"; if (P.tiltSource !== "fused") this.cands = null; }
       if (!this.ref && !this.takeRef()) return;
       if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
       let lean = this.leanOf(this.g);
@@ -1066,9 +1183,12 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       // continuous uses: a small dead zone round the centre, and a little room past flat/upright (to ±1.2)
       const dz = P.deadDeg / P.spanDeg;
       const cont = Math.sign(v) * Math.min(1.2, Math.max(0, Math.abs(v) - dz) / (1 - dz));
-      // octave steps with hysteresis: +1 past `octStep1` of the way to flat, +2 past `octStep2`; mirrored to upright
-      const h = P.octHystDeg / P.spanDeg, S = [P.octStep1, P.octStep2];
-      const between = (k) => (k >= 0 ? S[k] : -S[-k - 1]); // the boundary between step k and k+1
+      // octave steps with hysteresis, at lean angles set in degrees (up1: one octave up at or flatter than it,
+      // up2: two up; down1, down2 likewise toward upright), kept in order round the centre
+      const h = P.octHystDeg / P.spanDeg, toV = (deg) => (P.centreDeg - deg) / P.spanDeg;
+      const up1 = Math.min(P.up1Deg, P.centreDeg - 1), up2 = Math.min(P.up2Deg, up1 - 1), dn1 = Math.max(P.down1Deg, P.centreDeg + 1), dn2 = Math.max(P.down2Deg, dn1 + 1);
+      const B = { 0: toV(up1), 1: toV(up2), "-1": toV(dn1), "-2": toV(dn2) };
+      const between = (k) => B[k]; // the boundary between step k and k+1
       let o = this.octave;
       for (let k = 0; k < 4; k++) {
         if (o < 2 && v >= between(o) + h / 2) o++;
@@ -1077,7 +1197,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       }
       this.octave = P.leanMode === "octave" ? o : 0;
       // breath: where v sits inside the current step (−0.5…+0.5 round its middle), like blowing harder toward the break
-      const mid = (k) => (k === 0 ? 0 : Math.sign(k) * (Math.abs(k) === 1 ? (P.octStep1 + P.octStep2) / 2 : P.octStep2 + 0.3));
+      const mid = (k) => ({ 0: (B[-1] + B[0]) / 2, 1: (B[0] + B[1]) / 2, 2: B[1] + 0.3, "-1": (B[-2] + B[-1]) / 2, "-2": B[-2] - 0.3 })[k];
       this.breath = P.leanMode === "octave" ? Math.max(-0.6, Math.min(0.6, v - mid(this.octave))) : 0;
       const ru = Math.sign(roll) * Math.min(1, Math.max(0, Math.abs(roll) - P.deadDeg) / Math.max(1, P.rollFullDeg - P.deadDeg));
       this.emit({ type: "tilt", t, octave: this.octave,
@@ -1094,7 +1214,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       this.areas = areas; this.rows = rows; this.emit = emit; this.held = new Map();
       this.opts = opts || (() => ({ contactOn: false, decideMs: 0, cal: {}, sizeRange: {} }));
       this.stable = []; // ms until the class settled, recent notes
+      this.hitFn = null; // (side, x, y) -> row; the piano layout sets it, else rows by height
     }
+    rowOf(side, x, y) { const r = this.areas()[side]; return this.hitFn ? this.hitFn(side, x, y) : rowAt(this.rows().length, y - r.top, r.height); }
     th(side) { const o = this.opts(); return o.contactOn ? (o.cal[side] || null) : null; }
     norm(side, size) { const r = (this.opts().sizeRange || {})[side] || [24, 194]; return Math.max(0, Math.min(1, (size - r[0]) / Math.max(1, r[1] - r[0]))); }
     fire(id, hd, t) {
@@ -1112,9 +1234,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     down(id, t, x, y, contact) {
       const side = this.sideAt(x, y);
       if (!side) return false;
-      const r = this.areas()[side], rows = this.rows(), row = rowAt(rows.length, y - r.top, r.height);
+      const row = this.rowOf(side, x, y);
       const size = contact && contact.width > 1 ? contact.width : null;
-      const hd = { side, row, setY: y, pend: null, t0: t, seq: size == null ? [] : [[0, size]], fired: false, contact };
+      const hd = { side, row, setY: y, setX: x, pend: null, t0: t, seq: size == null ? [] : [[0, size]], fired: false, contact };
       this.held.set(id, hd);
       if (!(this.th(side) && this.opts().decideMs > 0)) this.fire(id, hd, t);
       return true;
@@ -1127,11 +1249,13 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         if (t - hd.t0 <= 400) hd.seq.push([t - hd.t0, size]);
         if (hd.fired) this.emit({ type: "contact", id, t, size, norm: this.norm(hd.side, size), norm0: hd.norm0 });
       }
-      const r = this.areas()[hd.side], rows = this.rows(), n = rows.length;
-      const row = rowAt(n, y - r.top, r.height);
-      if (row === hd.row || Math.abs(y - hd.setY) < Math.max(SLIDE_MIN_PX, rowH(n, r.height) * 0.5)) { hd.pend = null; return; }
-      if (!hd.pend || hd.pend.row !== row) hd.pend = { row, since: t, y };
-      else hd.pend.y = y;
+      const r = this.areas()[hd.side], n = this.rows().length;
+      const row = this.rowOf(hd.side, x, y);
+      // free.ts: on the keyboard a slide may go sideways (white to black and back): the distance moved, both ways
+      const moved = this.hitFn ? Math.hypot(x - hd.setX, y - hd.setY) : Math.abs(y - hd.setY);
+      if (row === hd.row || moved < Math.max(SLIDE_MIN_PX, rowH(n, r.height) * 0.5)) { hd.pend = null; return; }
+      if (!hd.pend || hd.pend.row !== row) hd.pend = { row, since: t, y, x };
+      else { hd.pend.y = y; hd.pend.x = x; }
       this.tick(t);
     }
     tick(t) {
@@ -1141,7 +1265,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         if (!hd.done && t - hd.t0 > 400) this.settle(hd);
         const p = hd.pend;
         if (!p || t - p.since < SLIDE_DWELL_MS) continue;
-        hd.pend = null; hd.row = p.row; hd.setY = p.y;
+        hd.pend = null; hd.row = p.row; hd.setY = p.y; hd.setX = p.x;
         this.emit({ type: "pitch", id, t, row: p.row, midi: rows[p.row] });
       }
     }
@@ -1158,7 +1282,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const noteName = (m) => NAMES[pcOf(m)] + (Math.floor(m / 12) - 1);
-  window.TouchGest = { TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
+  window.TouchGest = { doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
 })();
 
 </script>
@@ -1251,11 +1375,13 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
       this.stopLoop();
       const c = this.ctx, bus = c.createGain(); bus.gain.value = level; bus.connect(c.destination);
       const L = { bus, bpm, tonic: tonicMidi, next: c.currentTime + 0.08, step: 0 };
+      L.t0 = L.next; // the first downbeat (context time); beat k at t0 + k × 60/bpm while the tempo is unchanged
       L.timer = setInterval(() => {
         const spb = 60 / L.bpm / 2; // eighth notes
         while (L.next < c.currentTime + 0.12) { this.loopStep(L, L.step, L.next); L.next += spb; L.step = (L.step + 1) % 8; }
       }, 25);
       this.loop = L;
+      return L.t0;
     }
     setLoop(bpm, tonicMidi, level) { if (!this.loop) return; this.loop.bpm = bpm; this.loop.tonic = tonicMidi; this.loop.bus.gain.setTargetAtTime(level, this.ctx.currentTime, 0.05); }
     stopLoop() { if (!this.loop) return; clearInterval(this.loop.timer); const b = this.loop.bus; b.gain.setTargetAtTime(0, this.ctx.currentTime, 0.03); setTimeout(() => b.disconnect(), 300); this.loop = null; }
@@ -1300,15 +1426,16 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+    layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 4,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
-  const computeRows = () => { ROWS = G.freeRows(T.tonic, T.minor, T.mid, T.octaves); };
+  const computeRows = () => { ROWS = G.doToDo(T.tonic, T.minor, T.octaves, T.layout === "piano"); };
   computeRows();
 
   /* ---------- layers ---------- */
@@ -1330,7 +1457,9 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
   refit();
   const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE });
+  const listeners = [];
   const onEvent = (ev) => {
+    for (const f of listeners) f(ev);
     if (ev.type === "onset" || ev.type === "pitch") active.set(ev.id, { row: ev.row, side: ev.side || (active.get(ev.id) || {}).side });
     if (ev.type === "release") active.delete(ev.id);
     if (ev.type === "onset") { lastOnset = ev; SH.csv.add({ mode: "touch", event: "onset", id: ev.id, zone: ev.side, width: ev.size, note: (ev.cls || "") + " " + G.noteName(ev.midi) }); }
@@ -1343,7 +1472,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   function onMotion(e) {
     if (!T.tiltOn || window.__mode !== "touch") return;
     const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
-    tilt.feed(now(), g.x, g.y, g.z, T);
+    tilt.feed(now(), g.x, g.y, g.z, T, e.rotationRate);
   }
 
   /* ---------- layout ---------- */
@@ -1355,31 +1484,46 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
     Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
+    Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
     rect.left = $("tL").getBoundingClientRect(); rect.right = $("tR").getBoundingClientRect();
+    const KB = {};
     for (const side of ["L", "R"]) {
       const el = $("t" + side), r = side === "L" ? rect.left : rect.right;
       el.innerHTML = "";
-      ROWS.forEach((m, i) => {
+      if (T.layout === "piano") {
+        // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
+        const kb = (KB[side] = new G.Keyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, slant: T.kbSlant }, r.width, r.height));
+        const X = (u) => (side === "L" ? r.width - u : u), sU = T.kbSplit * r.width, tau = Math.max(0.5, T.kbSlant * r.width);
+        let svg = `<svg width="${r.width}" height="${r.height}" style="position:absolute;left:0;top:0">`;
+        for (const k of kb.keys) if (k.white) svg += `<rect class="wk${pcName(k.midi) === G.NAMES[T.tonic] ? " tonic" : ""}" data-row="${k.row}" x="0" y="${k.y - k.h / 2}" width="${r.width}" height="${k.h}"/><text x="${side === "L" ? 6 : r.width - 6}" y="${k.y + 3}" text-anchor="${side === "L" ? "start" : "end"}" class="kt">${G.noteName(k.midi)}</text>`;
+        for (const k of kb.keys) if (!k.white) { const y0 = k.y - k.h / 2, y1 = k.y + k.h / 2, u1 = sU - tau / 2, u2 = sU + tau / 2; svg += `<polygon class="bk" data-row="${k.row}" points="${X(0)},${y0} ${X(u1)},${y0} ${X(u2)},${k.y} ${X(u1)},${y1} ${X(0)},${y1}"/>`; }
+        el.innerHTML = svg + "</svg>";
+      } else ROWS.forEach((m, i) => {
         const d = document.createElement("div"); d.className = "trow" + (G.NAMES[m % 12] === G.NAMES[T.tonic] ? " tonic" : "");
         const rh = G.rowH(ROWS.length, r.height);
         Object.assign(d.style, { top: G.rowMid(ROWS.length, i, r.height) - rh / 2 + "px", height: rh + "px" });
         d.textContent = G.noteName(m); d.dataset.row = i; el.appendChild(d);
       });
     }
+    gest.hitFn = T.layout === "piano" ? (side, x, y) => {
+      const r = rect[side], u = side === "left" ? r.right - x : x - r.left;
+      return KB[side === "left" ? "L" : "R"].hit(u, y - r.top).row;
+    } : null;
   }
+  const pcName = (m) => G.NAMES[((m % 12) + 12) % 12];
   addEventListener("resize", () => { if (window.__mode === "touch") layout(); });
 
   /* ---------- controls ---------- */
   const KEYS = G.NAMES.map((n, i) => [i, n]);
   $("tKey").innerHTML = KEYS.map(([i, n]) => `<option value="${i}">${n}</option>`).join("");
-  $("tKey").value = T.tonic; $("tMinor").value = T.minor ? "1" : "0"; $("tOct").value = T.octaves;
+  $("tKey").value = T.tonic; $("tMinor").value = T.minor ? "1" : "0"; $("tOct").value = T.octaves; $("tLayout").value = T.layout;
   const remap = () => {
-    T.tonic = +$("tKey").value; T.minor = $("tMinor").value === "1"; T.octaves = +$("tOct").value;
+    T.tonic = +$("tKey").value; T.minor = $("tMinor").value === "1"; T.octaves = +$("tOct").value; T.layout = $("tLayout").value;
     T.mid = 60 + T.tonic; // the rows centred on the tonic nearest middle C (the game centres them on a voice's range)
     computeRows(); save(); layout(); tlog(`rows: ${ROWS.map(G.noteName).join(" ")}`);
     if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel);
   };
-  $("tKey").onchange = $("tMinor").onchange = $("tOct").onchange = remap;
+  $("tKey").onchange = $("tMinor").onchange = $("tOct").onchange = $("tLayout").onchange = remap;
   const slider = (id, key, fmt) => { const r = $(id), o = $(id + "o"); r.value = T[key]; o.textContent = fmt(T[key]); r.oninput = () => { T[key] = +r.value; o.textContent = fmt(T[key]); save(); if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel); }; };
   slider("tBpm", "bpm", (v) => v + " ♩/min"); slider("tLvl", "loopLevel", (v) => v.toFixed(2));
   $("tLoop").onclick = () => {
@@ -1441,7 +1585,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   }
 
   /* ---------- raw input ---------- */
-  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden;
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden;
   const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
   const inArea = (x, y) => gest.sideAt(x, y) !== null;
   document.addEventListener("pointerdown", (e) => {
@@ -1569,11 +1713,15 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
+    ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
+    ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
     ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
     ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
     ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
-    ["octStep1", "Octave: first step at", 0.25, 0.95, 0.05, (v) => `${(v * 100).toFixed(0)}% of the way: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
-    ["octStep2", "Octave: second step at", 1, 1.5, 0.05, (v) => `${(v * 100).toFixed(0)}%: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["up1Deg", "Octave up when the lean is at or below", 0, 44, 1, (v) => v + "°"],
+    ["up2Deg", "Two octaves up at or below", -45, 20, 1, (v) => v + "°"],
+    ["down1Deg", "Octave down when the lean is at or above", 46, 100, 1, (v) => v + "°"],
+    ["down2Deg", "Two octaves down at or above", 70, 135, 1, (v) => v + "°"],
     ["octHystDeg", "Octave: hysteresis", 0, 10, 0.5, (v) => v + "°"],
     ["breathBright", "Octave: brightness within a step (breath)", 0, 1200, 25, (v) => "±" + Math.round(v / 2) + " cents"],
     ["leanBright", "Brightness at full lean", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
@@ -1582,9 +1730,12 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     ["bendRange", "Bend at full lean / roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
     ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
     ["rollFullDeg", "Roll for full effect", 10, 60, 1, (v) => v + "°"],
-    ["tiltTau", "Tilt smoothing", 10, 500, 5, (v) => v + " ms"],
+    ["tiltTau", "Tilt smoothing (gravity sensing only)", 10, 500, 5, (v) => v + " ms"],
     ["invLean", "Invert lean"],
     ["invRoll", "Invert roll"],
+    ["Piano layout (choose “piano” in the panel)"],
+    ["kbSplit", "Black keys: width (share of the area)", 0.3, 0.85, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbBlack", "Black keys: height (share of a white key)", 0.3, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -1592,7 +1743,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
-    if (k === "centreDeg" || k === "spanDeg") for (const q of ["octStep1", "octStep2"]) { const i = setInputs[q]; if (i) i.previousSibling.textContent = SET.find((d) => d[0] === q)[5](T[q]); }
+    if (k === "kbSplit" || k === "kbBlack") layout();
+    if (k === "tiltSource") tilt.cands = null;
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
   }
@@ -1680,7 +1832,7 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         lastRows = key;
         for (const side of ["left", "right"]) {
           const on = new Set([...active.values()].filter((a) => a.side === side).map((a) => a.row));
-          for (const d of $(side === "left" ? "tL" : "tR").children) d.classList.toggle("on", on.has(+d.dataset.row));
+          for (const d of $(side === "left" ? "tL" : "tR").querySelectorAll("[data-row]")) d.classList.toggle("on", on.has(+d.dataset.row));
         }
       }
       if (now() - lastD > 100) {
@@ -1689,16 +1841,210 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
         $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
           (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
           (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
-          (T.tiltOn ? `\nlean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (T.tiltOn ? `\n${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
           (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
-        if (!$("tSet").hidden) $("tiltRd").textContent = ` lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` ${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
       }
     }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  /* hooks for the practice screen (practice.js) */
+  window.__touchHooks = {
+    listen: (f) => listeners.push(f), unlisten: (f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); },
+    fit: () => FIT, T: () => T, ctx: () => ctx, sound: () => sound, now, calDate: () => CAL.savedAt,
+    setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
+    loopOn: (on) => { if (!sound) return null; T.loopOn = on; $("tLoop").textContent = "Loop: " + (on ? "on" : "off"); $("tLoop").classList.toggle("sel", on); if (on) return sound.startLoop(T.bpm, T.mid, T.loopLevel); sound.stopLoop(); return null; },
+    target: (side) => { $("tL").classList.toggle("target", side === "left" || side === "both"); $("tR").classList.toggle("target", side === "right" || side === "both"); },
+    panel: (show) => { $("tPanel").hidden = show; $("prPanel").hidden = !show; },
+    releaseAll: () => { gest.releaseAll(now()); if (sound) sound.silence(); },
+  };
   window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };
 })();
+
+</script>
+<script>
+/* Touch-area mode, PRACTICE: four items for learning the three kinds of press (fingertip, normal, flat).
+   Every drill plays through the real gesture and sound layers (you hear what you pressed) and judges the
+   kind from your calibration, exactly as play would. Results are kept on this device with the date.
+     1 Mixed: 30 prompts, kind and area at random (balanced).
+     2 Rhythm: with the loop, one bar of count-in, then 8 bars of 4 beats, each beat a kind; bars alternate
+       left and right areas. Judged on the kind and on the timing (±200 ms window round each beat).
+     3 Two thumbs: 18 prompts, a kind for each area at once (left and right pressed together).
+     4 Progress: every finished drill, with date, accuracy per kind and per area, and timing. */
+(function (root) {
+  "use strict";
+  const KINDS = ["tip", "normal", "flat"];
+  const NAME = { tip: "FINGERTIP", normal: "NORMAL", flat: "FLAT" };
+  const SHORT = { tip: "T", normal: "N", flat: "F" };
+
+  /* ---------- pure parts (tested in node) ---------- */
+  function rand(seed) { let r = seed || Date.now() % 2147483647 || 1; return () => ((r = (r * 16807) % 2147483647) / 2147483647); }
+  function shuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  /* n prompts, kinds (and sides) as even as n allows, shuffled */
+  function makeDeck(n, sides, rnd) {
+    const combos = []; for (const s of sides) for (const k of KINDS) combos.push({ side: s, kind: k });
+    const out = []; while (out.length < n) out.push(...shuffle(combos.slice(), rnd));
+    return shuffle(out.slice(0, n), rnd);
+  }
+  function tally(items) { // items: {side, kind, got}
+    const by = (f) => { const m = {}; for (const it of items) { const k = f(it); m[k] = m[k] || { n: 0, ok: 0 }; m[k].n++; if (it.got === it.kind) m[k].ok++; } return m; };
+    const confusion = {}; for (const k of KINDS) { confusion[k] = { tip: 0, normal: 0, flat: 0, none: 0 }; }
+    for (const it of items) confusion[it.kind][it.got || "none"]++;
+    const ok = items.filter((it) => it.got === it.kind).length;
+    return { n: items.length, ok, pct: items.length ? (100 * ok) / items.length : 0, byKind: by((it) => it.kind), bySide: by((it) => it.side), confusion };
+  }
+  /* beats: [{t (s), side, kind}], onsets: [{t (s), side, kind}] -> one judgement per beat (nearest unused onset
+     on that side within ±win) and the extra onsets */
+  function rhythmScore(beats, onsets, win = 0.2) {
+    const used = new Set(), res = [];
+    for (const b of beats) {
+      let best = -1, bd = Infinity;
+      onsets.forEach((o, i) => { if (!used.has(i) && o.side === b.side && Math.abs(o.t - b.t) <= win && Math.abs(o.t - b.t) < bd) { bd = Math.abs(o.t - b.t); best = i; } });
+      if (best < 0) { res.push({ ...b, got: null, err: null }); continue; }
+      used.add(best);
+      res.push({ ...b, got: onsets[best].kind, err: (onsets[best].t - b.t) * 1000 });
+    }
+    const errs = res.filter((r) => r.err != null).map((r) => r.err);
+    const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+    return { res, missed: res.filter((r) => r.got === null).length, extra: onsets.length - used.size,
+      meanAbsMs: mean(errs.map(Math.abs)), meanMs: mean(errs), tally: tally(res) };
+  }
+
+  /* ---------- the screen ---------- */
+  function boot() {
+    const H = root.__touchHooks, $ = (id) => document.getElementById(id);
+    if (!H || !$("prPanel")) return;
+    const G = root.TouchGest;
+    let run = null;
+    const pct = (x) => (x == null ? "–" : x.toFixed(0) + "%");
+    const kindOf = (ev) => { const f = H.fit()[ev.side]; return f ? G.classify(f, ev.size) : null; };
+    const show = (title, prompt, info, last) => { $("prTitle").textContent = title; $("prPrompt").textContent = prompt; $("prInfo").textContent = info; $("prLast").textContent = last || ""; };
+    function open() { H.panel(true); $("prMenu").hidden = false; $("prRun").hidden = true; H.target(null); show("PRACTICE", "", "", H.fit().left && H.fit().right ? "Calibrated " + (H.calDate() || "").slice(0, 16).replace("T", " ") : "Calibrate first (Settings)."); }
+    function close() { stop(); H.panel(false); H.target(null); }
+    function stop() { if (run) { H.unlisten(run.fn); if (run.timer) clearInterval(run.timer); if (run.loopWas === false) H.loopOn(false); run = null; } $("prMenu").hidden = false; $("prRun").hidden = true; H.target(null); }
+    function begin(kind, fn) {
+      if (!H.fit().left || !H.fit().right) { show("PRACTICE", "", "", "Calibrate both areas first (Settings → Calibrate)."); return false; }
+      if (!H.T().contactOn) H.setContactOn(true); // you hear the kind you pressed
+      H.releaseAll();
+      run = { kind, fn, t0: new Date().toISOString() }; H.listen(fn);
+      $("prMenu").hidden = true; $("prRun").hidden = false;
+      return true;
+    }
+    function finish(entry) {
+      stop();
+      entry.date = new Date().toISOString(); entry.cal = H.calDate(); entry.decideMs = H.T().decideMs;
+      const all = load(); all.push(entry); try { localStorage.setItem("touchpractice", JSON.stringify(all)); } catch (e) { /* none */ }
+      overlay(summary(entry) + "\n\nSaved. Progress (item 4) lists every session.");
+    }
+    const load = () => { try { return JSON.parse(localStorage.getItem("touchpractice") || "[]"); } catch (e) { return []; } };
+
+    /* 1 Mixed */
+    function mixed() {
+      const deck = makeDeck(30, ["left", "right"], rand()), items = [];
+      let i = 0, down = false;
+      const prompt = () => { const d = deck[i]; H.target(d.side); show(`MIXED ${i + 1}/30`, `${d.side === "left" ? "LEFT" : "RIGHT"}\n${NAME[d.kind]}`, `${items.filter((x) => x.got === x.kind).length} right`, items.length ? lastText(items[items.length - 1]) : ""); };
+      const fn = (ev) => {
+        if (ev.type === "onset" && !down) {
+          if (ev.side !== deck[i].side) { $("prLast").textContent = "other area: try again"; return; }
+          down = true; items.push({ ...deck[i], got: kindOf(ev), size: ev.size });
+        }
+        if (ev.type === "release" && down) { down = false; i++; if (i >= deck.length) return finish({ drill: "mixed", tally: tally(items), items }); prompt(); }
+      };
+      if (begin("mixed", fn)) prompt();
+    }
+    const lastText = (it) => `last: ${it.got === it.kind ? "✓" : "✗"} asked ${it.kind}, got ${it.got || "?"}${it.size != null ? " (" + it.size.toFixed(0) + " px)" : ""}`;
+
+    /* 2 Rhythm */
+    function rhythm() {
+      const ctx = H.ctx(); if (!ctx) return;
+      const deck = makeDeck(32, ["x"], rand()).map((d) => d.kind), bars = 8;
+      const loopWas = H.T().loopOn;
+      const onsets = [];
+      const fn = (ev) => { if (ev.type === "onset") onsets.push({ t: ctx.currentTime - (H.now() - ev.t) / 1000, side: ev.side, kind: kindOf(ev), size: ev.size }); };
+      if (!begin("rhythm", fn)) return;
+      run.loopWas = loopWas;
+      const t0 = H.loopOn(true), spb = 60 / H.T().bpm;
+      const beats = []; for (let b = 0; b < bars; b++) for (let k = 0; k < 4; k++) beats.push({ t: t0 + (4 + b * 4 + k) * spb, side: b % 2 ? "right" : "left", kind: deck[b * 4 + k] });
+      const bpmAt = H.T().bpm;
+      run.timer = setInterval(() => {
+        if (H.T().bpm !== bpmAt) { stop(); show("RHYTHM", "", "", "Stopped: the tempo changed."); return; }
+        // the beat shown is the nearest one: from halfway after a beat on, the screen shows the coming beat
+        const now = ctx.currentTime, beat = Math.floor((now - t0) / spb + 0.5);
+        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "T fingertip · N normal · F flat"); return; }
+        const bar = Math.floor((beat - 4) / 4), inBar = (beat - 4) % 4;
+        if (bar >= bars) { if (now > beats[beats.length - 1].t + 0.3) { const sc = rhythmScore(beats, onsets.filter((o) => o.t >= beats[0].t - 0.25)); finish({ drill: "rhythm", bpm: bpmAt, tally: sc.tally, missed: sc.missed, extra: sc.extra, meanAbsMs: sc.meanAbsMs, meanMs: sc.meanMs, items: sc.res.map((r) => ({ side: r.side, kind: r.kind, got: r.got, err: r.err })) }); } return; }
+        const side = bar % 2 ? "right" : "left"; H.target(side);
+        const pat = deck.slice(bar * 4, bar * 4 + 4).map((k, j) => (j === inBar ? `[${SHORT[k]}]` : SHORT[k])).join(" ");
+        const nxt = bar + 1 < bars ? `next: ${bar % 2 ? "LEFT" : "RIGHT"} ` + deck.slice((bar + 1) * 4, (bar + 1) * 4 + 4).map((k) => SHORT[k]).join(" ") : "last bar";
+        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "T fingertip · N normal · F flat");
+      }, 30);
+    }
+
+    /* 3 Two thumbs */
+    function two() {
+      const rnd = rand(), pairs = [];
+      for (const a of KINDS) for (const b of KINDS) pairs.push([a, b]);
+      const deck = shuffle([...pairs, ...pairs], rnd); // 18: every combination twice
+      const items = [], gaps = [];
+      let i = 0, cur = null;
+      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/18`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
+      const fn = (ev) => {
+        if (ev.type === "onset") { cur.held++; const s = ev.side === "left" ? "l" : "r"; if (!cur[s]) cur[s] = { kind: kindOf(ev), t: ev.t, size: ev.size }; }
+        if (ev.type === "release") {
+          cur.held = Math.max(0, cur.held - 1);
+          if (cur.held === 0 && cur.l && cur.r) {
+            const [l, r] = deck[i];
+            items.push({ side: "left", kind: l, got: cur.l.kind }, { side: "right", kind: r, got: cur.r.kind });
+            gaps.push(Math.abs(cur.l.t - cur.r.t));
+            $("prLast").textContent = `last: L ${cur.l.kind === l ? "✓" : "✗ " + (cur.l.kind || "?")}  R ${cur.r.kind === r ? "✓" : "✗ " + (cur.r.kind || "?")}  together within ${Math.abs(cur.l.t - cur.r.t).toFixed(0)} ms`;
+            i++;
+            if (i >= deck.length) {
+              const both = deck.filter((_, j) => items[2 * j].got === items[2 * j].kind && items[2 * j + 1].got === items[2 * j + 1].kind).length;
+              return finish({ drill: "two", tally: tally(items), pairsRight: both, pairs: deck.length, meanGapMs: gaps.reduce((a, b) => a + b, 0) / gaps.length, items });
+            }
+            const keep = $("prLast").textContent; prompt(); $("prLast").textContent = keep;
+          }
+        }
+      };
+      if (begin("two", fn)) prompt();
+    }
+
+    /* reports */
+    function summary(e) {
+      const t = e.tally, L = [];
+      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: "TWO THUMBS (18 pairs)" }[e.drill];
+      L.push(`${head}  ${e.date.slice(0, 16).replace("T", " ")}`);
+      L.push(`kinds right: ${t.ok} of ${t.n} (${pct(t.pct)})` + (e.drill === "two" ? `; both thumbs right: ${e.pairsRight} of ${e.pairs}; pressed together within ${e.meanGapMs.toFixed(0)} ms on average` : ""));
+      if (e.drill === "rhythm") L.push(`beats missed ${e.missed}, extra taps ${e.extra}; timing off by ${e.meanAbsMs == null ? "–" : e.meanAbsMs.toFixed(0)} ms on average (${e.meanMs == null ? "" : e.meanMs < 0 ? "early" : "late"} ${e.meanMs == null ? "" : Math.abs(e.meanMs).toFixed(0) + " ms overall"})`);
+      L.push("by kind:  " + KINDS.map((k) => `${k} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
+      L.push("by area:  " + ["left", "right"].map((s) => `${s} ${t.bySide[s] ? pct((100 * t.bySide[s].ok) / t.bySide[s].n) : "–"}`).join("   "));
+      L.push("asked → heard as     tip normal flat  none");
+      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${k.padEnd(18)} ${String(c.tip).padStart(4)} ${String(c.normal).padStart(6)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
+      return L.join("\n");
+    }
+    function progress() {
+      const all = load();
+      if (!all.length) { overlay("No practice sessions yet."); return; }
+      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right   tip  normal  flat   left right  timing  cal. of", ""];
+      for (const e of all) {
+        const t = e.tally, k = (x) => (t.byKind[x] ? pct((100 * t.byKind[x].ok) / t.byKind[x].n) : "–"), s = (x) => (t.bySide[x] ? pct((100 * t.bySide[x].ok) / t.bySide[x].n) : "–");
+        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("tip").padStart(5)} ${k("normal").padStart(6)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
+      }
+      L.push("", "timing: rhythm = average distance from the beat; two thumbs (⇄) = average gap between the thumbs.", "", "DETAIL", ...all.map(summary));
+      overlay(L.join("\n"));
+    }
+    function overlay(text) { $("prOvText").value = text; $("prOvMsg").textContent = ""; $("prOverlay").hidden = false; }
+    $("tPractice").onclick = open;
+    $("prClose").onclick = close; $("prStop").onclick = () => { stop(); show("PRACTICE", "", "", "Stopped (nothing saved)."); };
+    $("prMixed").onclick = mixed; $("prRhythm").onclick = rhythm; $("prTwo").onclick = two; $("prProgress").onclick = progress;
+    $("prOvClose").onclick = () => { $("prOverlay").hidden = true; };
+    $("prOvCopy").onclick = () => root.Shared.copyText($("prOvText"), (m) => { $("prOvMsg").textContent = m; });
+  }
+
+  root.Practice = { makeDeck, tally, rhythmScore, rand, KINDS };
+  if (typeof document !== "undefined" && document.getElementById) boot();
+})(typeof window !== "undefined" ? window : globalThis);
 
 </script>
 

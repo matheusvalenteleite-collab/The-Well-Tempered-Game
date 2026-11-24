@@ -55,7 +55,7 @@ test("gesture layer: onset waits for the decision delay and carries the class", 
 });
 
 function tiltRig(zSign = -1, extra = {}) {
-  const P = Object.assign({ leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+  const P = Object.assign({ leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22.5, up2Deg: -11.25, down1Deg: 67.5, down2Deg: 101.25, octHystDeg: 4,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 1, invLean: false, invRoll: false }, extra);
   const evs = [], r = new G.TiltReader((e) => evs.push(e));
   let t = 0;
@@ -102,4 +102,64 @@ test("breath: brighter toward flat within a step; brightness mode spreads over 4
   assert.ok(Math.abs(b.feed(90).bright + 1200) < 1, "upright = full the other way");
   const half = b.feed(22.5).bright; assert.ok(half > 500 && half < 700, "halfway = about half: " + half.toFixed(0));
   assert.ok(Math.abs(b.feed(-20).bright - 1440) < 1, "a little room past flat, capped at 1.2×");
+});
+
+/* Gyro fusion: a simulated phone. The gyroscope reports with an unknown convention (here: minus sign,
+   degrees per second); the accelerometer adds hand jolts. */
+function simulatePhone({ source, tiltTau = 120, conv = [-1, 180 / Math.PI], jolt = 1.5, path, dur, seed = 7 }) {
+  const P = { leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22.5, up2Deg: -11.25, down1Deg: 67.5, down2Deg: 101.25, octHystDeg: 4,
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau, invLean: false, invRoll: false, tiltSource: source, gyroCorrS: 0.8 };
+  let r = seed; const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647 - 0.5);
+  const evs = [], tr = new G.TiltReader((e) => evs.push(e));
+  const dt = 1000 / 60, out = [];
+  let jx = 0, jz = 0;
+  for (let t = 0; t <= dur; t += dt) {
+    const L = path(t), L2 = path(t + 1), w = ((L2 - L) * Math.PI / 180) * 1000; // rad/s about the device's y axis
+    const l = L * Math.PI / 180;
+    jx += (rnd() * 2 * jolt - jx) * 0.3; jz += (rnd() * 2 * jolt - jz) * 0.3; // band-limited hand jolts, m/s²
+    const g = [Math.sin(l) * 9.8 + jx, 0, -Math.cos(l) * 9.8 + jz];
+    tr.feed(t, g[0], g[1], g[2], P, { alpha: 0, beta: 0, gamma: conv[0] * conv[1] * w });
+    out.push({ t, L, lean: tr.lean, oct: tr.octave });
+  }
+  return { out, tr };
+}
+const flipTime = (out, oct) => (out.find((o) => o.oct === oct) || {}).t;
+
+test("gyro fusion: octave changes about as soon as the phone gets there; gravity-only lags by its smoothing", () => {
+  // wiggle ±10° for 2 s (lets the tracker learn the gyro's convention), then tip from 45° to 0° at 150°/s
+  const path = (t) => (t < 2000 ? 45 + 10 * Math.sin(t / 150) : t < 2500 ? 45 : Math.max(0, 45 - (t - 2500) * 0.15));
+  const trueT = 2500 + (45 - 20.5) / 0.15; // the octave step (+1) needs lean ≤ 20.5° (22.5° less half the hysteresis)
+  const f = simulatePhone({ source: "fused", path, dur: 3200 }), g = simulatePhone({ source: "gravity", path, dur: 3200 });
+  const lagF = flipTime(f.out.filter((o) => o.t > 2500), 1) - trueT, lagG = flipTime(g.out.filter((o) => o.t > 2500), 1) - trueT;
+  console.log(`  octave step after the phone reaches it: fused ${lagF.toFixed(0)} ms (${f.tr.gyroLabel()}), gravity-only (120 ms smoothing) ${lagG.toFixed(0)} ms`);
+  assert.strictEqual(f.tr.gyroLabel(), "gyro (sign −, deg/s)", "found the gyroscope's convention");
+  assert.ok(lagF < 30, "fused: within about two sensor readings");
+  assert.ok(lagG > 80, "gravity-only lags");
+});
+
+test("gyro fusion: hand jolts near a break do not flicker the octave", () => {
+  const path = (t) => (t < 2000 ? 45 + 10 * Math.sin(t / 150) : 23); // then rest just above the 22.5° break
+  const count = (o) => o.out.filter((x) => x.t > 2600).reduce((n, x, i, a) => n + (i && x.oct !== a[i - 1].oct ? 1 : 0), 0);
+  const f = simulatePhone({ source: "fused", path, dur: 8000, jolt: 2 }), g = simulatePhone({ source: "gravity", tiltTau: 15, path, dur: 8000, jolt: 2 });
+  console.log(`  octave changes in 5.4 s of resting 0.5° from the break with jolts: fused ${count(f)}, gravity-only with 15 ms smoothing ${count(g)}`);
+  assert.strictEqual(count(f), 0);
+});
+
+require("../practice.js");
+const PR = global.Practice;
+test("practice: balanced prompts, tallies, rhythm judging", () => {
+  const deck = PR.makeDeck(30, ["left", "right"], PR.rand(3));
+  const count = (f) => deck.filter(f).length;
+  assert.strictEqual(deck.length, 30);
+  for (const k of PR.KINDS) assert.strictEqual(count((d) => d.kind === k), 10);
+  assert.strictEqual(count((d) => d.side === "left"), 15);
+  const t = PR.tally([{ side: "left", kind: "tip", got: "tip" }, { side: "left", kind: "normal", got: "tip" }, { side: "right", kind: "flat", got: null }]);
+  assert.strictEqual(t.ok, 1); assert.strictEqual(t.confusion.normal.tip, 1); assert.strictEqual(t.confusion.flat.none, 1);
+  const beats = [0, 0.5, 1, 1.5].map((t, i) => ({ t: 10 + t, side: "left", kind: ["tip", "flat", "tip", "normal"][i] }));
+  const onsets = [{ t: 9.98, side: "left", kind: "tip" }, { t: 10.56, side: "left", kind: "flat" }, { t: 10.6, side: "left", kind: "flat" }, { t: 11.0, side: "right", kind: "tip" }, { t: 11.45, side: "left", kind: "tip" }];
+  const r = PR.rhythmScore(beats, onsets);
+  assert.deepStrictEqual(r.res.map((x) => x.got), ["tip", "flat", null, "tip"], "nearest onset on the beat's side; the right-hand tap does not count for a left beat");
+  assert.strictEqual(r.missed, 1); assert.strictEqual(r.extra, 2);
+  assert.ok(Math.abs(r.meanAbsMs - (20 + 60 + 50) / 3) < 1e-6);
+  assert.strictEqual(r.tally.ok, 2);
 });

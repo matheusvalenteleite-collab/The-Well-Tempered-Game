@@ -7,7 +7,8 @@ folder uses it, and deleting the folder removes it completely.
 - `app.js`, `page.html`: the bowed prototype's page, touch handling, measurements, log.
 - `shared.js`: audio start (iOS silent-switch workaround), touch-property reader, CSV recorder.
 - `touchgest.js` (gesture layer: touches to musical events; pitch rows ported from THE LAB's FREE PLAY, `src/bench/lab/free.ts`),
-  `touchsound.js` (sound layer: events to sound, background loop), `touchapp.js` (start screen, touch-area page, probe overlay).
+  `touchsound.js` (sound layer: events to sound, background loop), `touchapp.js` (start screen, touch-area page, probe overlay),
+  `practice.js` (the four practice items).
 - `node build.cjs` builds `index.html` (complete page, committed) and `dist/artifact.html` (for claude.ai).
 
 Tests (run from this folder; the browser tests need the preinstalled Playwright):
@@ -17,4 +18,5 @@ Tests (run from this folder; the browser tests need the preinstalled Playwright)
     NODE_PATH=$(npm root -g) node test/touch-sim.cjs
     node --test test/touch.test.cjs
     NODE_PATH=$(npm root -g) node test/touch-area-sim.cjs
+    NODE_PATH=$(npm root -g) node test/practice-sim.cjs
     node test/port.test.mts       # the pitch-row port matches the game's free.ts

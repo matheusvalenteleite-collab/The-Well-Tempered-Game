@@ -53,8 +53,16 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 .trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
 .trow.tonic { background: rgba(127, 176, 201, 0.07); }
 .trow.on { background: var(--rosin); color: #1a1408; }
+.wk { fill: #cbc6b8; stroke: #6f6c64; stroke-width: 1; }
+.wk.tonic { fill: #ddd2b4; }
+.bk { fill: #101114; stroke: #000; stroke-width: 1; }
+.wk.on, .bk.on { fill: var(--rosin); }
+.kt { font: 9px var(--f-num); fill: #3d3b36; pointer-events: none; }
+.tarea svg { pointer-events: none; }
 #tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; }
 .tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
+#prOverlay { flex-direction: column; align-items: stretch; }
 #calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
 .calbig { font: 600 16px/1.3 var(--f-ui); white-space: pre-line; color: var(--fg); }
 .calcount { font: 500 20px var(--f-num); color: var(--rosin); }
@@ -117,8 +125,8 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
   <div id="tL" class="zone tarea"></div>
   <div id="tR" class="zone tarea"></div>
   <div id="tPanel">
-    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tNeutral">Set neutral</button></div>
-    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tDiag">Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button><button id="tNeutral">Set neutral</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode"><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout"><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
     <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
     <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
     <div id="tRd" class="rd"></div>
@@ -129,6 +137,18 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
     <div id="calCount" class="calcount"></div>
     <div id="calLast" class="rd"></div>
     <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
+  </div>
+  <div id="prPanel" hidden>
+    <div id="prTitle" class="rd"></div>
+    <div id="prPrompt" class="calbig"></div>
+    <div id="prInfo" class="calcount"></div>
+    <div id="prLast" class="rd"></div>
+    <div id="prMenu" class="bar"><button id="prMixed">1 Mixed</button><button id="prRhythm">2 Rhythm</button><button id="prTwo">3 Two thumbs</button><button id="prProgress">4 Progress</button><button id="prClose">Close</button></div>
+    <div id="prRun" class="bar" hidden><button id="prStop">Stop</button></div>
+  </div>
+  <div id="prOverlay" class="overlay" hidden>
+    <div class="bar"><button id="prOvClose">Close</button><button id="prOvCopy">Copy</button><span id="prOvMsg" class="rd"></span></div>
+    <textarea id="prOvText" class="logbox" readonly></textarea>
   </div>
   <div id="tSet" class="overlay" hidden>
     <div class="bar"><button id="setClose">Close</button><button id="calCopy">Copy results</button><span id="calCopyMsg" class="rd"></span></div>
@@ -154,3 +174,4 @@ h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: upperca
 <script src="touchgest.js"></script>
 <script src="touchsound.js"></script>
 <script src="touchapp.js"></script>
+<script src="practice.js"></script>

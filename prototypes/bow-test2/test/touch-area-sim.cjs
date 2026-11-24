@@ -26,7 +26,7 @@ async function run(W, H) {
   const m = Math.min(g.L.left, W - g.R.right), mt = Math.min(g.L.top, H - g.L.bottom);
   check(m >= 48 && mt >= 44 && g.L.width === g.R.width && g.L.height === g.R.height, `two equal areas ${g.L.width.toFixed(0)}×${g.L.height.toFixed(0)}, ≥${m.toFixed(0)} px from the sides, ≥${mt.toFixed(0)} px from top/bottom`);
   check(g.sw <= W && g.sh <= H, "page does not scroll");
-  check(JSON.stringify(g.rows) === JSON.stringify([50, 52, 54, 55, 57, 59, 61, 62, 64, 66, 67, 69, 71, 73, 74]), `rows (THE LAB's FREE PLAY mapping, D major, 2 octaves): D3…D5, ${g.rows.length} rows`);
+  check(JSON.stringify(g.rows) === JSON.stringify([50, 52, 54, 55, 57, 59, 61, 62, 64, 66, 67, 69, 71, 73, 74]), `rows do to do (D major, 2 octaves): D3…D5, ${g.rows.length} rows`);
   if (shotDir) await page.screenshot({ path: path.join(shotDir, `touch-${W}x${H}.png`) });
 
   const n = g.rows.length, rh = (g.L.height - 20) / n;

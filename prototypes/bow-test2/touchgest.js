@@ -28,6 +28,73 @@
     for (let m = mid - half; m <= mid + half; m++) if (inKey.has(pcOf(m))) out.push(m);
     return out;
   }
+  /* free.ts freeRows, scale "keyboard" (D330): every semitone, seven white keys an octave from the white at or
+     below the range's foot (a piano's whites). */
+  const PIANO_WHITES = [0, 2, 4, 5, 7, 9, 11];
+  function keyboardRows(mid, octaves, whites = PIANO_WHITES) {
+    const half = Math.round((octaves * 12) / 2), w = new Set(whites);
+    let a = mid - half;
+    while (!w.has(pcOf(a))) a--;
+    let b = a;
+    for (let n = 1; n < 7 * octaves; ) if (w.has(pcOf(++b))) n++;
+    const out = []; for (let m = a; m <= b; m++) out.push(m);
+    return out;
+  }
+  /* free.ts Keyboard (D330), ported line for line: a piano stood on end on each bar, pitch rising upward,
+     black keys toward the inner edge (the screen's centre), white keys running on into the inner zone between
+     them. Hit test: weighted nearest centre (a power diagram); a black key's tip tapers over `slant` of the
+     bar's width round the zone split. u = px across from the bar's inner edge, y = px from its top. */
+  const KB_DEFAULT = { split: 0.6, black: 0.58, slant: 0.2 };
+  class Keyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites);
+      const wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      this.whites = wi.length;
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const uB = (shape.split * bw) / 2, uW = ((1 + shape.split) * bw) / 2, D = uW - uB;
+      const hh0 = shape.black * wh, g0 = wh / 2, tau = Math.max(0.5, shape.slant * bw), k = hh0 / 2 / tau;
+      this.wx = Math.sqrt((k * g0) / D);
+      const bias0 = g0 * hh0 - g0 * g0, sU = shape.split * bw;
+      const biasOut = g0 * g0 + this.wx * this.wx * D * (uW + uB - 2 * sU) + bias0 - (g0 * hh0) / 2;
+      const keys = [], centres = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        centres.push({ row: r, u: uB, y, bias: 0, zone: "inner" }, { row: r, u: uW, y, bias: biasOut, zone: "outer" });
+        const next = wi[j + 1];
+        if (next === undefined) return;
+        const n = next - r - 1;
+        if (n <= 0) return;
+        const yb = y - wh / 2, hh = Math.min(shape.black, 0.95 / n) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * hh, g = Math.min(Math.abs(yc - y), Math.abs(yc - (y - wh)));
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: hh });
+          centres.push({ row: r + 1 + q, u: uB, y: yc, bias: g * hh - g * g, zone: "inner" });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.byRow = new Map(this.keys.map((q) => [q.row, q]));
+      this.centres = centres;
+    }
+    hit(u, y) {
+      let best = this.centres[0], bd = Infinity;
+      for (const c of this.centres) { const du = this.wx * (u - c.u), dy = y - c.y, d = du * du + dy * dy - c.bias; if (d < bd) { bd = d; best = c; } }
+      return { row: best.row, white: this.byRow.get(best.row).white, zone: best.zone };
+    }
+  }
+
+  /* The owner (24 Nov 2026): "octave goes from do to do". Rows from the tonic up to the tonic (key notes) or
+     from C up to C (piano), `octaves` octaves, starting in octave 4 (one octave lower for 2 or 3). This
+     replaces the Lab's centred range (freeRows / keyboardRows above, kept for the port test). */
+  function doToDo(tonic, minor, octaves, piano) {
+    const start = 60 + (piano ? 0 : tonic) - 12 * Math.floor(octaves / 2), end = start + 12 * octaves;
+    const deg = new Set((minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]).map((d) => (tonic + d) % 12));
+    const out = []; for (let m = start; m <= end; m++) if (piano || deg.has(pcOf(m))) out.push(m);
+    return out;
+  }
+
   const rowH = (n, h) => Math.max(4, (h - 2 * MARGIN) / n);
   function rowAt(n, y, h) { const r = n - 1 - Math.floor((y - MARGIN) / rowH(n, h)); return Math.max(0, Math.min(n - 1, r)); }
   const rowMid = (n, row, h) => MARGIN + (n - 1 - row + 0.5) * rowH(n, h);
@@ -75,9 +142,34 @@
      v = (centre − lean) / span: 0 at the centre, +1 at flat, −1 at upright (span 45°); flatter is positive.
      ROLL = turning the phone like a steering wheel, relative to the neutral (set neutral).
      The face-up direction of the sensor's z axis and the in-plane "down" are taken from the first reading
-     (the phone held, not lying flat), so the sign conventions of the browser do not matter. */
+     (the phone held, not lying flat), so the sign conventions of the browser do not matter.
+     SOURCE "fused" (default): the gravity direction is carried forward by the gyroscope (fast, no jolts)
+     and pulled slowly toward the accelerometer's gravity (no drift): a complementary filter. The
+     gyroscope's sign and unit conventions are not assumed: four candidate trackers run side by side
+     (±, degrees or radians per second) and the one that best predicts the accelerometer is used.
+     SOURCE "gravity": the accelerometer alone, low-passed (P.tiltTau), as before. */
+  const CANDS = [[1, Math.PI / 180], [-1, Math.PI / 180], [1, 1], [-1, 1]];
   class TiltReader {
-    constructor(emit) { this.emit = emit; this.g = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; }
+    constructor(emit) { this.emit = emit; this.g = null; this.gl = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; this.cands = null; this.best = 0; this.source = "gravity"; }
+    /* the fused gravity estimate: returns false if no gyroscope data */
+    fuse(dt, gm, rot, P) {
+      if (!rot || rot.alpha == null || rot.beta == null || rot.gamma == null) return false;
+      if (!this.cands) this.cands = CANDS.map(([sg, k]) => ({ sg, k, g: gm.slice(), err: 0 }));
+      const corr = Math.min(1, dt / Math.max(0.05, P.gyroCorrS));
+      for (const c of this.cands) {
+        const w = [rot.beta * c.sg * c.k, rot.gamma * c.sg * c.k, rot.alpha * c.sg * c.k]; // about x, y, z
+        const g = c.g, cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        const pred = [g[0] - cr[0] * dt, g[1] - cr[1] * dt, g[2] - cr[2] * dt]; // a world-fixed vector seen from a rotating body
+        const cos = (pred[0] * this.gl[0] + pred[1] * this.gl[1] + pred[2] * this.gl[2]) / (Math.hypot(...pred) * Math.hypot(...this.gl) || 1);
+        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 2);
+        c.g = pred.map((v, i) => v + (gm[i] - v) * corr);
+      }
+      const cur = this.cands[this.best];
+      this.cands.forEach((c, i) => { if (c.err < cur.err * 0.7 - 1e-4) this.best = i; });
+      this.g = this.cands[this.best].g;
+      return true;
+    }
+    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
     takeRef() {
       const g = this.g, m = Math.hypot(g[0], g[1]);
       if (m < 1) return false; // lying flat: wait for a held reading
@@ -86,11 +178,16 @@
     }
     leanOf(g) { const m = Math.hypot(g[0], g[1]), dot = g[0] * this.ref.ux + g[1] * this.ref.uy; return Math.atan2(Math.sign(dot || 1) * m, this.ref.s * g[2]) * 180 / Math.PI; }
     setNeutral() { if (!this.g) return null; if (!this.ref) this.takeRef(); this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI; return this.ref ? { lean: this.leanOf(this.g), roll: 0 } : null; }
-    feed(t, gx, gy, gz, P) {
+    feed(t, gx, gy, gz, P, rot) {
       if (gx == null) return;
-      const a = this.g ? 1 - Math.exp(-Math.max(0, t - this.lastT) / Math.max(1, P.tiltTau)) : 1;
+      const first = !this.g, dtMs = first ? 0 : Math.max(0, Math.min(100, t - this.lastT));
       this.lastT = t;
-      this.g = this.g ? this.g.map((v, i) => v + ([gx, gy, gz][i] - v) * a) : [gx, gy, gz];
+      const gm = [gx, gy, gz];
+      // the accelerometer, low-passed: the "gravity only" estimate, and the reference the gyro trackers are judged by
+      const a = this.gl ? 1 - Math.exp(-dtMs / Math.max(1, P.tiltTau)) : 1;
+      this.gl = this.gl ? this.gl.map((v, i) => v + (gm[i] - v) * a) : gm.slice();
+      if (P.tiltSource === "fused" && !first && this.fuse(dtMs / 1000, gm, rot, P)) this.source = "fused";
+      else { this.g = this.gl.slice(); this.source = "gravity"; if (P.tiltSource !== "fused") this.cands = null; }
       if (!this.ref && !this.takeRef()) return;
       if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
       let lean = this.leanOf(this.g);
@@ -103,9 +200,12 @@
       // continuous uses: a small dead zone round the centre, and a little room past flat/upright (to ±1.2)
       const dz = P.deadDeg / P.spanDeg;
       const cont = Math.sign(v) * Math.min(1.2, Math.max(0, Math.abs(v) - dz) / (1 - dz));
-      // octave steps with hysteresis: +1 past `octStep1` of the way to flat, +2 past `octStep2`; mirrored to upright
-      const h = P.octHystDeg / P.spanDeg, S = [P.octStep1, P.octStep2];
-      const between = (k) => (k >= 0 ? S[k] : -S[-k - 1]); // the boundary between step k and k+1
+      // octave steps with hysteresis, at lean angles set in degrees (up1: one octave up at or flatter than it,
+      // up2: two up; down1, down2 likewise toward upright), kept in order round the centre
+      const h = P.octHystDeg / P.spanDeg, toV = (deg) => (P.centreDeg - deg) / P.spanDeg;
+      const up1 = Math.min(P.up1Deg, P.centreDeg - 1), up2 = Math.min(P.up2Deg, up1 - 1), dn1 = Math.max(P.down1Deg, P.centreDeg + 1), dn2 = Math.max(P.down2Deg, dn1 + 1);
+      const B = { 0: toV(up1), 1: toV(up2), "-1": toV(dn1), "-2": toV(dn2) };
+      const between = (k) => B[k]; // the boundary between step k and k+1
       let o = this.octave;
       for (let k = 0; k < 4; k++) {
         if (o < 2 && v >= between(o) + h / 2) o++;
@@ -114,7 +214,7 @@
       }
       this.octave = P.leanMode === "octave" ? o : 0;
       // breath: where v sits inside the current step (−0.5…+0.5 round its middle), like blowing harder toward the break
-      const mid = (k) => (k === 0 ? 0 : Math.sign(k) * (Math.abs(k) === 1 ? (P.octStep1 + P.octStep2) / 2 : P.octStep2 + 0.3));
+      const mid = (k) => ({ 0: (B[-1] + B[0]) / 2, 1: (B[0] + B[1]) / 2, 2: B[1] + 0.3, "-1": (B[-2] + B[-1]) / 2, "-2": B[-2] - 0.3 })[k];
       this.breath = P.leanMode === "octave" ? Math.max(-0.6, Math.min(0.6, v - mid(this.octave))) : 0;
       const ru = Math.sign(roll) * Math.min(1, Math.max(0, Math.abs(roll) - P.deadDeg) / Math.max(1, P.rollFullDeg - P.deadDeg));
       this.emit({ type: "tilt", t, octave: this.octave,
@@ -131,7 +231,9 @@
       this.areas = areas; this.rows = rows; this.emit = emit; this.held = new Map();
       this.opts = opts || (() => ({ contactOn: false, decideMs: 0, cal: {}, sizeRange: {} }));
       this.stable = []; // ms until the class settled, recent notes
+      this.hitFn = null; // (side, x, y) -> row; the piano layout sets it, else rows by height
     }
+    rowOf(side, x, y) { const r = this.areas()[side]; return this.hitFn ? this.hitFn(side, x, y) : rowAt(this.rows().length, y - r.top, r.height); }
     th(side) { const o = this.opts(); return o.contactOn ? (o.cal[side] || null) : null; }
     norm(side, size) { const r = (this.opts().sizeRange || {})[side] || [24, 194]; return Math.max(0, Math.min(1, (size - r[0]) / Math.max(1, r[1] - r[0]))); }
     fire(id, hd, t) {
@@ -149,9 +251,9 @@
     down(id, t, x, y, contact) {
       const side = this.sideAt(x, y);
       if (!side) return false;
-      const r = this.areas()[side], rows = this.rows(), row = rowAt(rows.length, y - r.top, r.height);
+      const row = this.rowOf(side, x, y);
       const size = contact && contact.width > 1 ? contact.width : null;
-      const hd = { side, row, setY: y, pend: null, t0: t, seq: size == null ? [] : [[0, size]], fired: false, contact };
+      const hd = { side, row, setY: y, setX: x, pend: null, t0: t, seq: size == null ? [] : [[0, size]], fired: false, contact };
       this.held.set(id, hd);
       if (!(this.th(side) && this.opts().decideMs > 0)) this.fire(id, hd, t);
       return true;
@@ -164,11 +266,13 @@
         if (t - hd.t0 <= 400) hd.seq.push([t - hd.t0, size]);
         if (hd.fired) this.emit({ type: "contact", id, t, size, norm: this.norm(hd.side, size), norm0: hd.norm0 });
       }
-      const r = this.areas()[hd.side], rows = this.rows(), n = rows.length;
-      const row = rowAt(n, y - r.top, r.height);
-      if (row === hd.row || Math.abs(y - hd.setY) < Math.max(SLIDE_MIN_PX, rowH(n, r.height) * 0.5)) { hd.pend = null; return; }
-      if (!hd.pend || hd.pend.row !== row) hd.pend = { row, since: t, y };
-      else hd.pend.y = y;
+      const r = this.areas()[hd.side], n = this.rows().length;
+      const row = this.rowOf(hd.side, x, y);
+      // free.ts: on the keyboard a slide may go sideways (white to black and back): the distance moved, both ways
+      const moved = this.hitFn ? Math.hypot(x - hd.setX, y - hd.setY) : Math.abs(y - hd.setY);
+      if (row === hd.row || moved < Math.max(SLIDE_MIN_PX, rowH(n, r.height) * 0.5)) { hd.pend = null; return; }
+      if (!hd.pend || hd.pend.row !== row) hd.pend = { row, since: t, y, x };
+      else { hd.pend.y = y; hd.pend.x = x; }
       this.tick(t);
     }
     tick(t) {
@@ -178,7 +282,7 @@
         if (!hd.done && t - hd.t0 > 400) this.settle(hd);
         const p = hd.pend;
         if (!p || t - p.since < SLIDE_DWELL_MS) continue;
-        hd.pend = null; hd.row = p.row; hd.setY = p.y;
+        hd.pend = null; hd.row = p.row; hd.setY = p.y; hd.setX = p.x;
         this.emit({ type: "pitch", id, t, row: p.row, midi: rows[p.row] });
       }
     }
@@ -195,5 +299,5 @@
 
   const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
   const noteName = (m) => NAMES[pcOf(m)] + (Math.floor(m / 12) - 1);
-  window.TouchGest = { TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
+  window.TouchGest = { doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
 })();

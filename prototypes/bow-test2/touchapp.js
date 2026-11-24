@@ -25,15 +25,16 @@
 
   /* ---------- settings ---------- */
   const T_DEFAULTS = { tonic: 2, minor: false, octaves: 2, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+    layout: "key", kbSplit: 0.6, kbBlack: 0.58, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
     contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
-    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, octStep1: 0.5, octStep2: 1.25, octHystDeg: 4,
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 4,
     breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
   let T = Object.assign({}, T_DEFAULTS);
   try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
   T.loopOn = false;
   const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
   let ROWS = [];
-  const computeRows = () => { ROWS = G.freeRows(T.tonic, T.minor, T.mid, T.octaves); };
+  const computeRows = () => { ROWS = G.doToDo(T.tonic, T.minor, T.octaves, T.layout === "piano"); };
   computeRows();
 
   /* ---------- layers ---------- */
@@ -55,7 +56,9 @@
   }
   refit();
   const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE });
+  const listeners = [];
   const onEvent = (ev) => {
+    for (const f of listeners) f(ev);
     if (ev.type === "onset" || ev.type === "pitch") active.set(ev.id, { row: ev.row, side: ev.side || (active.get(ev.id) || {}).side });
     if (ev.type === "release") active.delete(ev.id);
     if (ev.type === "onset") { lastOnset = ev; SH.csv.add({ mode: "touch", event: "onset", id: ev.id, zone: ev.side, width: ev.size, note: (ev.cls || "") + " " + G.noteName(ev.midi) }); }
@@ -68,7 +71,7 @@
   function onMotion(e) {
     if (!T.tiltOn || window.__mode !== "touch") return;
     const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
-    tilt.feed(now(), g.x, g.y, g.z, T);
+    tilt.feed(now(), g.x, g.y, g.z, T, e.rotationRate);
   }
 
   /* ---------- layout ---------- */
@@ -80,31 +83,46 @@
     Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
     Object.assign($("tPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "8px", height: H - 16 + "px" });
     Object.assign($("calPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: MY + "px" });
+    Object.assign($("prPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "10px" });
     rect.left = $("tL").getBoundingClientRect(); rect.right = $("tR").getBoundingClientRect();
+    const KB = {};
     for (const side of ["L", "R"]) {
       const el = $("t" + side), r = side === "L" ? rect.left : rect.right;
       el.innerHTML = "";
-      ROWS.forEach((m, i) => {
+      if (T.layout === "piano") {
+        // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
+        const kb = (KB[side] = new G.Keyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, slant: T.kbSlant }, r.width, r.height));
+        const X = (u) => (side === "L" ? r.width - u : u), sU = T.kbSplit * r.width, tau = Math.max(0.5, T.kbSlant * r.width);
+        let svg = `<svg width="${r.width}" height="${r.height}" style="position:absolute;left:0;top:0">`;
+        for (const k of kb.keys) if (k.white) svg += `<rect class="wk${pcName(k.midi) === G.NAMES[T.tonic] ? " tonic" : ""}" data-row="${k.row}" x="0" y="${k.y - k.h / 2}" width="${r.width}" height="${k.h}"/><text x="${side === "L" ? 6 : r.width - 6}" y="${k.y + 3}" text-anchor="${side === "L" ? "start" : "end"}" class="kt">${G.noteName(k.midi)}</text>`;
+        for (const k of kb.keys) if (!k.white) { const y0 = k.y - k.h / 2, y1 = k.y + k.h / 2, u1 = sU - tau / 2, u2 = sU + tau / 2; svg += `<polygon class="bk" data-row="${k.row}" points="${X(0)},${y0} ${X(u1)},${y0} ${X(u2)},${k.y} ${X(u1)},${y1} ${X(0)},${y1}"/>`; }
+        el.innerHTML = svg + "</svg>";
+      } else ROWS.forEach((m, i) => {
         const d = document.createElement("div"); d.className = "trow" + (G.NAMES[m % 12] === G.NAMES[T.tonic] ? " tonic" : "");
         const rh = G.rowH(ROWS.length, r.height);
         Object.assign(d.style, { top: G.rowMid(ROWS.length, i, r.height) - rh / 2 + "px", height: rh + "px" });
         d.textContent = G.noteName(m); d.dataset.row = i; el.appendChild(d);
       });
     }
+    gest.hitFn = T.layout === "piano" ? (side, x, y) => {
+      const r = rect[side], u = side === "left" ? r.right - x : x - r.left;
+      return KB[side === "left" ? "L" : "R"].hit(u, y - r.top).row;
+    } : null;
   }
+  const pcName = (m) => G.NAMES[((m % 12) + 12) % 12];
   addEventListener("resize", () => { if (window.__mode === "touch") layout(); });
 
   /* ---------- controls ---------- */
   const KEYS = G.NAMES.map((n, i) => [i, n]);
   $("tKey").innerHTML = KEYS.map(([i, n]) => `<option value="${i}">${n}</option>`).join("");
-  $("tKey").value = T.tonic; $("tMinor").value = T.minor ? "1" : "0"; $("tOct").value = T.octaves;
+  $("tKey").value = T.tonic; $("tMinor").value = T.minor ? "1" : "0"; $("tOct").value = T.octaves; $("tLayout").value = T.layout;
   const remap = () => {
-    T.tonic = +$("tKey").value; T.minor = $("tMinor").value === "1"; T.octaves = +$("tOct").value;
+    T.tonic = +$("tKey").value; T.minor = $("tMinor").value === "1"; T.octaves = +$("tOct").value; T.layout = $("tLayout").value;
     T.mid = 60 + T.tonic; // the rows centred on the tonic nearest middle C (the game centres them on a voice's range)
     computeRows(); save(); layout(); tlog(`rows: ${ROWS.map(G.noteName).join(" ")}`);
     if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel);
   };
-  $("tKey").onchange = $("tMinor").onchange = $("tOct").onchange = remap;
+  $("tKey").onchange = $("tMinor").onchange = $("tOct").onchange = $("tLayout").onchange = remap;
   const slider = (id, key, fmt) => { const r = $(id), o = $(id + "o"); r.value = T[key]; o.textContent = fmt(T[key]); r.oninput = () => { T[key] = +r.value; o.textContent = fmt(T[key]); save(); if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel); }; };
   slider("tBpm", "bpm", (v) => v + " ♩/min"); slider("tLvl", "loopLevel", (v) => v.toFixed(2));
   $("tLoop").onclick = () => {
@@ -166,7 +184,7 @@
   }
 
   /* ---------- raw input ---------- */
-  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden;
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden;
   const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
   const inArea = (x, y) => gest.sideAt(x, y) !== null;
   document.addEventListener("pointerdown", (e) => {
@@ -294,11 +312,15 @@
     ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
     ["Tilt"],
     ["tiltOn", "Tilt on"],
+    ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
+    ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
     ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
     ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
     ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
-    ["octStep1", "Octave: first step at", 0.25, 0.95, 0.05, (v) => `${(v * 100).toFixed(0)}% of the way: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
-    ["octStep2", "Octave: second step at", 1, 1.5, 0.05, (v) => `${(v * 100).toFixed(0)}%: ${(T.centreDeg - v * T.spanDeg).toFixed(0)}° / ${(T.centreDeg + v * T.spanDeg).toFixed(0)}°`],
+    ["up1Deg", "Octave up when the lean is at or below", 0, 44, 1, (v) => v + "°"],
+    ["up2Deg", "Two octaves up at or below", -45, 20, 1, (v) => v + "°"],
+    ["down1Deg", "Octave down when the lean is at or above", 46, 100, 1, (v) => v + "°"],
+    ["down2Deg", "Two octaves down at or above", 70, 135, 1, (v) => v + "°"],
     ["octHystDeg", "Octave: hysteresis", 0, 10, 0.5, (v) => v + "°"],
     ["breathBright", "Octave: brightness within a step (breath)", 0, 1200, 25, (v) => "±" + Math.round(v / 2) + " cents"],
     ["leanBright", "Brightness at full lean", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
@@ -307,9 +329,12 @@
     ["bendRange", "Bend at full lean / roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
     ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
     ["rollFullDeg", "Roll for full effect", 10, 60, 1, (v) => v + "°"],
-    ["tiltTau", "Tilt smoothing", 10, 500, 5, (v) => v + " ms"],
+    ["tiltTau", "Tilt smoothing (gravity sensing only)", 10, 500, 5, (v) => v + " ms"],
     ["invLean", "Invert lean"],
     ["invRoll", "Invert roll"],
+    ["Piano layout (choose “piano” in the panel)"],
+    ["kbSplit", "Black keys: width (share of the area)", 0.3, 0.85, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbBlack", "Black keys: height (share of a white key)", 0.3, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
   ];
   const setInputs = {};
   function applyT(k) {
@@ -317,7 +342,8 @@
     if (sound) Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau });
     if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
     if (k === "contactOn") $("calRes").textContent = calText();
-    if (k === "centreDeg" || k === "spanDeg") for (const q of ["octStep1", "octStep2"]) { const i = setInputs[q]; if (i) i.previousSibling.textContent = SET.find((d) => d[0] === q)[5](T[q]); }
+    if (k === "kbSplit" || k === "kbBlack") layout();
+    if (k === "tiltSource") tilt.cands = null;
     if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
     tlog(`set ${k} = ${T[k]}`);
   }
@@ -405,7 +431,7 @@
         lastRows = key;
         for (const side of ["left", "right"]) {
           const on = new Set([...active.values()].filter((a) => a.side === side).map((a) => a.row));
-          for (const d of $(side === "left" ? "tL" : "tR").children) d.classList.toggle("on", on.has(+d.dataset.row));
+          for (const d of $(side === "left" ? "tL" : "tR").querySelectorAll("[data-row]")) d.classList.toggle("on", on.has(+d.dataset.row));
         }
       }
       if (now() - lastD > 100) {
@@ -414,13 +440,23 @@
         $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
           (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
           (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
-          (T.tiltOn ? `\nlean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (T.tiltOn ? `\n${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
           (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
-        if (!$("tSet").hidden) $("tiltRd").textContent = ` lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` ${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
       }
     }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  /* hooks for the practice screen (practice.js) */
+  window.__touchHooks = {
+    listen: (f) => listeners.push(f), unlisten: (f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); },
+    fit: () => FIT, T: () => T, ctx: () => ctx, sound: () => sound, now, calDate: () => CAL.savedAt,
+    setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
+    loopOn: (on) => { if (!sound) return null; T.loopOn = on; $("tLoop").textContent = "Loop: " + (on ? "on" : "off"); $("tLoop").classList.toggle("sel", on); if (on) return sound.startLoop(T.bpm, T.mid, T.loopLevel); sound.stopLoop(); return null; },
+    target: (side) => { $("tL").classList.toggle("target", side === "left" || side === "both"); $("tR").classList.toggle("target", side === "right" || side === "both"); },
+    panel: (show) => { $("tPanel").hidden = show; $("prPanel").hidden = !show; },
+    releaseAll: () => { gest.releaseAll(now()); if (sound) sound.silence(); },
+  };
   window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };
 })();
