@@ -12,9 +12,10 @@ import { hz } from "./tuning.ts";
 import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
+import { BOW_ATTACK, bowChangeShape, layerMix } from "./bow.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, bowGain, bowTone, dutyGain, dutyWaveAt, fingerVib, type Duty, GUITAR_VIB, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
+import { type Plan, type PlanSlim, BOW_LAYER_GAIN, bowSetsOf, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -892,6 +893,13 @@ export interface Play {
    * as the player's two-thumb join), not D358's soft stroke.
    */
   bowChange?: boolean;
+  /**
+   * D1055 (MECH.bow, THE NEW LAB): the player's held bowed note is bowed (src/touch/bow.ts): its colour (the pp, mf and ff
+   * recordings, SampledInstrument.bowLayers) and its bow changes follow the thumb (Sounding.bow); the number the colour it starts
+   * at (0 today's; a join that carries the bow on, the bow's). Unset: not bowed, every note as before. D1016's contact point is not
+   * applied to a bowed note (the bow replaces it).
+   */
+  bow?: number;
   /** D429: the band's bowed note giving way, at the next note's onset (its end less `tie`), as a bow change or a slur (giveWay). */
   give?: GiveWay;
   /**
@@ -1045,6 +1053,7 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
     dyn: (l) => both.forEach((x) => x.dyn?.(l)),
     shape: (x) => both.forEach((y) => y.shape?.(x)),
     trim: (l, at, until) => both.forEach((x) => x.trim?.(l, at, until)),
+    bow: (c) => both.forEach((x) => x.bow?.(c)),
   };
 }
 
@@ -1059,6 +1068,7 @@ function togetherAll(list: [Sounding, number][]): Sounding {
     dyn: (l) => all.forEach((x) => x.dyn?.(l)),
     shape: (x) => all[0].shape?.(x),
     trim: (l, at, until) => all.forEach((x) => x.trim?.(l, at, until)),
+    bow: (c) => all[0].bow?.(c),
   };
 }
 /** D504: the harpsichord's octave below on a strong beat, against its unison (a left hand's lower note, a little lighter). */
@@ -1115,7 +1125,11 @@ export interface Sounding {
   shape?: (s: number) => void;
   /** D335 (the lab's DYNAMICS, the recorded instruments): the note's level set to `level` (a factor, 1 as struck) by a linear ramp from `at` to `until` (s, the audio clock): a strike read after the onset. */
   trim?: (level: number, at: number, until: number) => void;
+  /** D1055: a bowed note's answer to its bow (Play.bow; src/touch/bow.ts): its colour, a bow change, the bite, the spiccato's end. */
+  bow?: (cmd: BowCmd) => void;
 }
+/** D1055: what the bow asks of a bowed note (chip.ts sampledNote). */
+export type BowCmd = { kind: "colour"; c: number } | { kind: "change"; aud: number } | { kind: "bite" } | { kind: "spicc" };
 
 /** The part of an AudioParam rampTrim uses (a test's fake has it too). */
 export interface TrimParam {
@@ -1156,7 +1170,7 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
   const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id])).filter((set) => !sl.keep?.includes(set))) : new Set<string>();
   for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
     const inst = SAMPLED[id];
-    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? (sl.strides?.[set] ?? sl.stride) : null);
+    for (const set of [inst.set, ...layers(inst), ...bowSetsOf(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? (sl.strides?.[set] ?? sl.stride) : null);
   }
   holdOff(off);
   const used = now.map((id) => {
@@ -1173,11 +1187,13 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
     ...used,
     // (A layer held off is let go too: the original's soft grand, say, still held from the sound before.)
     ...[...off].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
+    // D1056: the bow's layers of an instrument that plays, let go when bowing is not wanted (or this instrument plays no notes there).
+    ...[...new Set(now.flatMap((id) => bowSetsOf(SAMPLED[id])))].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
     ...(Object.keys(SAMPLED) as (keyof typeof SAMPLED)[])
       .filter((id) => !now.includes(id))
       .map((id) => {
         const inst = SAMPLED[id];
-        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
+        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, ...bowSetsOf(inst), inst.release, inst.low, inst.above?.set, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
       }),
   ];
   // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
@@ -1587,6 +1603,7 @@ export class Chip {
       dyn: (l) => ((h.dyn = l), h.sd.dyn?.(l)),
       shape: (s) => ((h.shape = s), h.sd.shape?.(s)),
       trim: (l, a, u) => h.sd.trim?.(l, a, u),
+      bow: (c) => h.sd.bow?.(c),
     };
   }
 
@@ -1886,7 +1903,8 @@ export class Chip {
     // D504: a wind's swell (touch-expr.ts "breath"): the level and, with it, the brightness (a high shelf).
     let breath: { gain: GainNode; shelf: BiquadFilterNode } | undefined;
     // D1016: the bow's contact point (touch-expr.ts "bow") on the breath's two nodes, its own ranges (touchShape).
-    if (p.hold === "breath" || p.hold === "bow") {
+    // D1055: a bowed note (Play.bow) has its bow instead (Sounding.bow): no contact point.
+    if (p.hold === "breath" || (p.hold === "bow" && p.bow === undefined)) {
       const gain = bag.add(ctx.createGain());
       gain.gain.value = 1;
       const shelf = bag.add(ctx.createBiquadFilter());
@@ -1896,7 +1914,7 @@ export class Chip {
       out = out.connect(gain).connect(shelf);
       breath = { gain, shelf };
     }
-    return { out, messa, wah, breath, ...(p.hold === "bow" ? { bowed: true } : {}) };
+    return { out, messa, wah, breath, ...(p.hold === "bow" && breath ? { bowed: true } : {}) };
   }
 
   /** D311: the player's vibrato (in place of the voice's own): `base` cents after `delay`, its depth then the thumb's (vibDepth). */
@@ -2613,6 +2631,19 @@ export class Chip {
       return g;
     };
     const g0 = play(set, near, rec, 1, 1);
+    // D1055/D1056: a bowed note (Play.bow): the same instrument's pp and ff recordings beside its mf, at the same pitch, entered
+    // alike, crossfaded at equal power by the bow (bow.ts layerMix; at colour 0 the mf alone, today's); a layer not yet loaded is
+    // asked for and its side left at today's colour.
+    const bl = p.bow !== undefined && !plucked && inst.bowLayers ? inst.bowLayers : null;
+    let bowL: { mf: GainNode; pp?: GainNode; ff?: GainNode } | null = null;
+    if (bl) {
+      const lay = (ls: string) => {
+        const r = loaded(ls, near);
+        if (!r) return void loadOne(ctx, ls, near);
+        return play(ls, near, r, 1, 0);
+      };
+      bowL = { mf: g0, pp: lay(bl.pp), ff: lay(bl.ff) };
+    }
     // D502, BACH BRASS: the second dynamic layer (SampledInstrument.blend: the piano recording at the same pitch) with
     // the forte, crossfaded by the note's brassiness (the player's landing, else the band's reading's level), at equal
     // power (touch-expr.ts brassMix); the forte alone until the piano layer has loaded.
@@ -2646,6 +2677,9 @@ export class Chip {
       if (this.phone && !plucked) bag.weight = srcs.length;
     }
     let src: AudioNode = mix;
+    // D1058: a bowed note's bow changes (Sounding.bow "change": bow.ts bowChangeShape) on their own gain.
+    const artic = bl ? bag.add(ctx.createGain()) : null;
+    if (artic) src = mix.connect(artic);
     // D346, SOLO VOICES on a phone's speaker (the owner: "too warm and distorted … just a little bit less"):
     // the singers a little lower into the limiter and its soft clip (PHONE_VOICES.trim) and the low mids a
     // little thinner (a gentle dip where the small speaker booms); a computer as before.
@@ -2656,7 +2690,7 @@ export class Chip {
       dip.frequency.value = PHONE_VOICES.dipHz;
       dip.Q.value = PHONE_VOICES.dipQ;
       dip.gain.value = PHONE_VOICES.dipDb;
-      src = mix.connect(dip);
+      src = src.connect(dip);
     }
     // D365: on a phone, an instrument's upper partials lifted where its small speaker hears them (Patch.phoneLift:
     // STRING CONSORT's cello, its bow and overtones carrying the bass line; never its fundamental), whoever plays it.
@@ -3025,7 +3059,82 @@ export class Chip {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
     };
+    // D1055-D1058: the bow on this note (bow.ts): the colour (the layers' gains, held under a bite until it settles), a bow change
+    // (artic), the bite (the ff's front), the spiccato's end (the consort's spiccato recording from where the note is, the arco out).
+    let bowC = p.bow ?? 0;
+    let biteEnd = 0;
+    const setMix = (c: number, at: number, tau: number) => {
+      if (!bowL) return;
+      const x = (c < 0 && !bowL.pp) || (c > 0 && !bowL.ff) ? 0 : c;
+      const m = layerMix(x);
+      const one = (gn: GainNode | undefined, val: number) => {
+        if (!gn) return;
+        gn.gain.cancelScheduledValues(at);
+        gn.gain.setTargetAtTime(val, at, tau);
+      };
+      one(bowL.mf, m.mf);
+      one(bowL.pp, m.pp * BOW_LAYER_GAIN);
+      one(bowL.ff, m.ff * BOW_LAYER_GAIN);
+    };
+    if (bowL) {
+      const m = layerMix((bowC < 0 && !bowL.pp) || (bowC > 0 && !bowL.ff) ? 0 : bowC);
+      bowL.mf.gain.value = m.mf;
+      if (bowL.pp) bowL.pp.gain.value = m.pp * BOW_LAYER_GAIN;
+      if (bowL.ff) bowL.ff.gain.value = m.ff * BOW_LAYER_GAIN;
+    }
+    const bowCmd = (cmd: BowCmd) => {
+      if (stopped || !bowL) return;
+      const now = ctx.currentTime;
+      if (cmd.kind === "colour") {
+        bowC = cmd.c;
+        if (now < biteEnd) setMix(bowC, biteEnd, BOW_ATTACK.biteTau);
+        else setMix(bowC, now, 0.02);
+      } else if (cmd.kind === "bite") {
+        if (!bowL.ff) return;
+        setMix(1, now, 0.004);
+        biteEnd = now + BOW_ATTACK.biteS;
+        setMix(bowC, biteEnd, BOW_ATTACK.biteTau);
+      } else if (cmd.kind === "change" && artic) {
+        const sh = bowChangeShape(cmd.aud);
+        const a = artic.gain;
+        a.cancelScheduledValues(now);
+        a.setTargetAtTime(sh.floor, now, 0.003);
+        const up = now + 0.009 + sh.still;
+        a.setTargetAtTime(10 ** (sh.accentDb / 20), up, sh.a / 3);
+        if (sh.accentDb) a.setTargetAtTime(1, up + sh.a, sh.accentS / 3);
+      } else if (cmd.kind === "spicc") {
+        const sp = bl?.spicc ? SAMPLED[bl.spicc] : null;
+        const sset = sp?.set;
+        const sn = sset ? nearestSample(sset, midi) : null;
+        const sr = sset && sn !== null ? loaded(sset, sn) : undefined;
+        if (!sp || !sset || sn === null || !sr) {
+          if (sset && sn !== null) loadOne(ctx, sset, sn);
+          return;
+        }
+        const rate = rateFor(sset, sn, baseHz) * 2 ** ((cents + (p.detune ?? 0)) / 1200);
+        const left = (noteInfo(sset, sn)?.len ?? 1) - sr.onset - (now - t) * rate;
+        if (left < 0.06) return;
+        stopped = true;
+        const s2 = bag.src(ctx.createBufferSource());
+        s2.buffer = sr.buffer;
+        s2.playbackRate.value = rate;
+        const sg = bag.add(ctx.createGain());
+        sg.gain.setValueAtTime(0, now);
+        sg.gain.setTargetAtTime(sp.gain / inst.gain, now, 0.004);
+        s2.connect(sg).connect(mix);
+        s2.start(now, sr.onset + (now - t) * rate);
+        for (const gn of [bowL.mf, bowL.pp, bowL.ff]) if (gn) (gn.gain.cancelScheduledValues(now), gn.gain.setTargetAtTime(0, now, 0.006));
+        for (const x of srcs) halt(x.src, now + 0.06);
+        const ring = left / rate;
+        if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(now);
+        else (g.gain.cancelScheduledValues(now), g.gain.setValueAtTime(levelAt(now), now));
+        g.gain.setTargetAtTime(0, now + ring, 0.02);
+        halt(s2, now + ring + 0.15);
+        for (const l of lfos) halt(l, now + ring + 0.2);
+      }
+    };
     return {
+      ...(bowL ? { bow: bowCmd } : {}),
       shape,
       stop: (when = ctx.currentTime, how?: GiveWay) => {
         if (stopped || when >= end) return;

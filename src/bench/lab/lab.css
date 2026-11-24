@@ -146,3 +146,59 @@ html.glenn-playing .glenn-badge a { display: none; }
 .lab-help code { font: 11px ui-monospace, Menlo, monospace; color: #8fe3b0; word-break: break-all; }
 
 html.glenn-film-open .glenn-badge { display: none; }
+
+/* D1055: THE NEW LAB's mark in the HUD (a way back to the chooser), and the chooser lab.html opens on. */
+.lab-new-mark {
+  flex: none;
+  font-family: var(--tg-pixel);
+  font-size: 7px;
+  padding: 4px 6px;
+  color: #8fe3b0;
+  border: 1px solid #8fe3b0;
+  border-radius: 2px;
+  text-decoration: none;
+  position: relative;
+  z-index: 6;
+  opacity: 0.85;
+}
+.lab-choose {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: var(--tg-bg, #0b0d18);
+  color: var(--tg-fg);
+  font: 13px/1.45 system-ui, -apple-system, sans-serif;
+}
+.lab-choose h1 { margin: 0; font-family: var(--tg-pixel); font-size: 16px; font-weight: 400; color: var(--tg-shine); text-shadow: 2px 2px 0 #b8322a; letter-spacing: 1px; }
+.lab-choose-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 620px; }
+.lab-choose-btn {
+  flex: 1 1 220px;
+  max-width: 290px;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  color: var(--tg-fg);
+  background: var(--tg-box, #151a2e);
+  border: 2px solid var(--tg-barline, #39405e);
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+}
+.lab-choose-btn b { font-family: var(--tg-pixel); font-size: 13px; font-weight: 400; color: var(--tg-shine); }
+.lab-choose-btn span { font-size: 12px; color: var(--tg-muted); }
+.lab-choose-btn.new { border-color: #8fe3b0; }
+.lab-choose-btn.new b { color: #8fe3b0; }
+.lab-choose-btn:active { transform: translateY(1px); }
+@media (max-height: 400px) {
+  .lab-choose { gap: 10px; }
+  .lab-choose-btn { min-height: 76px; }
+}

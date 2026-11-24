@@ -1,0 +1,2852 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Bow Test 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: landscape stage. Bow strip at one side, seven pitch rows at the other,
+   tuning panel in the middle; all clear of the screen edges (48 px sides, 44 px top/bottom).
+   Single dark look, chosen on purpose: a dim practice-room stage so the lit strip reads. */
+:root {
+  --bg: #14161b; --surface: #1d2028; --line: #343a47; --fg: #e8e4da; --dim: #9a9ca6;
+  --rosin: #e0a64a; --rosin-soft: rgba(224, 166, 74, 0.18); --string: #7fb0c9; --warn: #e2725b;
+  --f-ui: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.35 var(--f-ui);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  position: fixed; inset: 0; touch-action: none; }
+.zone { position: absolute; touch-action: none; box-sizing: border-box; }
+#strip { border-radius: 14px; background: linear-gradient(180deg, #232733, #1b1e26); border: 1px solid var(--line); overflow: hidden; }
+#strip .hair { position: absolute; left: 50%; top: 8px; bottom: 8px; width: 1px; background: var(--line); }
+#bowmark { position: absolute; left: 6px; right: 6px; height: 10px; margin-top: -5px; border-radius: 5px; background: var(--rosin); opacity: 0; }
+#bowglow { position: absolute; inset: 0; background: var(--rosin-soft); opacity: 0; }
+#rows { display: flex; flex-direction: column-reverse; gap: 3px; }
+.row { flex: 1; border-radius: 9px; background: var(--surface); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; font: 600 15px var(--f-ui); color: var(--dim); }
+.row.on { background: #23303a; border-color: var(--string); color: var(--fg); }
+.row.latched { border-color: var(--string); border-style: dashed; color: var(--fg); }
+.row.cand { border-color: var(--dim); }
+#panel { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+#panel .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; flex: 1; min-height: 0; padding-right: 2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 4px; }
+button { font: 600 11px var(--f-ui); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 7px; touch-action: manipulation; }
+button.sel { background: var(--rosin); color: #1a1408; border-color: var(--rosin); }
+button:focus-visible { outline: 2px solid var(--string); }
+#readout { font: 11px/1.4 var(--f-num); color: var(--dim); font-variant-numeric: tabular-nums; white-space: pre; background: var(--surface); border-radius: 8px; padding: 5px 7px; }
+#readout b { color: var(--fg); font-weight: 500; }
+#meter { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+#meter i { display: block; height: 100%; width: 0; background: var(--rosin); }
+.sl { display: grid; grid-template-columns: 1fr auto; gap: 0 6px; margin: 5px 0; font-size: 11px; color: var(--dim); }
+.sl output { font: 11px var(--f-num); color: var(--fg); }
+.sl input { grid-column: 1 / -1; width: 100%; margin: 2px 0 0; accent-color: var(--rosin); }
+.tg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); margin: 6px 0; }
+h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin: 10px 0 2px; }
+.overlay { position: absolute; inset: 0; background: rgba(12, 13, 17, 0.94); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 44px 48px; box-sizing: border-box; text-align: center; touch-action: manipulation; }
+.overlay p { max-width: 520px; margin: 0; color: var(--dim); }
+.overlay .big { font: 600 22px var(--f-ui); color: var(--fg); }
+#log { flex-direction: column; align-items: stretch; }
+#logtext { flex: 1; width: 100%; font: 10px/1.35 var(--f-num); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px; box-sizing: border-box; -webkit-user-select: text; user-select: text; touch-action: pan-y; }
+#endur { position: absolute; pointer-events: none; font: 600 28px var(--f-num); color: var(--rosin); text-align: center; }
+#mini { position: absolute; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+[hidden] { display: none !important; }
+.choice { font-size: 15px; padding: 14px 20px; }
+.tarea { border-radius: 14px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
+.trow.tonic { background: rgba(127, 176, 201, 0.07); }
+.trow.on { background: var(--rosin); color: #1a1408; }
+.wk { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.wk.tonic { fill: #222a31; }
+.bk { fill: #08090c; stroke: #59606f; stroke-width: 1; }
+.wk.on, .bk.on { fill: var(--rosin); }
+.kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
+.tarea svg { pointer-events: none; }
+#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-sizing: border-box; z-index: 5; }
+#tCentre { position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+#tCentre .bar { justify-content: center; }
+#tCentre .rd { font-size: 9px; }
+.calbig { overflow-wrap: anywhere; }
+.tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
+#lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
+.lstatus { font: 600 12px var(--f-ui); color: var(--fg); min-height: 16px; flex: 1; min-width: 0; }
+.lstatrow { display: flex; gap: 6px; align-items: flex-start; }
+.lstatrow button { padding: 3px 6px; flex: none; }
+#lPanel > * { flex-shrink: 0; }
+#lVoices { font-size: 11px; color: var(--dim); display: flex; flex-direction: column; gap: 3px; }
+.lvrow { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.lvrow button { padding: 3px 6px; }
+.lvname { flex: 1; min-width: 0; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lchip { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.lsform { display: flex; flex-direction: column; gap: 4px; width: min(360px, 100%); text-align: left; }
+#lSetup, #lLatBox { touch-action: manipulation; }
+#prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
+#prOverlay { flex-direction: column; align-items: stretch; }
+#calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
+.calbig { font: 600 16px/1.3 var(--f-ui); white-space: pre-line; color: var(--fg); }
+.calcount { font: 500 20px var(--f-num); color: var(--rosin); }
+.tarea.target { border: 2px solid var(--rosin); }
+#tSet { align-items: stretch; justify-content: flex-start; padding: 8px 48px; overflow-y: auto; touch-action: pan-y; text-align: left; }
+.setcols { display: flex; gap: 18px; align-items: flex-start; }
+#setBody { flex: 1; min-width: 0; }
+#calRes { flex: 1.1; min-width: 0; margin: 0; font: 10px/1.35 var(--f-num); color: var(--fg); white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+.rd { font: 10px/1.4 var(--f-num); color: var(--dim); white-space: pre-wrap; }
+#diag { position: absolute; inset: 0; pointer-events: none; background: rgba(12, 13, 17, 0.72); padding: 8px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; }
+#diag .bar { pointer-events: auto; align-self: center; }
+#diagMsg { color: var(--dim); font-size: 11px; align-self: center; }
+#diagText { margin: 0; columns: 2; column-gap: 18px; font: 9.5px/1.3 var(--f-num); color: var(--fg); white-space: pre-wrap; overflow: hidden; flex: 1; }
+#diagSel { pointer-events: auto; height: 60px; font: 9px var(--f-num); -webkit-user-select: text; user-select: text; }
+#csvBox { flex-direction: column; align-items: stretch; }
+.logbox { flex: 1; width: 100%; font: 10px/1.35 var(--f-num); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px; box-sizing: border-box; -webkit-user-select: text; user-select: text; touch-action: pan-y; }
+#rotate { display: none; }
+@media (orientation: portrait) { #rotate { display: flex; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+
+</head><body>
+<div id="home" class="overlay">
+  <div class="big">Two-thumb test bench</div>
+  <p>Hold the phone sideways. Check the ring/silent switch and the volume.</p>
+  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button><button id="goLoop" class="choice">Loop maker</button></div>
+  <p style="font-size:11px">The touch-area button also asks for motion-sensor access (tilt).</p>
+</div>
+
+<div id="bowedMode" hidden>
+<div id="strip" class="zone"><div id="bowglow"></div><div class="hair"></div><div id="bowmark"></div></div>
+<div id="rows" class="zone"></div>
+<div id="panel">
+  <div class="bar" id="modes"></div>
+  <div class="bar">
+    <button id="bMenu">◂ Menu</button><button id="bSwap">Swap sides</button><button id="bHide">Hide panel</button><button id="bEnd">60 s test</button><button id="bLog">Log</button><button id="bCsv">Record CSV</button>
+  </div>
+  <div id="readout">–</div>
+  <div class="scroll" id="tune"></div>
+</div>
+<div id="mini" hidden><div class="bar"><button id="bMenu2">◂ Menu</button><button id="bShow">Show panel</button></div><div id="minird" style="font:11px var(--f-num);color:var(--dim)"></div></div>
+<div id="endur" hidden></div>
+
+<div id="start" class="overlay">
+  <div class="big">Bow test 2</div>
+  <p>Turn the phone sideways. Check that the ring/silent switch is not on silent and the volume is up. Bow by sliding one thumb up and down the long strip; choose notes with the other thumb on the seven rows.</p>
+  <button id="bStart" style="font-size:15px;padding:12px 22px">Tap to start sound</button>
+</div>
+<div id="rate" class="overlay" hidden>
+  <div class="big">60 seconds done</div>
+  <p>How comfortable were your thumbs? 1 = painful or awkward, 5 = could play like this for an hour.</p>
+  <div class="bar" id="rateBtns"></div>
+</div>
+<div id="log" class="overlay" hidden>
+  <div class="bar"><button id="bCopy">Copy log</button><button id="bCloseLog">Close</button><span id="copied" style="color:var(--dim);font-size:11px;align-self:center"></span></div>
+  <textarea id="logtext" readonly></textarea>
+</div>
+</div>
+
+<div id="touchMode" hidden>
+  <div id="tL" class="zone tarea"></div>
+  <div id="tR" class="zone tarea"></div>
+  <div id="tPanel" hidden>
+    <div class="bar"><button id="tClose">✕ Close</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
+    <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
+  </div>
+  <div id="tCentre">
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tOpen">☰ Panel</button></div>
+    <button id="tNeutral">Set neutral</button>
+    <div id="tRd" class="rd"></div>
+  </div>
+  <div id="calPanel" hidden>
+    <div id="calStep" class="rd"></div>
+    <div id="calWhat" class="calbig"></div>
+    <div id="calCount" class="calcount"></div>
+    <div id="calLast" class="rd"></div>
+    <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
+  </div>
+  <div id="prPanel" hidden>
+    <div id="prTitle" class="rd"></div>
+    <div id="prPrompt" class="calbig"></div>
+    <div id="prInfo" class="calcount"></div>
+    <div id="prLast" class="rd"></div>
+    <div id="prMenu" class="bar"><button id="prMixed">1 Mixed</button><button id="prRhythm">2 Rhythm</button><button id="prTwo">3 Two thumbs</button><button id="prProgress">4 Progress</button><button id="prClose">Close</button></div>
+    <div id="prRun" class="bar" hidden><button id="prStop">Stop</button></div>
+  </div>
+  <div id="prOverlay" class="overlay" hidden>
+    <div class="bar"><button id="prOvClose">Close</button><button id="prOvCopy">Copy</button><span id="prOvMsg" class="rd"></span></div>
+    <textarea id="prOvText" class="logbox" readonly></textarea>
+  </div>
+  <div id="tSet" class="overlay" hidden>
+    <div class="bar"><button id="setClose">Close</button><button id="calCopy">Copy results</button><span id="calCopyMsg" class="rd"></span></div>
+    <textarea id="calSel" class="logbox" hidden readonly style="height:70px;flex:none"></textarea>
+    <div class="setcols"><div id="setBody"></div><pre id="calRes"></pre></div>
+  </div>
+  <div id="diag" hidden>
+    <div class="bar"><button id="diagCopy">Copy probe report</button><button id="diagClose">Close</button><span id="diagMsg"></span></div>
+    <pre id="diagText"></pre>
+    <textarea id="diagSel" hidden readonly></textarea>
+  </div>
+</div>
+
+<div id="loopMode" hidden>
+  <div id="lL" class="zone tarea"></div>
+  <div id="lR" class="zone tarea"></div>
+  <div id="lPanel">
+    <canvas id="lCanvas"></canvas>
+    <div class="lstatrow"><div id="lStatus" class="lstatus"></div><button id="lMenu">◂ Menu</button></div>
+    <div class="bar"><button id="lRec">● Record</button><button id="lKeep" hidden>Keep</button><button id="lRetake" hidden>Retake</button><button id="lStop">Stop</button></div>
+    <div class="bar tsel"><select id="lSound" aria-label="Sound"></select><select id="lReg" aria-label="Register"><option value="-1">low</option><option value="0" selected>middle</option><option value="1">high</option></select></div>
+    <div id="lVoices"></div>
+    <div class="bar"><button id="lPiece">Play piece</button><button id="lAll">Loop all</button><button id="lExport">Export audio</button></div>
+    <div class="bar tsel"><label class="rd">Quantize <select id="lQuant"><option value="off">off</option><option value="light">light</option><option value="strong">strong</option></select></label></div>
+    <label class="sl">Drums <output id="lDrumO"></output><input id="lDrum" type="range" min="0" max="1" step="0.05"></label>
+    <div id="lMsg" class="rd"></div><div id="lSaveMsg" class="rd"></div>
+    <div id="lSetupLine" class="rd"></div>
+    <div class="bar"><button id="lLat">Latency…</button><button id="lCsv">Takes CSV</button><button id="lNew">New session</button></div>
+  </div>
+  <div id="lSetup" class="overlay" hidden>
+    <div class="big">New piece</div>
+    <p>These stay fixed for the whole session.</p>
+    <div class="lsform">
+      <label class="sl">Tempo <output id="lsBpmO"></output><input id="lsBpm" type="range" min="50" max="160" step="1" value="90"></label>
+      <label class="tg">Meter <select id="lsMeter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+      <label class="tg">Loop length <select id="lsBars"><option value="2">2 bars</option><option value="4">4 bars</option></select></label>
+      <label class="sl">Drum volume <output id="lsDrumO"></output><input id="lsDrum" type="range" min="0" max="1" step="0.05" value="0.35"></label>
+    </div>
+    <button id="lsStart" class="choice">Start</button>
+  </div>
+  <div id="lLatBox" class="overlay" hidden>
+    <div class="big">Latency</div>
+    <p>Press Start, then tap anywhere on the screen in time with the clicks. The offset found is taken off every new take, so takes line up with the beat.</p>
+    <div class="bar"><button id="llGo">Start</button><button id="llUse">Use this</button><button id="llClose">Close</button></div>
+    <div id="llCount" class="calcount"></div>
+    <p id="llRes"></p>
+  </div>
+</div>
+
+<div id="csvBox" class="overlay" hidden>
+  <div class="bar"><button id="csvSave">Save file</button><button id="csvCopy">Copy</button><button id="csvClose">Close</button><span id="csvMsg" style="color:var(--dim);font-size:11px;align-self:center"></span></div>
+  <textarea id="csvText" class="logbox" readonly></textarea>
+</div>
+<div id="rotate" class="overlay"><div class="big">Turn the phone sideways</div></div>
+
+<script>
+/* Bow test 2: the logic of the control, without the page.
+   Pure functions and small classes, shared by the page (app.js), the unit tests
+   and the offline audio render. Times are in milliseconds unless named ...S. */
+(function (root) {
+  "use strict";
+
+  const S_MIN = 2; // px/s: the slowest bow the curve is drawn for ("noise floor" is the level here)
+
+  function dbToAmp(db) { return Math.pow(10, db / 20); }
+  function ampToDb(a) { return a > 0 ? 20 * Math.log10(a) : -Infinity; }
+
+  /* Speed (px/s) -> normalised loudness position 0..1 on the log curve. */
+  function speedNorm(s, p) {
+    if (!(s > S_MIN)) return 0;
+    if (s >= p.sMax) return 1;
+    const x = Math.log(s / S_MIN) / Math.log(p.sMax / S_MIN);
+    return Math.pow(x, p.exp);
+  }
+
+  /* Speed (px/s) -> linear gain 0..1.
+     2 px/s .. sMax is a dB-linear curve (shaped by exp) from floorDb up to 0 dB.
+     Below 2 px/s the gain fades to zero smoothly (no hard dead zone). */
+  function speedToGain(s, p) {
+    if (!(s > 0)) return 0;
+    if (s < S_MIN) { const r = s / S_MIN; return dbToAmp(p.floorDb) * r * r; }
+    return dbToAmp(p.floorDb * (1 - speedNorm(s, p)));
+  }
+
+  /* Backlash ("play") filter: the output follows the finger but ignores wobbles
+     smaller than h px. It adds h px of lag, never a dead zone in speed.
+     A reversal is reported only after the finger comes back by more than 2h. */
+  class Backlash {
+    constructor(h) { this.h = h; this.reset(); }
+    reset() { this.y = null; this.dir = 0; }
+    push(raw) {
+      if (this.y === null) { this.y = raw; return { y: raw, moved: false, reversed: false }; }
+      const d = raw - this.y;
+      if (Math.abs(d) <= this.h) return { y: this.y, moved: false, reversed: false };
+      const nd = Math.sign(d);
+      const prev = this.y;
+      const reversed = this.dir !== 0 && nd !== this.dir;
+      this.dir = nd;
+      this.y = raw - this.h * nd;
+      return { y: this.y, prev, moved: true, reversed };
+    }
+  }
+
+  /* Adaptive-window speed estimate.
+     The window reaches back from the newest sample until it is at least minWin ms long
+     AND the finger has travelled at least minTravel px, but never beyond maxWin ms.
+     So fast strokes are measured over ~30 ms, very slow ones over up to maxWin.
+     When samples stop arriving, the estimate is capped by "how far could it have gone
+     unseen": resolution / idle time, so a stopped bow decays to silence. */
+  class SpeedEstimator {
+    constructor(o) { this.o = Object.assign({ minWin: 30, maxWin: 600, minTravel: 1.5, resPx: 0.6 }, o || {}); this.reset(); }
+    reset() { this.s = []; this.evInt = 16; }
+    push(t, y) {
+      const s = this.s;
+      if (s.length) {
+        const dt = t - s[s.length - 1].t;
+        if (dt > 0) this.evInt += (Math.min(200, Math.max(4, dt)) - this.evInt) * 0.2;
+      }
+      s.push({ t, y });
+      while (s.length > 2 && t - s[1].t > this.o.maxWin) s.shift();
+      if (s.length > 400) s.shift();
+    }
+    estimate(now) {
+      const s = this.s, n = s.length;
+      if (n < 2) return 0;
+      const last = s[n - 1];
+      let ref = null;
+      for (let i = n - 2; i >= 0; i--) {
+        const c = s[i], dt = last.t - c.t;
+        if (dt > this.o.maxWin) break;
+        ref = c;
+        if (dt >= this.o.minWin && Math.abs(last.y - c.y) >= this.o.minTravel) break;
+      }
+      if (!ref || last.t <= ref.t) return 0;
+      let v = Math.abs(last.y - ref.y) / ((last.t - ref.t) / 1000);
+      const extra = (now - last.t) - 1.5 * this.evInt;
+      if (extra > 0) v = Math.min(v, this.o.resPx / (extra / 1000));
+      if (now - last.t > 1500) v = 0;
+      return v;
+    }
+  }
+
+  /* Row choice for a sliding pitch thumb. u = position in row units from the bottom
+     (row k spans k..k+1). Leaving a row needs hystPx extra travel past its edge;
+     a new row sounds only after the thumb has stayed in it dwellMs (so rows crossed
+     quickly are skipped), or at once if the thumb lifts there. */
+  class RowSelector {
+    constructor(n, o) { this.n = n; this.o = o; this.row = -1; this.cand = -1; this.candT = 0; }
+    clampRow(u) { return Math.max(0, Math.min(this.n - 1, Math.floor(u))); }
+    down(u) { this.row = this.clampRow(u); this.cand = -1; return this.row; }
+    move(u, t, rowH) {
+      if (this.row < 0) return null;
+      const hf = this.o.hystPx / rowH;
+      let target = this.row;
+      if (u >= this.row + 1 + hf || u < this.row - hf) target = this.clampRow(u);
+      if (target === this.row) { this.cand = -1; return null; }
+      if (target !== this.cand) { this.cand = target; this.candT = t; }
+      return this.tick(t);
+    }
+    tick(t) {
+      if (this.cand >= 0 && t - this.candT >= this.o.dwellMs) { this.row = this.cand; this.cand = -1; return this.row; }
+      return null;
+    }
+    up() { if (this.cand >= 0) { this.row = this.cand; this.cand = -1; return this.row; } return null; }
+  }
+
+  /* The sound: two detuned saws -> low-pass -> bow gain -> articulation gain -> gate -> out.
+     Bow noise (band-passed noise) rides the bow gain; a short noise "chiff" marks fresh attacks.
+     Every call takes a context time t (seconds) so the same code renders offline. */
+  function buildVoice(ctx, dest) {
+    const sr = ctx.sampleRate;
+    const nb = ctx.createBuffer(1, Math.floor(sr * 2), sr);
+    const nd = nb.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    const mk = (type) => { const o = ctx.createOscillator(); o.type = type; return o; };
+    const o1 = mk("sawtooth"), o2 = mk("sawtooth");
+    o1.detune.value = -6; o2.detune.value = 6;
+    const mix = ctx.createGain(); mix.gain.value = 0.5;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.Q.value = 0.7; lp.frequency.value = 1200;
+    const noise = ctx.createBufferSource(); noise.buffer = nb; noise.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 2500; bp.Q.value = 0.9;
+    const noiseAmt = ctx.createGain(); noiseAmt.gain.value = 0;
+    const bow = ctx.createGain(); bow.gain.value = 0;
+    const artic = ctx.createGain(); artic.gain.value = 1;
+    const gate = ctx.createGain(); gate.gain.value = 0;
+    const chiffSrc = ctx.createBufferSource(); chiffSrc.buffer = nb; chiffSrc.loop = true;
+    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1800;
+    const chiff = ctx.createGain(); chiff.gain.value = 0;
+    const master = ctx.createGain(); master.gain.value = 0.6;
+    o1.connect(mix); o2.connect(mix); mix.connect(lp); lp.connect(bow);
+    noise.connect(bp); bp.connect(noiseAmt); noiseAmt.connect(bow);
+    bow.connect(artic); artic.connect(gate); gate.connect(master);
+    chiffSrc.connect(hp); hp.connect(chiff); chiff.connect(gate);
+    master.connect(dest || ctx.destination);
+    o1.start(0); o2.start(0); noise.start(0); chiffSrc.start(0, 0.7);
+    return {
+      setFreq(hz, t, glideMs) {
+        for (const o of [o1, o2]) {
+          o.frequency.cancelScheduledValues(t);
+          if (glideMs > 0) o.frequency.setTargetAtTime(hz, t, glideMs / 3000);
+          else o.frequency.setValueAtTime(hz, t);
+        }
+      },
+      setBend(cents, t) { o1.detune.setTargetAtTime(cents - 6, t, 0.012); o2.detune.setTargetAtTime(cents + 6, t, 0.012); },
+      setLevel(a, t, tauS) { bow.gain.setTargetAtTime(a, t, Math.max(0.002, tauS)); },
+      setCutoff(hz, t) { lp.frequency.setTargetAtTime(Math.min(16000, Math.max(80, hz)), t, 0.02); },
+      setNoise(a, t) { noiseAmt.gain.setTargetAtTime(a, t, 0.02); },
+      gate(open, t) { gate.gain.setTargetAtTime(open ? 1 : 0, t, open ? 0.004 : 0.012); },
+      dip(t, gapS) { // bow change: fall to silence, wait, come back
+        artic.gain.cancelScheduledValues(t);
+        artic.gain.setTargetAtTime(0, t, 0.003);
+        artic.gain.setTargetAtTime(1, t + gapS, 0.005);
+      },
+      chiff(t, amt) {
+        if (!(amt > 0)) return;
+        chiff.gain.cancelScheduledValues(t);
+        chiff.gain.setTargetAtTime(amt, t, 0.002);
+        chiff.gain.setTargetAtTime(0, t + 0.012, 0.015);
+      },
+      ctx,
+    };
+  }
+
+  const D_MAJOR = [293.66, 329.63, 369.99, 392.0, 440.0, 493.88, 554.37]; // D4 .. C#5
+  const NOTE_NAMES = ["D", "E", "F♯", "G", "A", "B", "C♯"];
+
+  const DEFAULTS = {
+    mode: "latchslide", floorDb: -34, sMax: 450, exp: 0.75, tauMs: 35, gapMs: 0, glideMs: 15,
+    dwellMs: 30, rowHystPx: 7, jitterPx: 0.4, minWin: 30, maxWin: 600, minTravel: 1.5,
+    bright: 0.6, noise: 0.06, chiff: 0.12, pressure: false, vibrato: false, vibDepth: 30,
+  };
+
+  /* The engine: turns bow and pitch gestures into calls on the voice.
+     toCtx(tMs) gives the context time to schedule at (live: currentTime; offline: tMs/1000). */
+  class BowEngine {
+    constructor(voice, params, toCtx, log) {
+      this.v = voice; this.p = Object.assign({}, DEFAULTS, params || {}); this.toCtx = toCtx;
+      this.log = log || (() => {});
+      this.filt = new Backlash(this.p.jitterPx);
+      this.est = new SpeedEstimator({ minWin: this.p.minWin, maxWin: this.p.maxWin, minTravel: this.p.minTravel });
+      this.bowId = null; this.stopped = true; this.slowSince = 0;
+      this.speed = 0; this.gain = 0; this.norm = 0;
+      this.vRev = 0; this.tRev = -1e9; this.x = 0; this.xSlow = 0; this.lastTick = 0; this.bend = 0;
+      this.pitchPtrs = new Map(); // id -> {sel, row, t}
+      this.row = -1; this.gateOpen = false;
+      this.area = { min: Infinity, max: -Infinity, cur: null };
+      this.counts = { reversal: 0, restart: 0, slur: 0, newNote: 0, skippedRows: 0 };
+    }
+    set(k, val) {
+      this.p[k] = val;
+      if (k === "jitterPx") this.filt.h = val;
+      if (k === "minWin" || k === "maxWin" || k === "minTravel") this.est.o[k] = val;
+      if (k === "mode") { this.log("mode " + val); this.refreshGate(performance0()); }
+    }
+    latching() { return this.p.mode === "latch" || this.p.mode === "latchslide"; }
+    sliding() { return this.p.mode === "slide" || this.p.mode === "latchslide"; }
+    sounding() { return this.bowId !== null && !this.stopped && this.gateOpen; }
+
+    /* ---- bow thumb ---- */
+    bowDown(id, t, x, y) {
+      this.bowId = id; this.filt.reset(); this.est.reset(); this.filt.push(y); this.est.push(t, y);
+      this.stopped = true; this.slowSince = t; this.x = this.xSlow = x;
+    }
+    bowMove(id, t, x, y, area) {
+      if (id !== this.bowId) return;
+      this.x = x;
+      if (area != null && area > 0) { this.area.cur = area; this.area.min = Math.min(this.area.min, area); this.area.max = Math.max(this.area.max, area); }
+      const r = this.filt.push(y);
+      if (!r.moved) return;
+      if (r.reversed) {
+        // the window must not span the turn, or the two directions cancel out
+        const lastT = this.est.s.length ? this.est.s[this.est.s.length - 1].t : t;
+        if (!this.stopped) {
+          this.vRev = Math.max(this.speed, this.est.estimate(t));
+          this.tRev = t;
+          this.counts.reversal++;
+          if (this.p.gapMs > 0) { const c = this.toCtx(t); this.v.dip(c, this.p.gapMs / 1000); this.v.chiff(c + this.p.gapMs / 1000, this.p.chiff * Math.sqrt(this.gain)); }
+        }
+        this.est.reset(); this.est.push(lastT, r.prev); this.est.push(t, r.y);
+      } else this.est.push(t, r.y);
+      this.tick(t);
+    }
+    bowUp(id, t) {
+      if (id !== this.bowId) return;
+      this.bowId = null; this.stopped = true; this.speed = 0; this.gain = 0;
+      this.v.setLevel(0, this.toCtx(t), 0.03);
+    }
+
+    /* ---- pitch thumb ---- */
+    pitchDown(id, t, u) {
+      const sel = new RowSelector(D_MAJOR.length, { hystPx: this.p.rowHystPx, dwellMs: this.p.dwellMs });
+      const row = sel.down(u);
+      this.pitchPtrs.set(id, { sel, t });
+      this.setRow(row, t, "tap");
+    }
+    pitchMove(id, t, u, rowH) {
+      const pp = this.pitchPtrs.get(id);
+      if (!pp || !this.sliding() || id !== this.latestPitchId()) return;
+      pp.sel.o.hystPx = this.p.rowHystPx; pp.sel.o.dwellMs = this.p.dwellMs;
+      const prevCand = pp.sel.cand;
+      const r = pp.sel.move(u, t, rowH);
+      if (prevCand >= 0 && pp.sel.cand !== prevCand && r === null) this.counts.skippedRows++;
+      if (r !== null) this.setRow(r, t, "slide");
+    }
+    pitchUp(id, t) {
+      const pp = this.pitchPtrs.get(id);
+      if (!pp) return;
+      const wasLatest = id === this.latestPitchId();
+      if (this.sliding() && wasLatest) { const r = pp.sel.up(); if (r !== null) this.setRow(r, t, "slide"); }
+      this.pitchPtrs.delete(id);
+      if (wasLatest && this.pitchPtrs.size) { const other = this.pitchPtrs.get(this.latestPitchId()); this.setRow(other.sel.row, t, "tap"); }
+      this.refreshGate(t);
+    }
+    latestPitchId() { let best = null, bt = -Infinity; for (const [id, pp] of this.pitchPtrs) if (pp.t >= bt) { bt = pp.t; best = id; } return best; }
+    setRow(row, t, how) {
+      const c = this.toCtx(t);
+      const wasGate = this.gateOpen;
+      if (row !== this.row) {
+        if (this.sounding()) { this.v.setFreq(D_MAJOR[row], c, this.p.glideMs); this.counts.slur++; }
+        else this.v.setFreq(D_MAJOR[row], c, 0);
+        this.row = row;
+      }
+      this.refreshGate(t);
+      if (!wasGate && this.gateOpen && this.bowId !== null && !this.stopped) { this.v.chiff(c, this.p.chiff * Math.sqrt(this.gain)); this.counts.newNote++; }
+    }
+    refreshGate(t) {
+      const open = this.row >= 0 && (this.latching() || this.pitchPtrs.size > 0);
+      if (open !== this.gateOpen) { this.gateOpen = open; this.v.gate(open, this.toCtx(t)); }
+    }
+
+    /* ---- called every frame and on every bow sample ---- */
+    tick(t) {
+      for (const [id, pp] of this.pitchPtrs) if (this.sliding() && id === this.latestPitchId()) { const r = pp.sel.tick(t); if (r !== null) this.setRow(r, t, "slide"); }
+      const c = this.toCtx(t);
+      if (this.bowId === null) { this.speed = 0; this.gain = 0; this.norm = 0; return; }
+      let v = this.est.estimate(t);
+      const since = t - this.tRev;
+      if (since < 150) v = Math.max(v, this.vRev * Math.exp(-since / 45)); // carry the level through a bow change
+      this.speed = v;
+      if (v < 1) { if (!this.stopped && t - this.slowSince > 150) this.stopped = true; }
+      else {
+        this.slowSince = t;
+        if (this.stopped && v > 1.5) { this.stopped = false; this.counts.restart++; if (this.gateOpen) this.v.chiff(c, this.p.chiff * Math.sqrt(speedToGain(v, this.p))); }
+      }
+      const g = speedToGain(v, this.p);
+      this.gain = g; this.norm = speedNorm(v, this.p);
+      this.v.setLevel(g, c, this.p.tauMs / 1000);
+      let press = 0.5;
+      if (this.p.pressure && this.area.cur != null && this.area.max > this.area.min * 1.05) press = (this.area.cur - this.area.min) / (this.area.max - this.area.min);
+      const f0 = this.row >= 0 ? D_MAJOR[this.row] : 300;
+      const oct = 1.2 + this.p.bright * 4 * this.norm + (this.p.pressure ? (press - 0.5) * 1.6 : 0);
+      this.v.setCutoff(f0 * Math.pow(2, oct), c);
+      this.v.setNoise(this.p.noise * (this.p.pressure ? 0.3 + 1.4 * press : 1), c);
+      const dt = Math.max(0, t - this.lastTick); this.lastTick = t;
+      this.xSlow += (this.x - this.xSlow) * (1 - Math.exp(-dt / 250));
+      const bend = this.p.vibrato ? this.p.vibDepth * Math.max(-1, Math.min(1, (this.x - this.xSlow) / 10)) : 0;
+      if (Math.abs(bend - this.bend) > 0.5) { this.bend = bend; this.v.setBend(bend, c); }
+    }
+  }
+  function performance0() { return typeof performance !== "undefined" ? performance.now() : 0; }
+
+  const api = { S_MIN, dbToAmp, ampToDb, speedNorm, speedToGain, Backlash, SpeedEstimator, RowSelector, buildVoice, BowEngine, D_MAJOR, NOTE_NAMES, DEFAULTS };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.BowCore = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Shared by both modes: the audio start (with the iOS silent-switch workaround),
+   the raw touch-property reader, and the CSV recorder. */
+(function () {
+  "use strict";
+  let ctx = null, silent = null, logFn = () => {};
+
+  function silentWavUrl() {
+    const sr = 8000, n = sr, b = new ArrayBuffer(44 + n * 2), d = new DataView(b);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) d.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); d.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt "); d.setUint32(16, 16, true);
+    d.setUint16(20, 1, true); d.setUint16(22, 1, true); d.setUint32(24, sr, true); d.setUint32(28, sr * 2, true);
+    d.setUint16(32, 2, true); d.setUint16(34, 16, true); w(36, "data"); d.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+  }
+
+  /* One AudioContext for the whole page, started from a tap. Returns it. */
+  function unlockAudio(log) {
+    if (ctx) { if (ctx.state !== "running") ctx.resume(); return ctx; }
+    try { if (navigator.audioSession) { navigator.audioSession.type = "playback"; log("audioSession.type = playback (" + navigator.audioSession.type + ")"); } else log("navigator.audioSession not available"); } catch (e) { log("audioSession error " + e.message); }
+    logFn = log;
+    try { const a = (silent = new Audio(silentWavUrl())); a.loop = true; a.setAttribute("playsinline", ""); a.play().then(() => log("silent <audio> loop playing"), (e) => log("silent <audio> refused: " + e.message)); } catch (e) { log("silent audio error " + e.message); }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    ctx = new AC({ latencyHint: "interactive" });
+    ctx.resume();
+    ctx.onstatechange = () => log("AudioContext state: " + ctx.state);
+    if (navigator.wakeLock) navigator.wakeLock.request("screen").then(() => log("screen wake lock on"), () => log("screen wake lock refused"));
+    return ctx;
+  }
+
+  /* iOS pauses the AudioContext when a system dialog (the motion-permission prompt), a call or another
+     app takes the audio; it then stays "suspended"/"interrupted" until a page resumes it from a tap.
+     So every tap anywhere, in either mode, resumes it if needed. */
+  function wake() {
+    if (!ctx) return;
+    if (ctx.state !== "running") ctx.resume().then(() => logFn("AudioContext resumed from a tap"), () => {});
+    if (silent && silent.paused) silent.play().catch(() => {});
+  }
+  for (const k of ["pointerdown", "pointerup", "touchend", "click"]) document.addEventListener(k, wake, { capture: true, passive: true });
+
+  /* Event time on the performance.now() clock. */
+  function evTime(e) { const t = e.timeStamp; return t > 1e12 ? t - performance.timeOrigin : t; }
+
+  /* Everything a Touch object may carry about the contact (undefined = not exposed). */
+  function touchProps(tc) {
+    return { radiusX: tc.radiusX, radiusY: tc.radiusY, rotationAngle: tc.rotationAngle, force: tc.force,
+      webkitForce: tc.webkitForce, webkitRadiusX: tc.webkitRadiusX, webkitRadiusY: tc.webkitRadiusY,
+      touchType: tc.touchType, altitudeAngle: tc.altitudeAngle };
+  }
+
+  /* CSV recorder: one row per raw input event while recording. */
+  const COLS = ["t_ms", "mode", "event", "id", "zone", "x", "y", "radiusX", "radiusY", "force", "webkitForce",
+    "pressure", "width", "height", "alpha", "beta", "gamma", "accX", "accY", "accZ", "rotA", "rotB", "rotG", "note"];
+  const makeCsv = () => ({
+    on: false, rows: [], t0: 0,
+    start() { this.rows = []; this.t0 = performance.now(); this.on = true; },
+    stop() { this.on = false; },
+    add(r) {
+      if (!this.on) return;
+      if (this.rows.length >= 200000) { this.on = false; return; }
+      const t = r.t_ms != null ? r.t_ms : performance.now();
+      this.rows.push(COLS.map((k) => { const v = k === "t_ms" ? t - this.t0 : r[k]; return v == null ? "" : typeof v === "number" ? (Number.isInteger(v) ? v : +v.toFixed(3)) : String(v).replace(/[,\n"]/g, " "); }).join(","));
+    },
+    text() { return COLS.join(",") + "\n" + this.rows.join("\n") + "\n"; },
+    /* Save as a file: the claude.ai downloads capability inside an Artifact, a plain download elsewhere.
+       Resolves to a short message for the screen. */
+    async save(filename) {
+      const data = this.text();
+      try {
+        const dl = window.claude && window.claude.use ? await Promise.race([window.claude.use("downloads"), new Promise((r) => setTimeout(() => r(null), 1500))]) : null;
+        if (dl) { await dl.save({ filename, data }); return "Saved " + filename; }
+      } catch (e) { return "Save refused (" + (e && e.code || e) + "): copy the text instead"; }
+      try {
+        const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: "text/csv" })); a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        return "Download started (if nothing happens, copy the text)";
+      } catch (e) { return "Download failed: copy the text instead"; }
+    },
+  });
+  const csv = makeCsv();
+
+  /* Copy text: clipboard API in the click, else select it for the phone's own Copy. */
+  function copyText(ta, done) {
+    const fallback = () => { ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length); let ok = false; try { ok = document.execCommand("copy"); } catch (e) { /* none */ } done(ok ? "Copied" : "Text selected: use the phone's Copy"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => done("Copied"), fallback); else fallback();
+  }
+
+  /* Save any bytes as a file: the claude.ai downloads capability inside an Artifact (its allowlist decides the
+     extension: altName is used if the first is refused), a plain download elsewhere. Resolves to a message. */
+  async function saveBytes(filename, bytes, mime, altName, altBytes) {
+    try {
+      const dl = window.claude && window.claude.use ? await Promise.race([window.claude.use("downloads"), new Promise((r) => setTimeout(() => r(null), 1500))]) : null;
+      if (dl) {
+        try { await dl.save({ filename, data: bytes }); return "Saved " + filename; }
+        catch (e) { if (altName && e && (e.code === "rejected_extension" || e.code === "extension_not_enabled")) { await dl.save({ filename: altName, data: altBytes() }); return "Saved " + altName + " (the frame only saves this format)"; } throw e; }
+      }
+    } catch (e) { return "Save refused (" + (e && e.code || e) + ")"; }
+    try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([bytes], { type: mime })); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); return "Download started: " + filename; }
+    catch (e) { return "Download failed"; }
+  }
+
+  window.Shared = { unlockAudio, evTime, touchProps, csv, makeCsv, saveBytes, copyText, audio: () => ctx };
+})();
+
+</script>
+<script>
+/* Bow test 2: the page. Wires touches to BowCore.BowEngine and keeps the measurements. */
+(function () {
+  "use strict";
+  const C = window.BowCore;
+  const $ = (id) => document.getElementById(id);
+  const T0 = performance.now();
+  const now = () => performance.now();
+  const ts = (t) => ((t - T0) / 1000).toFixed(3);
+
+  /* ---------- settings (kept on this phone between visits) ---------- */
+  let P = Object.assign({}, C.DEFAULTS);
+  try { const s = JSON.parse(localStorage.getItem("bowtest2") || "{}"); Object.assign(P, s.P || {}); } catch (e) { /* none */ }
+  let swapped = false, panelHidden = false;
+  try { const s = JSON.parse(localStorage.getItem("bowtest2") || "{}"); swapped = !!s.swapped; panelHidden = !!s.panelHidden; } catch (e) { /* none */ }
+  function save() { try { localStorage.setItem("bowtest2", JSON.stringify({ P, swapped, panelHidden })); } catch (e) { /* none */ } }
+
+  /* ---------- log ---------- */
+  const LOG = [];
+  function log(msg) { LOG.push(ts(now()) + "  " + msg); if (LOG.length > 3000) LOG.splice(1, 500); }
+
+  /* ---------- measurements ---------- */
+  const M = {
+    coalescedSupported: typeof PointerEvent !== "undefined" && "getCoalescedEvents" in PointerEvent.prototype,
+    clock: "unknown",
+    bow: { events: 0, samples: 0, touchmoves: 0, evInt: [], smpInt: [], tmInt: [], lastEv: 0, lastSmp: 0, lastTm: 0, fractional: false, minStep: Infinity, lastY: null },
+    press: { force: new Set(), rx: new Set(), ry: new Set(), pPressure: new Set(), pW: new Set(), pH: new Set() },
+    pitch: { touchstart: 0, pointerdown: 0, tsDuringBow: 0, pdDuringBow: 0, late: 0, unmatched: 0, pending: [] },
+    lag: [], cancels: [], lost: [],
+  };
+  function pushInt(arr, v) { arr.push(v); if (arr.length > 4000) arr.shift(); }
+  function stats(arr) {
+    if (!arr.length) return "none";
+    const a = arr.slice().sort((x, y) => x - y), n = a.length;
+    const mean = a.reduce((s, x) => s + x, 0) / n, p = (q) => a[Math.min(n - 1, Math.floor(q * n))];
+    return `n=${n} rate≈${(1000 / mean).toFixed(0)}/s median=${p(0.5).toFixed(1)}ms p95=${p(0.95).toFixed(1)}ms max=${a[n - 1].toFixed(0)}ms gaps>34ms=${a.filter((x) => x > 34).length}`;
+  }
+  function addVal(set, v) { if (v != null && set.size < 60) set.add(Math.round(v * 1000) / 1000); }
+  function setDesc(set) { if (!set.size) return "not reported"; const a = [...set].sort((x, y) => x - y); return a.length === 1 ? `constant ${a[0]}` : `${a.length}${a.length >= 60 ? "+" : ""} distinct values, ${a[0]} … ${a[a.length - 1]}`; }
+  /* event time on the performance.now() clock */
+  function evTime(e) {
+    const t = e.timeStamp;
+    if (t > 1e12) { M.clock = "epoch (converted)"; return t - performance.timeOrigin; }
+    if (M.clock === "unknown") M.clock = "high-res, same clock as performance.now()";
+    return t;
+  }
+
+  /* ---------- audio ---------- */
+  let ctx = null, voice = null, engine = null;
+  const silentEngine = { setFreq() {}, setBend() {}, setLevel() {}, setCutoff() {}, setNoise() {}, gate() {}, dip() {}, chiff() {} };
+  engine = new C.BowEngine(silentEngine, P, () => 0, log);
+
+  function startAudio() {
+    ctx = Shared.unlockAudio(log); // shared with the touch-area mode (audioSession, silent <audio> loop, wake lock)
+    voice = C.buildVoice(ctx);
+    const counts = engine.counts;
+    engine = new C.BowEngine(voice, P, () => ctx.currentTime, log);
+    engine.counts = counts;
+    log(`AudioContext started: ${ctx.sampleRate} Hz, state ${ctx.state}`);
+    setTimeout(logLatency, 1500);
+  }
+  function audioLatency() {
+    if (!ctx) return null;
+    const r = { base: ctx.baseLatency, output: ctx.outputLatency };
+    if (ctx.getOutputTimestamp) {
+      const o = ctx.getOutputTimestamp();
+      if (o && o.performanceTime > 0) r.pipe = (ctx.currentTime - o.contextTime) * 1000 + (o.performanceTime - now());
+    }
+    return r;
+  }
+  function lagText() {
+    const a = audioLatency(), lag = M.lag.slice().sort((x, y) => x - y);
+    const mid = lag.length ? lag[Math.floor(lag.length / 2)] : null;
+    const f = (x) => (x == null || isNaN(x) ? "n/a" : (x * 1000).toFixed(1) + " ms");
+    let s = `input lag (handler time − touch time), pitch taps: ${lag.length ? `median ${mid.toFixed(1)} ms, max ${lag[lag.length - 1].toFixed(1)} ms, n=${lag.length}` : "no taps yet"}\n`;
+    if (a) {
+      s += `AudioContext baseLatency ${f(a.base)}, outputLatency ${f(a.output)}, getOutputTimestamp lag ${a.pipe != null ? a.pipe.toFixed(1) + " ms" : "n/a"}\n`;
+      const audio = a.pipe != null && a.pipe > 0 ? a.pipe : ((a.base || 0) + (a.output || 0)) * 1000;
+      s += `estimated tap-to-sound ≈ ${((mid || 0) + audio + 3).toFixed(0)} ms (input lag + audio output + ~3 ms for the 4 ms attack), excluding the screen's own touch scan (~8-16 ms, not measurable from a page)`;
+    }
+    return s;
+  }
+  function logLatency() { log("latency: " + lagText().replace(/\n/g, " | ")); }
+
+  /* ---------- layout ---------- */
+  const strip = $("strip"), rowsEl = $("rows"), panel = $("panel"), mini = $("mini");
+  C.NOTE_NAMES.forEach((n, i) => { const d = document.createElement("div"); d.className = "row"; d.textContent = n + (i === 0 ? "4" : ""); rowsEl.appendChild(d); });
+  const rowDivs = [...rowsEl.children];
+  let G = {};
+  function layout() {
+    const W = innerWidth, H = innerHeight;
+    const probe = getComputedStyle(document.documentElement);
+    const MX = 48, MY = 44;
+    const stripW = Math.round(Math.min(120, Math.max(84, W * 0.11)));
+    const rowsW = Math.round(Math.min(330, Math.max(200, W * 0.33)));
+    const top = MY, h = H - 2 * MY;
+    const left = swapped ? W - MX - stripW : MX;
+    const rLeft = swapped ? MX : W - MX - rowsW;
+    Object.assign(strip.style, { left: left + "px", top: top + "px", width: stripW + "px", height: h + "px" });
+    Object.assign(rowsEl.style, { left: rLeft + "px", top: top + "px", width: rowsW + "px", height: h + "px" });
+    const cL = Math.min(left, rLeft) + (swapped ? rowsW : stripW) + 12, cR = Math.max(left, rLeft) - 12;
+    Object.assign(panel.style, { left: cL + "px", top: "10px", width: cR - cL + "px", height: H - 20 + "px" });
+    Object.assign(mini.style, { left: cL + "px", top: "10px", width: cR - cL + "px" });
+    Object.assign($("endur").style, { left: cL + "px", width: cR - cL + "px", top: H / 2 - 20 + "px" });
+    panel.hidden = panelHidden; mini.hidden = !panelHidden;
+    G = { W, H, strip: strip.getBoundingClientRect(), rows: rowsEl.getBoundingClientRect() };
+    void probe;
+  }
+  addEventListener("resize", () => { layout(); log(`viewport ${innerWidth}×${innerHeight}`); });
+
+  /* ---------- panel ---------- */
+  const MODES = [["hold", "V1 HOLD"], ["latch", "LATCH"], ["slide", "SLIDE"], ["latchslide", "LATCH+SLIDE"]];
+  const modeBtns = MODES.map(([k, label]) => {
+    const b = document.createElement("button"); b.textContent = label;
+    b.onclick = () => { P.mode = k; engine.set("mode", k); save(); paintModes(); };
+    $("modes").appendChild(b); return [k, b];
+  });
+  function paintModes() { modeBtns.forEach(([k, b]) => b.classList.toggle("sel", P.mode === k)); }
+  const SLIDERS = [
+    ["Bow → loudness"],
+    ["floorDb", "Quietest tone (at 2 px/s)", -60, -15, 1, (v) => v + " dB"],
+    ["sMax", "Speed for full volume", 100, 1500, 10, (v) => v + " px/s"],
+    ["exp", "Curve (lower = slow bow louder)", 0.4, 2, 0.05, (v) => v.toFixed(2)],
+    ["tauMs", "Smoothing", 5, 150, 1, (v) => v + " ms"],
+    ["bright", "Brightness follows speed", 0, 1, 0.05, (v) => v.toFixed(2)],
+    ["noise", "Bow noise", 0, 0.3, 0.01, (v) => v.toFixed(2)],
+    ["Bow changes"],
+    ["gapMs", "Bow-change gap", 0, 80, 1, (v) => (v ? v + " ms" : "0 (seamless)")],
+    ["chiff", "Attack noise", 0, 0.5, 0.01, (v) => v.toFixed(2)],
+    ["Pitch thumb"],
+    ["glideMs", "Glide between notes", 0, 60, 1, (v) => v + " ms"],
+    ["dwellMs", "Skip rows crossed faster than", 0, 80, 1, (v) => v + " ms"],
+    ["rowHystPx", "Row edge hysteresis", 0, 20, 1, (v) => v + " px"],
+    ["Speed measurement"],
+    ["jitterPx", "Jitter hysteresis", 0, 1.5, 0.05, (v) => v.toFixed(2) + " px"],
+    ["minWin", "Shortest speed window", 10, 80, 1, (v) => v + " ms"],
+    ["minTravel", "Window needs travel of", 0.3, 4, 0.1, (v) => v.toFixed(1) + " px"],
+    ["Experiments"],
+    ["pressure", "Pressure: contact size moves brightness and bow noise"],
+    ["vibrato", "Sideways wiggle of the bow thumb = vibrato"],
+    ["vibDepth", "Vibrato depth", 0, 80, 1, (v) => v + " cents"],
+  ];
+  const tune = $("tune"), outs = {}, inputs = {};
+  let settingLogTimer = null;
+  function logSettingSoon(k) { clearTimeout(settingLogTimer); settingLogTimer = setTimeout(() => log(`set ${k} = ${P[k]}`), 600); }
+  for (const s of SLIDERS) {
+    if (s.length === 1) { const h = document.createElement("h3"); h.textContent = s[0]; tune.appendChild(h); continue; }
+    const [k, label, min, max, step, fmt] = s;
+    if (s.length === 2) {
+      const l = document.createElement("label"); l.className = "tg";
+      const c = document.createElement("input"); c.type = "checkbox"; c.id = "t_" + k; c.checked = !!P[k];
+      c.onchange = () => { P[k] = c.checked; engine.set(k, c.checked); save(); log(`set ${k} = ${c.checked}`); };
+      l.append(c, label); tune.appendChild(l); inputs[k] = c; continue;
+    }
+    const wrap = document.createElement("label"); wrap.className = "sl";
+    const o = document.createElement("output"), r = document.createElement("input");
+    r.type = "range"; r.id = "s_" + k; r.min = min; r.max = max; r.step = step; r.value = P[k];
+    r.oninput = () => { P[k] = parseFloat(r.value); o.textContent = fmt(P[k]); engine.set(k, P[k]); save(); logSettingSoon(k); };
+    o.textContent = fmt(P[k]);
+    wrap.append(label, o, r); tune.appendChild(wrap); outs[k] = o; inputs[k] = r;
+  }
+  const reset = document.createElement("button"); reset.textContent = "Reset to defaults"; reset.style.margin = "8px 0 20px";
+  reset.onclick = () => { P = Object.assign({}, C.DEFAULTS); for (const k in P) { engine.set(k, P[k]); const i = inputs[k]; if (!i) continue; if (i.type === "checkbox") i.checked = !!P[k]; else { i.value = P[k]; i.oninput(); } } paintModes(); save(); log("settings reset to defaults"); };
+  tune.appendChild(reset);
+
+  $("bSwap").onclick = () => { swapped = !swapped; save(); layout(); log("sides swapped: bow on the " + (swapped ? "right" : "left")); };
+  $("bHide").onclick = () => { panelHidden = true; save(); layout(); };
+  $("bShow").onclick = () => { panelHidden = false; save(); layout(); };
+  $("bLog").onclick = () => { $("logtext").value = report(); $("log").hidden = false; };
+  $("bCloseLog").onclick = () => { $("log").hidden = true; };
+  $("bCopy").onclick = () => {
+    const ta = $("logtext"); ta.value = report();
+    const done = (m) => { $("copied").textContent = m; };
+    const fallback = () => { ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length); let ok = false; try { ok = document.execCommand("copy"); } catch (e) { /* none */ } done(ok ? "Copied" : "Text selected: use the phone's Copy"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => done("Copied"), fallback); else fallback();
+  };
+  $("bStart").onclick = () => { $("start").hidden = true; startAudio(); };
+  $("bMenu").onclick = $("bMenu2").onclick = () => { if (engine.bowId !== null) engine.bowUp(engine.bowId, now()); window.__home(); };
+  $("bCsv").onclick = () => {
+    if (!Shared.csv.on) { Shared.csv.start(); $("bCsv").textContent = "Stop CSV"; $("bCsv").classList.add("sel"); log("CSV recording started"); return; }
+    Shared.csv.stop(); $("bCsv").textContent = "Record CSV"; $("bCsv").classList.remove("sel"); log(`CSV recording stopped (${Shared.csv.rows.length} rows)`);
+    window.__showCsv("bowed");
+  };
+  window.__bowedEnter = () => { layout(); if (ctx && ctx.state !== "running") ctx.resume(); };
+
+  /* ---------- 60-second endurance test ---------- */
+  let endur = null;
+  function snap() { return { t: now(), ev: M.bow.events, smp: M.bow.samples, ivN: M.bow.smpInt.length, cancels: M.cancels.length, lost: M.lost.length, pd: M.pitch.pointerdown, ts: M.pitch.touchstart, late: M.pitch.late, un: M.pitch.unmatched, c: Object.assign({}, engine.counts) }; }
+  $("bEnd").onclick = () => {
+    if (endur) return;
+    endur = snap(); log("60 s test started, mode " + P.mode);
+    $("endur").hidden = false;
+    const iv = setInterval(() => {
+      const left = 60 - (now() - endur.t) / 1000;
+      $("endur").textContent = Math.max(0, Math.ceil(left)) + " s";
+      if (left <= 0) { clearInterval(iv); $("endur").hidden = true; $("rate").hidden = false; }
+    }, 200);
+  };
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement("button"); b.textContent = String(i); b.style.cssText = "font-size:18px;padding:10px 18px";
+    b.onclick = () => {
+      const e = endur, n = snap(), c = engine.counts;
+      const gaps = M.bow.smpInt.slice(e.ivN);
+      log(`60 s test done: comfort ${i}/5, mode ${P.mode}, bow samples ${n.smp - e.smp} (${n.ev - e.ev} events), sample gaps: ${stats(gaps)}, ` +
+        `cancels ${n.cancels - e.cancels}, lost touches ${n.lost - e.lost}, pitch pointerdowns ${n.pd - e.pd} / touchstarts ${n.ts - e.ts}, late ${n.late - e.late}, unmatched ${n.un - e.un}, ` +
+        `reversals ${c.reversal - e.c.reversal}, restarts ${c.restart - e.c.restart}, slurs ${c.slur - e.c.slur}`);
+      endur = null; $("rate").hidden = true;
+    };
+    $("rateBtns").appendChild(b);
+  }
+
+  /* ---------- touches ---------- */
+  const zones = new Map(); // pointerId -> "bow" | "pitch"
+  const inRect = (r, x, y, pad) => x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+  function zoneAt(x, y) { if (inRect(G.strip, x, y, 6)) return "bow"; if (inRect(G.rows, x, y, 4)) return "pitch"; return null; }
+  const rowU = (y) => (G.rows.bottom - y) / (G.rows.height / 7);
+  const isOverlay = () => window.__mode !== "bowed" || !$("csvBox").hidden || !$("start").hidden || !$("log").hidden || !$("rate").hidden;
+
+  document.addEventListener("pointerdown", (e) => {
+    if (isOverlay() || e.pointerType === "mouse" && e.button !== 0) return;
+    const z = zoneAt(e.clientX, e.clientY);
+    if (!z) return;
+    e.preventDefault();
+    const t = evTime(e);
+    Shared.csv.add({ t_ms: t, mode: "bowed", event: "pointerdown", id: e.pointerId, zone: z, x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
+    zones.set(e.pointerId, z);
+    if (z === "bow") {
+      if (engine.bowId !== null) { zones.set(e.pointerId, "extra"); return; }
+      engine.bowDown(e.pointerId, t, e.clientX, e.clientY);
+      M.bow.lastEv = M.bow.lastSmp = t; M.bow.lastY = e.clientY;
+    } else {
+      M.pitch.pointerdown++;
+      const lag = now() - t; if (lag >= 0 && lag < 1000) M.lag.push(lag);
+      if (lag > 50) M.pitch.late++;
+      if (engine.speed > 5) M.pitch.pdDuringBow++;
+      matchTap("pd", t, e.clientX, e.clientY);
+      engine.pitchDown(e.pointerId, t, rowU(e.clientY));
+    }
+  }, { passive: false });
+
+  document.addEventListener("pointermove", (e) => {
+    const z = zones.get(e.pointerId);
+    if (!z) return;
+    e.preventDefault();
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    const samples = list.length ? list : [e];
+    if (z === "bow") {
+      const te = evTime(e); M.bow.events++;
+      if (engine.speed > 5) pushInt(M.bow.evInt, te - M.bow.lastEv);
+      M.bow.lastEv = te;
+      addVal(M.press.pPressure, e.pressure); addVal(M.press.pW, e.width); addVal(M.press.pH, e.height);
+      for (const s of samples) {
+        const t = evTime(s), y = s.clientY;
+        Shared.csv.add({ t_ms: t, mode: "bowed", event: s === e ? "pointermove" : "coalesced", id: e.pointerId, zone: z, x: s.clientX, y, pressure: s.pressure, width: s.width, height: s.height });
+        M.bow.samples++;
+        if (engine.speed > 5 && t > M.bow.lastSmp) pushInt(M.bow.smpInt, t - M.bow.lastSmp);
+        M.bow.lastSmp = Math.max(M.bow.lastSmp, t);
+        if (y % 1 !== 0) M.bow.fractional = true;
+        if (M.bow.lastY !== null) { const d = Math.abs(y - M.bow.lastY); if (d > 0 && d < M.bow.minStep) M.bow.minStep = d; }
+        M.bow.lastY = y;
+        const area = P.pressure && touchArea != null ? touchArea : (e.width > 1 ? e.width * e.height : null);
+        engine.bowMove(e.pointerId, t, s.clientX, y, area);
+      }
+    } else if (z === "pitch") {
+      const s = samples[samples.length - 1];
+      Shared.csv.add({ t_ms: evTime(s), mode: "bowed", event: "pointermove", id: e.pointerId, zone: z, x: s.clientX, y: s.clientY, pressure: s.pressure, width: s.width, height: s.height });
+      engine.pitchMove(e.pointerId, evTime(s), rowU(s.clientY), G.rows.height / 7);
+    }
+  }, { passive: false });
+
+  function endPointer(e, cancelled) {
+    const z = zones.get(e.pointerId);
+    if (!z) return;
+    zones.delete(e.pointerId);
+    const t = evTime(e);
+    Shared.csv.add({ t_ms: t, mode: "bowed", event: e.type, id: e.pointerId, zone: z, x: e.clientX, y: e.clientY });
+    if (cancelled) { M.cancels.push(`${ts(t)} pointercancel zone=${z}`); log(`POINTERCANCEL zone=${z}`); }
+    if (z === "bow") engine.bowUp(e.pointerId, t);
+    else if (z === "pitch") engine.pitchUp(e.pointerId, t);
+  }
+  document.addEventListener("pointerup", (e) => endPointer(e, false));
+  document.addEventListener("pointercancel", (e) => endPointer(e, true));
+
+  /* touch events: only for the measurements (counts, force, contact size, cancels, lost touches) */
+  const touchZones = new Map(); let touchArea = null;
+  document.addEventListener("touchstart", (e) => {
+    if (isOverlay()) return;
+    for (const tc of e.changedTouches) {
+      const z = zoneAt(tc.clientX, tc.clientY);
+      if (!z) continue;
+      touchZones.set(tc.identifier, z);
+      if (z === "pitch") { M.pitch.touchstart++; if (engine.speed > 5) M.pitch.tsDuringBow++; matchTap("ts", evTime(e), tc.clientX, tc.clientY); }
+    }
+    if ([...e.changedTouches].some((tc) => touchZones.has(tc.identifier))) e.preventDefault();
+    checkLost(e);
+  }, { passive: false });
+  document.addEventListener("touchmove", (e) => {
+    let ours = false;
+    for (const tc of e.changedTouches) {
+      const z = touchZones.get(tc.identifier);
+      if (!z) continue;
+      ours = true;
+      Shared.csv.add({ t_ms: evTime(e), mode: "bowed", event: "touchmove", id: tc.identifier, zone: z, x: tc.clientX, y: tc.clientY, radiusX: tc.radiusX, radiusY: tc.radiusY, force: tc.force, webkitForce: tc.webkitForce });
+      if (z === "bow") {
+        const t = evTime(e); M.bow.touchmoves++;
+        if (engine.speed > 5) pushInt(M.bow.tmInt, t - M.bow.lastTm);
+        M.bow.lastTm = t;
+        addVal(M.press.force, tc.force); addVal(M.press.rx, tc.radiusX); addVal(M.press.ry, tc.radiusY);
+        if (tc.radiusX > 0) touchArea = tc.radiusX * (tc.radiusY || tc.radiusX);
+      }
+    }
+    if (ours) e.preventDefault();
+    checkLost(e);
+  }, { passive: false });
+  function touchEnd(e, cancelled) {
+    for (const tc of e.changedTouches) {
+      const z = touchZones.get(tc.identifier);
+      if (!z) continue;
+      touchZones.delete(tc.identifier);
+      if (cancelled) { M.cancels.push(`${ts(evTime(e))} touchcancel zone=${z}`); log(`TOUCHCANCEL zone=${z}`); }
+    }
+  }
+  document.addEventListener("touchend", (e) => touchEnd(e, false));
+  document.addEventListener("touchcancel", (e) => touchEnd(e, true));
+  function checkLost(e) {
+    const live = new Set([...e.touches].map((tc) => tc.identifier));
+    for (const [id, z] of touchZones) if (!live.has(id)) { touchZones.delete(id); M.lost.push(`${ts(now())} lost touch zone=${z}`); log(`LOST TOUCH zone=${z} (vanished without touchend)`); }
+  }
+  /* pair touchstart and pointerdown for the same tap */
+  function matchTap(kind, t, x, y) {
+    const other = kind === "pd" ? "ts" : "pd";
+    const q = M.pitch.pending;
+    const i = q.findIndex((p) => p.kind === other && Math.abs(p.t - t) < 100 && Math.hypot(p.x - x, p.y - y) < 30);
+    if (i >= 0) q.splice(i, 1); else q.push({ kind, t, x, y });
+    while (q.length && now() - q[0].t > 300) { q.shift(); M.pitch.unmatched++; }
+  }
+  setInterval(() => { const q = M.pitch.pending; while (q.length && now() - q[0].t > 300) { const p = q.shift(); M.pitch.unmatched++; log(`unmatched ${p.kind === "pd" ? "pointerdown" : "touchstart"} on pitch rows`); } }, 500);
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("selectstart", (e) => { if (e.target.tagName !== "TEXTAREA") e.preventDefault(); });
+  document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
+
+  /* ---------- report ---------- */
+  function report() {
+    const b = M.bow, pr = M.press, pi = M.pitch;
+    const out = [];
+    out.push("BOW TEST 2 LOG  " + new Date().toISOString());
+    out.push(`viewport ${innerWidth}×${innerHeight}, devicePixelRatio ${devicePixelRatio}, ${navigator.userAgent}`);
+    out.push(`standalone (home screen): ${!!navigator.standalone || matchMedia("(display-mode: standalone)").matches}; in a frame: ${window.top !== window}`);
+    out.push(`mode ${P.mode}; settings ${JSON.stringify(P)}`);
+    out.push("");
+    out.push(`bow thumb, Safari coalesced events supported: ${M.coalescedSupported ? "yes" : "no"}; event clock: ${M.clock}`);
+    out.push(`  pointermove events while bowing: ${stats(b.evInt)}`);
+    out.push(`  samples incl. coalesced:        ${stats(b.smpInt)}  (${b.samples} samples from ${b.events} events)`);
+    out.push(`  touchmove events:               ${stats(b.tmInt)}`);
+    out.push(`  coordinates fractional: ${b.fractional ? "yes" : "no"}; smallest step seen ${isFinite(b.minStep) ? b.minStep.toFixed(3) + " px" : "n/a"}`);
+    out.push(`pressure/contact: touch.force ${setDesc(pr.force)}; radiusX ${setDesc(pr.rx)}; radiusY ${setDesc(pr.ry)}; pointer pressure ${setDesc(pr.pPressure)}; pointer width ${setDesc(pr.pW)}; height ${setDesc(pr.pH)}`);
+    out.push(`pitch taps: touchstart ${pi.touchstart}, pointerdown ${pi.pointerdown}; while bowing: touchstart ${pi.tsDuringBow}, pointerdown ${pi.pdDuringBow}; late (>50 ms) ${pi.late}; unmatched ${pi.unmatched}`);
+    out.push(`articulation counts: ${JSON.stringify(engine.counts)}`);
+    out.push(lagText());
+    out.push(`cancels: ${M.cancels.length ? M.cancels.join("; ") : "none"}; lost touches: ${M.lost.length ? M.lost.join("; ") : "none"}`);
+    out.push("");
+    out.push("EVENTS");
+    return out.concat(LOG).join("\n");
+  }
+
+  /* ---------- frame loop ---------- */
+  let lastRd = 0, lastRow = -2, lastState = "";
+  function frame() {
+    const t = now();
+    engine.tick(t);
+    const mark = $("bowmark"), glow = $("bowglow");
+    if (engine.bowId !== null && M.bow.lastY != null) {
+      mark.style.top = (M.bow.lastY - G.strip.top) + "px";
+      mark.style.opacity = String(0.35 + 0.65 * engine.norm);
+      glow.style.opacity = String(engine.gain > 0.001 ? 0.25 + 0.75 * engine.norm : 0);
+    } else { mark.style.opacity = "0"; glow.style.opacity = "0"; }
+    const fingerDown = engine.pitchPtrs.size > 0;
+    let cand = -1; for (const pp of engine.pitchPtrs.values()) if (pp.sel.cand >= 0) cand = pp.sel.cand;
+    const st = engine.row + "|" + fingerDown + "|" + engine.gateOpen + "|" + cand;
+    if (st !== lastState) {
+      lastState = st;
+      rowDivs.forEach((d, i) => { d.classList.toggle("on", i === engine.row && fingerDown); d.classList.toggle("latched", i === engine.row && !fingerDown && engine.gateOpen); d.classList.toggle("cand", i === cand); });
+    }
+    if (t - lastRd > 100) {
+      lastRd = t;
+      const db = C.ampToDb(engine.gain);
+      const ev = M.bow.evInt.slice(-30), rate = ev.length ? (1000 / (ev.reduce((s, x) => s + x, 0) / ev.length)).toFixed(0) : "–";
+      $("readout").innerHTML = `speed <b>${engine.speed.toFixed(1).padStart(6)}</b> px/s  gain <b>${isFinite(db) ? db.toFixed(1).padStart(5) : "  -∞ "}</b> dB\n` +
+        `note <b>${engine.row >= 0 ? C.NOTE_NAMES[engine.row] : "–"}</b>  bow ev <b>${rate}</b>/s  ${innerWidth}×${innerHeight}` +
+        `<div id="meter"><i style="width:${(engine.norm * 100).toFixed(1)}%"></i></div>`;
+      $("minird").textContent = `${engine.speed.toFixed(1)} px/s  ${isFinite(db) ? db.toFixed(1) : "-∞"} dB  ${innerWidth}×${innerHeight}`;
+      if (engine.row !== lastRow) lastRow = engine.row;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  layout(); paintModes();
+  log(`page loaded; viewport ${innerWidth}×${innerHeight}; coalesced events ${M.coalescedSupported ? "supported" : "not supported"}; mode ${P.mode}`);
+  requestAnimationFrame(frame);
+  window.__bow = { engine: () => engine, M, report, P: () => P, layout: () => G, ctx: () => ctx };
+})();
+
+</script>
+<script>
+/* Touch-area mode, GESTURE LAYER: raw touches in, musical events out. Knows nothing about sound.
+   Events: {type:"onset", id, t, side, row, midi, cls, size, norm, contact}
+           {type:"pitch", id, t, row, midi}            (a held thumb slid to another row)
+           {type:"contact", id, t, size, norm, norm0}  (continuous: contact size now, and at the onset)
+           {type:"release", id, t}
+           {type:"tilt", t, bend, vib, bright}         (bend in semitones, vib depth and bright in cents)
+   onset carries cls ("normal" | "flat" | null) and size; contact carries size and norm (0..1).
+   Contact size = PointerEvent.width (CSS px). The probe on an iPhone (iOS 27, 24 Nov 2026) found it in
+   8 steps of 24.2 px (24…194); touch.radiusX has only 4 steps and force is always 0, so width is the signal.
+
+   Pitch mapping ported from the game's own free-play mapping, THE LAB's FREE PLAY (D320,
+   src/bench/lab/free.ts): freeRows (scale "the key's notes", major or natural minor, `octaves`
+   round a middle pitch), rowAt (rows high at the top, 10 px margin at the top and foot), and its
+   slide rule (a held thumb moved at least max(MECH.slideMinPx = 10 px, half a row) into another
+   row and stayed there SLIDE_DWELL_MS = 90 ms). Both thumb areas carry the same rows, as there.
+   A touch belongs to the area where it landed and keeps it while it slides (src/touch/thumbs.ts). */
+(function () {
+  "use strict";
+  const MARGIN = 10, SLIDE_DWELL_MS = 90, SLIDE_MIN_PX = 10;
+  const pcOf = (m) => ((m % 12) + 12) % 12;
+
+  /* free.ts freeRows, with the piece's voice replaced by a middle pitch: the rows' pitches, low to high. */
+  function freeRows(tonic, minor, mid, octaves) {
+    const half = Math.round((octaves * 12) / 2);
+    const deg = minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11];
+    const inKey = new Set(deg.map((d) => (tonic + d) % 12));
+    const out = [];
+    for (let m = mid - half; m <= mid + half; m++) if (inKey.has(pcOf(m))) out.push(m);
+    return out;
+  }
+  /* free.ts freeRows, scale "keyboard" (D330): every semitone, seven white keys an octave from the white at or
+     below the range's foot (a piano's whites). */
+  const PIANO_WHITES = [0, 2, 4, 5, 7, 9, 11];
+  function keyboardRows(mid, octaves, whites = PIANO_WHITES) {
+    const half = Math.round((octaves * 12) / 2), w = new Set(whites);
+    let a = mid - half;
+    while (!w.has(pcOf(a))) a--;
+    let b = a;
+    for (let n = 1; n < 7 * octaves; ) if (w.has(pcOf(++b))) n++;
+    const out = []; for (let m = a; m <= b; m++) out.push(m);
+    return out;
+  }
+  /* free.ts Keyboard (D330), ported line for line: a piano stood on end on each bar, pitch rising upward,
+     black keys toward the inner edge (the screen's centre), white keys running on into the inner zone between
+     them. Hit test: weighted nearest centre (a power diagram); a black key's tip tapers over `slant` of the
+     bar's width round the zone split. u = px across from the bar's inner edge, y = px from its top. */
+  const KB_DEFAULT = { split: 0.6, black: 0.58, slant: 0.2 };
+  class Keyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites);
+      const wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      this.whites = wi.length;
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const uB = (shape.split * bw) / 2, uW = ((1 + shape.split) * bw) / 2, D = uW - uB;
+      const hh0 = shape.black * wh, g0 = wh / 2, tau = Math.max(0.5, shape.slant * bw), k = hh0 / 2 / tau;
+      this.wx = Math.sqrt((k * g0) / D);
+      const bias0 = g0 * hh0 - g0 * g0, sU = shape.split * bw;
+      const biasOut = g0 * g0 + this.wx * this.wx * D * (uW + uB - 2 * sU) + bias0 - (g0 * hh0) / 2;
+      const keys = [], centres = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        centres.push({ row: r, u: uB, y, bias: 0, zone: "inner" }, { row: r, u: uW, y, bias: biasOut, zone: "outer" });
+        const next = wi[j + 1];
+        if (next === undefined) return;
+        const n = next - r - 1;
+        if (n <= 0) return;
+        const yb = y - wh / 2, hh = Math.min(shape.black, 0.95 / n) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * hh, g = Math.min(Math.abs(yc - y), Math.abs(yc - (y - wh)));
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: hh });
+          centres.push({ row: r + 1 + q, u: uB, y: yc, bias: g * hh - g * g, zone: "inner" });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.byRow = new Map(this.keys.map((q) => [q.row, q]));
+      this.centres = centres;
+    }
+    hit(u, y) {
+      let best = this.centres[0], bd = Infinity;
+      for (const c of this.centres) { const du = this.wx * (u - c.u), dy = y - c.y, d = du * du + dy * dy - c.bias; if (d < bd) { bd = d; best = c; } }
+      return { row: best.row, white: this.byRow.get(best.row).white, zone: best.zone };
+    }
+  }
+
+  /* The owner (24 Nov 2026): "octave goes from do to do". Rows from the tonic up to the tonic (key notes) or
+     from C up to C (piano), `octaves` octaves, starting in octave 4 (one octave lower for 2 or 3). This
+     replaces the Lab's centred range (freeRows / keyboardRows above, kept for the port test). */
+  function doToDo(tonic, minor, octaves, piano) {
+    const start = 60 + (piano ? 0 : tonic) - 12 * Math.floor(octaves / 2), end = start + 12 * octaves;
+    const deg = new Set((minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]).map((d) => (tonic + d) % 12));
+    const out = []; for (let m = start; m <= end; m++) if (piano || deg.has(pcOf(m))) out.push(m);
+    return out;
+  }
+
+  /* The prototype's piano (the owner, 24 Nov 2026): as D330's, but each black key widens toward the inner
+     edge (`edge` of a white key's height there, `black` at its tip end), so a thumb near the edge cannot miss
+     it. What is drawn is what is hit: black keys are polygons tested first, white keys are full-width bands. */
+  class WedgeKeyboard {
+    constructor(rows, whites, shape, bw, h) {
+      this.rows = rows; this.shape = shape; this.bw = bw; this.h = h;
+      const isW = new Set(whites), wi = rows.map((m, i) => (isW.has(pcOf(m)) ? i : -1)).filter((i) => i >= 0);
+      const wh = (this.wh = Math.max(4, (h - 2 * MARGIN) / Math.max(1, wi.length)));
+      const yW = (k) => MARGIN + (wi.length - 1 - k + 0.5) * wh;
+      const tau = Math.max(0.5, shape.slant * bw), u1 = Math.max(1, shape.split * bw - tau / 2), u2 = shape.split * bw + tau / 2;
+      const keys = [];
+      wi.forEach((r, j) => {
+        const y = yW(j);
+        keys.push({ row: r, midi: rows[r], white: true, y, h: wh });
+        const next = wi[j + 1]; if (next === undefined) return;
+        const n = next - r - 1; if (n <= 0) return;
+        const yb = y - wh / 2, cap = 0.98 / n;
+        const he = Math.min(shape.edge, cap) * wh, ht = Math.min(shape.black, cap) * wh;
+        for (let q = 0; q < n; q++) {
+          const yc = yb + ((n - 1) / 2 - q) * he;
+          keys.push({ row: r + 1 + q, midi: rows[r + 1 + q], white: false, y: yc, h: ht, poly: [[0, yc - he / 2], [u1, yc - ht / 2], [u2, yc], [u1, yc + ht / 2], [0, yc + he / 2]] });
+        }
+      });
+      this.keys = keys.sort((a, b) => a.row - b.row);
+      this.whitesList = keys.filter((k) => k.white);
+    }
+    hit(u, y) {
+      for (const k of this.keys) if (!k.white && inPoly(k.poly, u, y)) return { row: k.row, white: false };
+      let best = this.whitesList[0], bd = Infinity;
+      for (const k of this.whitesList) { const d = Math.abs(y - k.y); if (d < bd) { bd = d; best = k; } }
+      return { row: best.row, white: true };
+    }
+  }
+  function inPoly(p, x, y) { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; }
+
+  const rowH = (n, h) => Math.max(4, (h - 2 * MARGIN) / n);
+  function rowAt(n, y, h) { const r = n - 1 - Math.floor((y - MARGIN) / rowH(n, h)); return Math.max(0, Math.min(n - 1, r)); }
+  const rowMid = (n, row, h) => MARGIN + (n - 1 - row + 0.5) * rowH(n, h);
+
+  /* ---------- contact classes ---------- */
+  /* Two kinds (the owner, 24 Nov 2026, after three calibrations: "three distinct types simply won't work"):
+     NOT FLAT (any ordinary press, fingertip included) and FLAT (the thumb pad laid down). One cut point. */
+  const CLASSES = ["normal", "flat"];
+  const classify = (th, size) => (!th || size == null ? null : size < th.t1 ? "normal" : "flat");
+  /* The largest size seen within `ms` of landing (seq: [[ms after landing, size], ...]). */
+  function sizeAt(seq, ms) { let m = null; for (const [dt, v] of seq) if (dt <= ms + 0.5 && (m === null || v > m)) m = v; return m; }
+  /* The cut point with the fewest calibration taps on the wrong side; ties go to the cut farthest from
+     the nearest tap. by = {normal:[sizes], flat:[sizes]}. */
+  function fitThresholds(by) {
+    if (CLASSES.some((c) => !by[c] || !by[c].length)) return null;
+    const all = CLASSES.flatMap((c) => by[c]);
+    const vals = [...new Set(all)].sort((a, b) => a - b);
+    const cuts = [vals[0] - 1];
+    for (let i = 1; i < vals.length; i++) cuts.push((vals[i - 1] + vals[i]) / 2);
+    cuts.push(vals[vals.length - 1] + 1);
+    const gap = (c) => Math.min(...all.map((v) => Math.abs(v - c)));
+    let best = null;
+    for (const t1 of cuts) {
+      const th = { t1 };
+      let err = 0; for (const c of CLASSES) for (const v of by[c]) if (classify(th, v) !== c) err++;
+      const margin = gap(t1);
+      if (!best || err < best.err || (err === best.err && margin > best.margin)) best = { t1, err, margin };
+    }
+    const confusion = {}; for (const c of CLASSES) { confusion[c] = { normal: 0, flat: 0 }; for (const v of by[c]) confusion[c][classify(best, v)]++; }
+    const hist = vals.map((v) => [v, ...CLASSES.map((c) => by[c].filter((x) => x === v).length)]);
+    const n = all.length;
+    return { t1: best.t1, errors: best.err, n, errorRate: best.err / n, confusion, hist,
+      overlap: by.normal.filter((v) => v >= Math.min(...by.flat)).length + by.flat.filter((v) => v <= Math.max(...by.normal)).length };
+  }
+  /* How long after landing the class stopped changing (ms), from a size sequence. */
+  function stableAfter(th, seq) {
+    let last = 0, prev = null;
+    for (const [dt, v] of seq) { const c = classify(th, v); if (prev !== null && c !== prev) last = dt; prev = c; }
+    return last;
+  }
+
+  /* ---------- tilt: gravity in, musical parameters out ---------- */
+  /* LEAN = the screen's angle to the horizontal: 0° flat face up, 90° upright facing you, below 0° tipped
+     past flat (top edge away and down), above 90° tipped past upright. Measured absolutely from gravity,
+     so the owner's natural hold (45°) is the centre by default and needs no "set neutral".
+     v = (centre − lean) / span: 0 at the centre, +1 at flat, −1 at upright (span 45°); flatter is positive.
+     ROLL = turning the phone like a steering wheel, relative to the neutral (set neutral).
+     The face-up direction of the sensor's z axis and the in-plane "down" are taken from the first reading
+     (the phone held, not lying flat), so the sign conventions of the browser do not matter.
+     SOURCE "fused" (default): the gravity direction is carried forward by the gyroscope (fast, no jolts)
+     and pulled slowly toward the accelerometer's gravity (no drift): a complementary filter. The
+     gyroscope's sign and unit conventions are not assumed: four candidate trackers run side by side
+     (±, degrees or radians per second) and the one that best predicts the accelerometer is used.
+     SOURCE "gravity": the accelerometer alone, low-passed (P.tiltTau), as before. */
+  /* Candidate readings of rotationRate: axis labelling × sign × units. "standard": the spec's (alpha about z,
+     beta about x, gamma about y); "swapped": alpha, beta, gamma about x, y, z, as WebKit is reported to label
+     them (the owner's tilt felt late on an iPhone, 24 Nov 2026: if only the standard labelling is tried and
+     Safari uses the other, the gyroscope is wasted and tilt waits for the slow gravity correction). */
+  const CANDS = [];
+  for (const map of ["swapped", "standard"]) for (const sg of [1, -1]) for (const k of [Math.PI / 180, 1]) CANDS.push([map, sg, k]);
+  const wOf = (c, r) => { const f = c.sg * c.k; return c.map === "standard" ? [r.beta * f, r.gamma * f, r.alpha * f] : [r.alpha * f, r.beta * f, r.gamma * f]; };
+  class TiltReader {
+    constructor(emit) { this.emit = emit; this.g = null; this.gl = null; this.ref = null; this.rollZero = null; this.lean = 0; this.v = 0; this.roll = 0; this.octave = 0; this.breath = 0; this.lastT = 0; this.cands = null; this.best = 0; this.source = "gravity"; }
+    /* the fused gravity estimate: returns false if no gyroscope data */
+    fuse(dt, gm, rot, P) {
+      if (!rot || rot.alpha == null || rot.beta == null || rot.gamma == null) return false;
+      if (!this.cands) this.cands = CANDS.map(([map, sg, k]) => ({ map, sg, k, g: gm.slice(), err: 0 }));
+      const corr = Math.min(1, dt / Math.max(0.05, P.gyroCorrS));
+      for (const c of this.cands) {
+        const w = wOf(c, rot); // about x, y, z
+        const g = c.g, cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        const pred = [g[0] - cr[0] * dt, g[1] - cr[1] * dt, g[2] - cr[2] * dt]; // a world-fixed vector seen from a rotating body
+        // judged against the raw accelerometer (unbiased; its jolts are the same for every candidate), over ~1 s
+        const cos = (pred[0] * gm[0] + pred[1] * gm[1] + pred[2] * gm[2]) / (Math.hypot(...pred) * Math.hypot(...gm) || 1);
+        c.err += (Math.acos(Math.max(-1, Math.min(1, cos))) - c.err) * Math.min(1, dt / 1);
+        c.g = pred.map((v, i) => v + (gm[i] - v) * corr);
+      }
+      const cur = this.cands[this.best];
+      this.cands.forEach((c, i) => { if (c.err < cur.err * 0.7 - 1e-4) this.best = i; });
+      this.g = this.cands[this.best].g;
+      this.rot = rot;
+      return true;
+    }
+    gyroLabel() { if (this.source !== "fused" || !this.cands) return this.source; const c = this.cands[this.best]; return `gyro (${c.map} axes, sign ${c.sg > 0 ? "+" : "−"}, ${c.k === 1 ? "rad" : "deg"}/s)`; }
+    takeRef() {
+      const g = this.g, m = Math.hypot(g[0], g[1]);
+      if (m < 1) return false; // lying flat: wait for a held reading
+      this.ref = { s: Math.sign(g[2]) || 1, ux: g[0] / m, uy: g[1] / m };
+      return true;
+    }
+    leanOf(g) { const m = Math.hypot(g[0], g[1]), dot = g[0] * this.ref.ux + g[1] * this.ref.uy; return Math.atan2(Math.sign(dot || 1) * m, this.ref.s * g[2]) * 180 / Math.PI; }
+    setNeutral() { if (!this.g) return null; if (!this.ref) this.takeRef(); this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI; return this.ref ? { lean: this.leanOf(this.g), roll: 0 } : null; }
+    feed(t, gx, gy, gz, P, rot) {
+      if (gx == null) return;
+      const first = !this.g, dtMs = first ? 0 : Math.max(0, Math.min(100, t - this.lastT));
+      this.lastT = t;
+      const gm = [gx, gy, gz];
+      // the accelerometer, low-passed: the "gravity only" estimate, and the reference the gyro trackers are judged by
+      const a = this.gl ? 1 - Math.exp(-dtMs / Math.max(1, P.tiltTau)) : 1;
+      this.gl = this.gl ? this.gl.map((v, i) => v + (gm[i] - v) * a) : gm.slice();
+      if (P.tiltSource === "fused" && !first && this.fuse(dtMs / 1000, gm, rot, P)) this.source = "fused";
+      else { this.g = this.gl.slice(); this.source = "gravity"; if (P.tiltSource !== "fused") this.cands = null; }
+      if (!this.ref && !this.takeRef()) return;
+      if (this.rollZero === null) this.rollZero = Math.atan2(this.g[0], this.g[1]) * 180 / Math.PI;
+      // look-ahead: the gyroscope's rotation speed carries the estimate tiltLookMs into the future, to cancel the
+      // sensor's own delay (the owner: no latency in a mechanic). Fused source only.
+      let gNow = this.g;
+      if (this.source === "fused" && P.tiltLookMs > 0 && this.rot) {
+        const c = this.cands[this.best], la = P.tiltLookMs / 1000, r = this.rot;
+        const w = wOf(c, r), g = this.g;
+        const cr = [w[1] * g[2] - w[2] * g[1], w[2] * g[0] - w[0] * g[2], w[0] * g[1] - w[1] * g[0]];
+        gNow = [g[0] - cr[0] * la, g[1] - cr[1] * la, g[2] - cr[2] * la];
+      }
+      let lean = this.leanOf(gNow);
+      if (P.invLean) lean = 2 * P.centreDeg - lean;
+      let roll = Math.atan2(gNow[0], gNow[1]) * 180 / Math.PI - this.rollZero; roll = ((roll + 540) % 360) - 180;
+      if (P.invRoll) roll = -roll;
+      this.lean = lean; this.roll = roll;
+      const v = Math.max(-1.6, Math.min(1.6, (P.centreDeg - lean) / P.spanDeg));
+      this.v = v;
+      // continuous uses: a small dead zone round the centre, and a little room past flat/upright (to ±1.2)
+      const dz = P.deadDeg / P.spanDeg;
+      const cont = Math.sign(v) * Math.min(1.2, Math.max(0, Math.abs(v) - dz) / (1 - dz));
+      // octave steps with hysteresis, at lean angles set in degrees (up1: one octave up at or flatter than it,
+      // up2: two up; down1, down2 likewise toward upright), kept in order round the centre
+      const h = P.octHystDeg / P.spanDeg, toV = (deg) => (P.centreDeg - deg) / P.spanDeg;
+      const up1 = Math.min(P.up1Deg, P.centreDeg - 1), up2 = Math.min(P.up2Deg, up1 - 1), dn1 = Math.max(P.down1Deg, P.centreDeg + 1), dn2 = Math.max(P.down2Deg, dn1 + 1);
+      const B = { 0: toV(up1), 1: toV(up2), "-1": toV(dn1), "-2": toV(dn2) };
+      const between = (k) => B[k]; // the boundary between step k and k+1
+      let o = this.octave;
+      for (let k = 0; k < 4; k++) {
+        if (o < 2 && v >= between(o) + h / 2) o++;
+        else if (o > -2 && v <= between(o - 1) - h / 2) o--;
+        else break;
+      }
+      this.octave = P.leanMode === "octave" ? o : 0;
+      // breath: where v sits inside the current step (−0.5…+0.5 round its middle), like blowing harder toward the break
+      const mid = (k) => ({ 0: (B[-1] + B[0]) / 2, 1: (B[0] + B[1]) / 2, 2: B[1] + 0.3, "-1": (B[-2] + B[-1]) / 2, "-2": B[-2] - 0.3 })[k];
+      this.breath = P.leanMode === "octave" ? Math.max(-0.6, Math.min(0.6, v - mid(this.octave))) : 0;
+      const ru = Math.sign(roll) * Math.min(1, Math.max(0, Math.abs(roll) - P.deadDeg) / Math.max(1, P.rollFullDeg - P.deadDeg));
+      this.emit({ type: "tilt", t, octave: this.octave,
+        bend: (P.leanMode === "bend" ? cont * P.bendRange : 0) + (P.rollMode === "bend" ? ru * P.bendRange : 0),
+        vib: P.rollMode === "vibrato" ? Math.abs(ru) * P.vibMax : 0,
+        bright: P.leanMode === "brightness" ? cont * P.leanBright * 1200 : P.leanMode === "octave" ? this.breath * P.breathBright : 0 });
+    }
+  }
+
+  class TouchGestures {
+    /* areas(): {left: DOMRect, right: DOMRect}; rows(): pitch list; emit(event);
+       opts(): {contactOn, decideMs, cal: {left: thresholds|null, right: ...}, sizeRange: {left:[lo,hi], right:[lo,hi]}} */
+    constructor(areas, rows, emit, opts) {
+      this.areas = areas; this.rows = rows; this.emit = emit; this.held = new Map();
+      this.opts = opts || (() => ({ contactOn: false, decideMs: 0, cal: {}, sizeRange: {} }));
+      this.stable = []; // ms until the class settled, recent notes
+      this.hitFn = null; // (side, x, y) -> row; the piano layout sets it, else rows by height
+    }
+    rowOf(side, x, y) { const r = this.areas()[side]; return this.hitFn ? this.hitFn(side, x, y) : rowAt(this.rows().length, y - r.top, r.height); }
+    th(side) { const o = this.opts(); return o.contactOn ? (o.cal[side] || null) : null; }
+    norm(side, size) { const r = (this.opts().sizeRange || {})[side] || [24, 194]; return Math.max(0, Math.min(1, (size - r[0]) / Math.max(1, r[1] - r[0]))); }
+    fire(id, hd, t) {
+      hd.fired = true;
+      const size = sizeAt(hd.seq, this.opts().decideMs);
+      const cls = classify(this.th(hd.side), size);
+      hd.cls = cls; hd.norm0 = size == null ? 0 : this.norm(hd.side, size);
+      this.emit({ type: "onset", id, t, side: hd.side, row: hd.row, midi: this.rows()[hd.row], cls, size, norm: hd.norm0, contact: hd.contact });
+    }
+    sideAt(x, y) {
+      const A = this.areas();
+      for (const side of ["left", "right"]) { const r = A[side]; if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return side; }
+      return null;
+    }
+    down(id, t, x, y, contact) {
+      const side = this.sideAt(x, y);
+      if (!side) return false;
+      const row = this.rowOf(side, x, y);
+      const size = contact && contact.width > 1 ? contact.width : null;
+      const hd = { side, row, setY: y, setX: x, pend: null, t0: t, seq: size == null ? [] : [[0, size]], fired: false, contact };
+      this.held.set(id, hd);
+      if (!(this.th(side) && this.opts().decideMs > 0)) this.fire(id, hd, t);
+      return true;
+    }
+    move(id, t, x, y, contact) {
+      const hd = this.held.get(id);
+      if (!hd) return;
+      const size = contact && contact.width > 1 ? contact.width : null;
+      if (size != null) {
+        if (t - hd.t0 <= 400) hd.seq.push([t - hd.t0, size]);
+        if (hd.fired) this.emit({ type: "contact", id, t, size, norm: this.norm(hd.side, size), norm0: hd.norm0 });
+      }
+      const r = this.areas()[hd.side], n = this.rows().length;
+      const row = this.rowOf(hd.side, x, y);
+      // free.ts: on the keyboard a slide may go sideways (white to black and back): the distance moved, both ways
+      const moved = this.hitFn ? Math.hypot(x - hd.setX, y - hd.setY) : Math.abs(y - hd.setY);
+      if (row === hd.row || moved < Math.max(SLIDE_MIN_PX, rowH(n, r.height) * 0.5)) { hd.pend = null; return; }
+      if (!hd.pend || hd.pend.row !== row) hd.pend = { row, since: t, y, x };
+      else { hd.pend.y = y; hd.pend.x = x; }
+      this.tick(t);
+    }
+    tick(t) {
+      const rows = this.rows();
+      for (const [id, hd] of this.held) {
+        if (!hd.fired && t - hd.t0 >= this.opts().decideMs) this.fire(id, hd, t);
+        if (!hd.done && t - hd.t0 > 400) this.settle(hd);
+        const p = hd.pend;
+        const dwell = this.opts().slideDwellMs != null ? this.opts().slideDwellMs : SLIDE_DWELL_MS; // the owner: no latency; default 0 (touchapp)
+        if (!p || t - p.since < dwell) continue;
+        hd.pend = null; hd.row = p.row; hd.setY = p.y; hd.setX = p.x;
+        this.emit({ type: "pitch", id, t, row: p.row, midi: rows[p.row] });
+      }
+    }
+    settle(hd) { hd.done = true; const th = this.th(hd.side); if (th && hd.seq.length) { this.stable.push(stableAfter(th, hd.seq)); if (this.stable.length > 50) this.stable.shift(); } }
+    up(id, t) {
+      const hd = this.held.get(id);
+      if (!hd) return;
+      if (!hd.fired) this.fire(id, hd, t); // a tap shorter than the decision delay still sounds
+      if (!hd.done) this.settle(hd);
+      this.held.delete(id); this.emit({ type: "release", id, t });
+    }
+    releaseAll(t) { for (const id of [...this.held.keys()]) this.up(id, t); }
+  }
+
+  const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const noteName = (m) => NAMES[pcOf(m)] + (Math.floor(m / 12) - 1);
+  window.TouchGest = { WedgeKeyboard, doToDo, Keyboard, KB_DEFAULT, keyboardRows, PIANO_WHITES, TouchGestures, TiltReader, CLASSES, classify, sizeAt, fitThresholds, stableAfter, freeRows, rowAt, rowMid, rowH, noteName, NAMES, MARGIN, SLIDE_DWELL_MS };
+})();
+
+</script>
+<script>
+/* Touch-area mode, SOUND LAYER: musical events in, sound out. Knows nothing about touches.
+   One voice per held thumb. The contact class picks the timbre:
+     null / "normal": two slightly detuned saws through a low-pass, short attack, gentle decay to a sustain;
+     "tip": a bell (four inharmonic sine partials, each decaying on its own);
+     "flat": a short muted tone (dark triangle + saw, gone in ~0.2 s even if held).
+   "contact" events on held notes move loudness and brightness relative to the onset (setTargetAtTime,
+   the smoothing time from settings). "tilt" events bend (or set vibrato depth on) every sounding note
+   and shift brightness, through shared nodes (a ConstantSource into each oscillator's detune, an LFO
+   for vibrato, a ConstantSource into each filter's detune). Plus the optional background loop. */
+(function () {
+  "use strict";
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const BELL = [[1, 1, 1.8], [2.76, 0.45, 0.9], [5.4, 0.22, 0.5], [8.93, 0.1, 0.3]]; // ratio, level, decay s
+
+  class TouchSound {
+    constructor(ctx) {
+      this.ctx = ctx; this.voices = new Map(); this.oct = 0; // tilt's octave step (recorder-style overblowing)
+      // octave latch (the owner, 24 Nov 2026): on, a held note keeps the octave it began in; tilt sets the next note's
+      this.latch = true;
+      this.P = { ctDb: 4, ctBright: 0.6, ctTau: 80 };
+      this.out = ctx.createGain(); this.out.gain.value = 0.5; this.out.connect(ctx.destination);
+      const sr = ctx.sampleRate, nb = ctx.createBuffer(1, sr, sr), d = nb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      this.noise = nb;
+      this.loop = null;
+      // tilt: shared modulation sources
+      this.bend = ctx.createConstantSource(); this.bend.offset.value = 0; this.bend.start();
+      this.lfo = ctx.createOscillator(); this.lfo.frequency.value = 5.5; this.lfo.start();
+      this.vib = ctx.createGain(); this.vib.gain.value = 0; this.lfo.connect(this.vib);
+      this.tiltBright = ctx.createConstantSource(); this.tiltBright.offset.value = 0; this.tiltBright.start();
+    }
+    pitchMod(o) { this.bend.connect(o.detune); this.vib.connect(o.detune); }
+    handle(ev) {
+      const c = this.ctx, t = c.currentTime;
+      if (ev.type === "onset") {
+        this.stopVoice(ev.id, t);
+        const f = hz(ev.midi + 12 * this.oct), lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain(), oscs = [];
+        lp.type = "lowpass"; env.gain.value = 0;
+        this.tiltBright.connect(lp.detune);
+        const osc = (type, ratio, det) => { const o = c.createOscillator(); o.type = type; o.frequency.value = f * ratio; o.detune.value = det; this.pitchMod(o); o.start(t); oscs.push([o, ratio]); return o; };
+        if (ev.cls === "tip") {
+          lp.frequency.value = Math.min(16000, f * 14); lp.Q.value = 0.5;
+          for (const [r, lvl, dec] of BELL) { const o = osc("sine", r, 0), g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(lvl, t + 0.002); g.gain.setTargetAtTime(0, t + 0.002, dec / 3); o.connect(g); g.connect(lp); }
+          env.gain.setValueAtTime(0.3, t);
+        } else if (ev.cls === "flat") {
+          lp.frequency.value = Math.min(4000, f * 2.2); lp.Q.value = 0.4;
+          const a = osc("triangle", 1, 0), b = osc("sawtooth", 1, 0), gb = c.createGain(); gb.gain.value = 0.35;
+          a.connect(lp); b.connect(gb); gb.connect(lp);
+          env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(0.32, t + 0.003); env.gain.setTargetAtTime(0, t + 0.01, 0.05);
+        } else {
+          lp.frequency.value = Math.min(9000, f * 6); lp.Q.value = 0.8;
+          osc("sawtooth", 1, -6).connect(lp); osc("sawtooth", 1, 6).connect(lp);
+          env.gain.setTargetAtTime(0.22, t, 0.004); env.gain.setTargetAtTime(0.13, t + 0.03, 0.25);
+        }
+        lp.connect(env); env.connect(expr); expr.connect(this.out);
+        this.voices.set(ev.id, { oscs, lp, env, expr, cls: ev.cls, midi: ev.midi, oct: this.oct });
+      } else if (ev.type === "pitch") {
+        const v = this.voices.get(ev.id); if (!v) return;
+        v.midi = ev.midi;
+        for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(ev.midi + 12 * v.oct) * r, t, 0.01);
+      } else if (ev.type === "contact") {
+        const v = this.voices.get(ev.id); if (!v || v.cls === "flat") return;
+        const d = ev.norm - ev.norm0, tau = this.P.ctTau / 1000;
+        v.expr.gain.setTargetAtTime(Math.pow(10, (d * this.P.ctDb) / 20), t, tau);
+        v.lp.detune.setTargetAtTime(d * this.P.ctBright * 1200, t, tau);
+      } else if (ev.type === "tilt") {
+        if ((ev.octave || 0) !== this.oct) {
+          this.oct = ev.octave || 0;
+          // latch off: held notes jump with the octave, slurred (no new attack); latch on: they keep theirs
+          if (!this.latch) for (const v of this.voices.values()) { v.oct = this.oct; for (const [o, r] of v.oscs) o.frequency.setTargetAtTime(hz(v.midi + 12 * v.oct) * r, t, 0.006); }
+        }
+        this.bend.offset.setTargetAtTime(ev.bend * 100, t, 0.02);
+        this.vib.gain.setTargetAtTime(ev.vib, t, 0.03);
+        this.tiltBright.offset.setTargetAtTime(ev.bright, t, 0.03);
+      } else if (ev.type === "release") this.stopVoice(ev.id, t);
+    }
+    resetTilt() { const t = this.ctx.currentTime; this.handle({ type: "tilt", octave: 0, bend: 0, vib: 0, bright: 0 }); this.bend.offset.setTargetAtTime(0, t, 0.02); this.vib.gain.setTargetAtTime(0, t, 0.02); this.tiltBright.offset.setTargetAtTime(0, t, 0.02); }
+    stopVoice(id, t) {
+      const v = this.voices.get(id); if (!v) return;
+      this.voices.delete(id);
+      v.env.gain.cancelScheduledValues(t); v.env.gain.setTargetAtTime(0, t, v.cls === "tip" ? 0.06 : 0.04);
+      for (const [o] of v.oscs) o.stop(t + 0.5);
+      setTimeout(() => { try { this.tiltBright.disconnect(v.lp.detune); for (const [o] of v.oscs) { this.bend.disconnect(o.detune); this.vib.disconnect(o.detune); } } catch (e) { /* gone */ } }, 700);
+    }
+    silence() { const t = this.ctx.currentTime; for (const id of [...this.voices.keys()]) this.stopVoice(id, t); }
+
+    /* ---- background loop: kick, soft backbeat, eighth hats, a two-note bass on the tonic and fifth ---- */
+    startLoop(bpm, tonicMidi, level) {
+      this.stopLoop();
+      const c = this.ctx, bus = c.createGain(); bus.gain.value = level; bus.connect(c.destination);
+      const L = { bus, bpm, tonic: tonicMidi, next: c.currentTime + 0.08, step: 0 };
+      L.t0 = L.next; // the first downbeat (context time); beat k at t0 + k × 60/bpm while the tempo is unchanged
+      L.timer = setInterval(() => {
+        const spb = 60 / L.bpm / 2; // eighth notes
+        while (L.next < c.currentTime + 0.12) { this.loopStep(L, L.step, L.next); L.next += spb; L.step = (L.step + 1) % 8; }
+      }, 25);
+      this.loop = L;
+      return L.t0;
+    }
+    setLoop(bpm, tonicMidi, level) { if (!this.loop) return; this.loop.bpm = bpm; this.loop.tonic = tonicMidi; this.loop.bus.gain.setTargetAtTime(level, this.ctx.currentTime, 0.05); }
+    stopLoop() { if (!this.loop) return; clearInterval(this.loop.timer); const b = this.loop.bus; b.gain.setTargetAtTime(0, this.ctx.currentTime, 0.03); setTimeout(() => b.disconnect(), 300); this.loop = null; }
+    loopStep(L, s, t) {
+      const c = this.ctx, bus = L.bus;
+      const hit = (dur, make) => { const g = c.createGain(); g.connect(bus); make(g); setTimeout(() => g.disconnect(), (dur + 0.5) * 1000); };
+      if (s === 0 || s === 4) hit(0.3, (g) => { const o = c.createOscillator(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.connect(g); o.start(t); o.stop(t + 0.3); });
+      if (s === 2 || s === 6) hit(0.2, (g) => { const n = c.createBufferSource(); n.buffer = this.noise; const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1800; g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12); n.connect(f); f.connect(g); n.start(t, Math.random() * 0.5); n.stop(t + 0.15); });
+      hit(0.1, (g) => { const n = c.createBufferSource(); n.buffer = this.noise; const f = c.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7000; g.gain.setValueAtTime(s % 2 ? 0.08 : 0.14, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); n.connect(f); f.connect(g); n.start(t, Math.random() * 0.5); n.stop(t + 0.05); });
+      if (s === 0 || s === 4) hit(60 / L.bpm + 0.4, (g) => { const o = c.createOscillator(); o.type = "triangle"; o.frequency.value = hz(L.tonic - 24 + (s === 4 ? 7 : 0)); const o2 = c.createOscillator(); o2.type = "sawtooth"; o2.frequency.value = o.frequency.value; const f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 500; const g2 = c.createGain(); g2.gain.value = 0.25; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.6, t + 0.01); g.gain.setTargetAtTime(0, t + 60 / L.bpm - 0.05, 0.05); o.connect(g); o2.connect(g2); g2.connect(f); f.connect(g); const end = t + 60 / L.bpm + 0.4; o.start(t); o2.start(t); o.stop(end); o2.stop(end); });
+    }
+  }
+  window.TouchSound = { TouchSound, hz };
+})();
+
+</script>
+<script>
+/* The start screen, and the touch-area mode's page: layout, input wiring (raw input -> TouchGest ->
+   events -> TouchSound), the diagnostics probe, motion sensors, loop controls, the CSV box. */
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const G = window.TouchGest, S = window.TouchSound, SH = window.Shared;
+  const now = () => performance.now();
+  const inFrame = (() => { try { return window.top !== window; } catch (e) { return true; } })();
+
+  /* ---------- modes ---------- */
+  window.__mode = "home";
+  function show(mode) {
+    window.__mode = mode;
+    $("home").hidden = mode !== "home"; $("bowedMode").hidden = mode !== "bowed"; $("touchMode").hidden = mode !== "touch"; $("loopMode").hidden = mode !== "loop";
+    if (mode === "bowed" && window.__bowedEnter) window.__bowedEnter();
+    if (mode === "loop" && window.__loopEnter) window.__loopEnter();
+    if (mode === "touch") enterTouch();
+  }
+  window.__home = () => { if (window.__mode === "touch") leaveTouch(); if (window.__mode === "loop" && window.__loopLeave) window.__loopLeave(); show("home"); };
+  $("goLoop").onclick = () => {
+    ctx = SH.unlockAudio(tlog);
+    if (T.tiltOn && sens.status === "not requested") requestSensors(); // motion permission must be asked from this tap
+    show("loop");
+  };
+  $("goBowed").onclick = () => show("bowed");
+  $("goTouch").onclick = () => {
+    ctx = SH.unlockAudio(tlog); // sound first; the permission prompt below may pause it (resumed on the next tap)
+    requestSensors(); // must run inside this tap (iOS asks for motion permission only from a user gesture)
+    show("touch");
+  };
+
+  /* ---------- settings ---------- */
+  const T_DEFAULTS = { tonic: 2, minor: false, octaves: 1, octLatch: true, ver: 3, mid: 62, loopOn: false, bpm: 84, loopLevel: 0.5,
+    layout: "piano", kbSplit: 0.6, kbBlack: 0.5, kbEdge: 0.9, kbSlant: 0.2, tiltSource: "fused", gyroCorrS: 0.8,
+    contactOn: false, decideMs: 0, ctDb: 4, ctBright: 0.6, ctTau: 80,
+    tiltOn: false, leanMode: "octave", rollMode: "off", centreDeg: 45, spanDeg: 45, deadDeg: 3, up1Deg: 22, up2Deg: -11, down1Deg: 68, down2Deg: 101, octHystDeg: 2, tiltLookMs: 20, slideDwellMs: 0,
+    breathBright: 500, leanBright: 1, bendRange: 2, vibMax: 50, rollFullDeg: 30, tiltTau: 120, invLean: false, invRoll: false };
+  let T = Object.assign({}, T_DEFAULTS);
+  try { Object.assign(T, JSON.parse(localStorage.getItem("touchtest") || "{}")); } catch (e) { /* none */ }
+  T.loopOn = false;
+  // settings version 2 (24 Nov 2026, the owner: no latency): bring the delay-related settings saved by older
+  // versions to the new defaults once
+  if ((T.ver || 0) < 2) { for (const k of ["octHystDeg", "tiltLookMs", "slideDwellMs", "tiltSource", "tiltTau", "gyroCorrS", "decideMs"]) T[k] = T_DEFAULTS[k]; T.ver = 2; }
+  // version 3 (the owner: keys too small): one octave on screen (tilt reaches the others), octave latch on
+  if (T.ver < 3) { T.octaves = 1; T.octLatch = true; T.ver = 3; }
+  T.layout = "piano"; // the owner, 24 Nov 2026: the piano only ("we don't want to go back")
+  const save = () => { try { localStorage.setItem("touchtest", JSON.stringify(T)); } catch (e) { /* none */ } };
+  let ROWS = [];
+  const computeRows = () => { ROWS = G.doToDo(T.tonic, T.minor, T.octaves, T.layout === "piano"); };
+  computeRows();
+
+  /* ---------- layers ---------- */
+  let ctx = null, sound = null;
+  const TLOG = [];
+  function tlog(m) { TLOG.push(((now()) / 1000).toFixed(3) + "  " + m); if (TLOG.length > 500) TLOG.shift(); }
+  const active = new Map(); // gesture id -> row, for drawing
+  /* ---------- contact-size calibration (kept on this device) ---------- */
+  let CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null };
+  try { const c = JSON.parse(localStorage.getItem("touchcal") || "null"); if (c && c.samples) CAL = c; } catch (e) { /* none */ }
+  let FIT = { left: null, right: null }, RANGE = {};
+  function refit() {
+    for (const side of ["left", "right"]) {
+      // two kinds: earlier three-kind calibrations count their fingertip taps as "not flat"
+      const at = (c) => (CAL.samples[side][c] || []).map((q) => G.sizeAt(q, T.decideMs)).filter((v) => v != null);
+      const by = { normal: at("tip").concat(at("normal")), flat: at("flat") };
+      FIT[side] = G.fitThresholds(by);
+      const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+      RANGE[side] = FIT[side] ? [mean(by.normal), mean(by.flat)] : [24, 194];
+    }
+  }
+  refit();
+  const gopts = () => ({ contactOn: T.contactOn, decideMs: T.decideMs, cal: FIT, sizeRange: RANGE, slideDwellMs: T.slideDwellMs });
+  const listeners = [];
+  const onEvent = (ev) => {
+    for (const f of listeners) f(ev);
+    if (ev.type === "onset" || ev.type === "pitch") active.set(ev.id, { row: ev.row, side: ev.side || (active.get(ev.id) || {}).side });
+    if (ev.type === "release") active.delete(ev.id);
+    if (ev.type === "onset") { lastOnset = ev; SH.csv.add({ mode: "touch", event: "onset", id: ev.id, zone: ev.side, width: ev.size, note: (ev.cls || "") + " " + G.noteName(ev.midi) }); }
+    if (sound) sound.handle(ev);
+    if (ev.type !== "tilt") lastEv = ev;
+  };
+  const gest = new G.TouchGestures(() => ({ left: rect.left, right: rect.right }), () => ROWS, onEvent, gopts);
+  const tilt = new G.TiltReader(onEvent);
+  let lastEv = null, lastOnset = null;
+  const motionListeners = [];
+  function onMotion(e) {
+    for (const f of motionListeners) f(e);
+    if (!T.tiltOn || window.__mode !== "touch") return;
+    const g = e.accelerationIncludingGravity; if (!g || g.x == null) return;
+    tilt.feed(now(), g.x, g.y, g.z, T, e.rotationRate);
+  }
+
+  /* ---------- layout ---------- */
+  const rect = { left: null, right: null };
+  function layout() {
+    const W = innerWidth, H = innerHeight, MX = 48, MY = 44;
+    // wide thumb areas (the owner: keys too small); a narrow centre strip; the panel opens over them
+    const CW = Math.round(Math.max(96, Math.min(130, W * 0.14))), aw = Math.min(360, Math.floor((W - 2 * MX - CW - 16) / 2)), h = H - 2 * MY;
+    Object.assign($("tL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    Object.assign($("tR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    const cl = MX + aw + 8, cw = W - 2 * MX - 2 * aw - 16, pw = Math.min(340, W - 2 * MX);
+    Object.assign($("tPanel").style, { left: (W - pw) / 2 + "px", width: pw + "px", top: "8px", height: H - 16 + "px" });
+    Object.assign($("tCentre").style, { left: cl + "px", width: cw + "px", top: "8px" });
+    Object.assign($("calPanel").style, { left: cl + "px", width: cw + "px", top: MY + "px" });
+    Object.assign($("prPanel").style, { left: cl + "px", width: cw + "px", top: "10px" });
+    const d = drawAreas($("tL"), $("tR"));
+    rect.left = d.rect.left; rect.right = d.rect.right; gest.hitFn = d.hit;
+  }
+  /* Draws the two thumb areas (rows, or the D330 piano) into elL / elR as they stand on screen, and returns
+     their rects and the hit function for the gesture layer (null: rows by height). Shared with the Loop maker. */
+  function drawAreas(elL, elR) {
+    const rect = { left: elL.getBoundingClientRect(), right: elR.getBoundingClientRect() };
+    const KB = {};
+    for (const side of ["L", "R"]) {
+      const el = side === "L" ? elL : elR, r = side === "L" ? rect.left : rect.right;
+      el.innerHTML = "";
+      if (T.layout === "piano") {
+        // D330's keyboard: black keys on the inner edge (toward the screen's centre), mirrored
+        const kb = (KB[side] = new G.WedgeKeyboard(ROWS, G.PIANO_WHITES, { split: T.kbSplit, black: T.kbBlack, edge: T.kbEdge, slant: T.kbSlant }, r.width, r.height));
+        const X = (u) => (side === "L" ? r.width - u : u);
+        let svg = `<svg width="${r.width}" height="${r.height}" style="position:absolute;left:0;top:0">`;
+        for (const k of kb.keys) if (k.white) svg += `<rect class="wk${pcName(k.midi) === G.NAMES[T.tonic] ? " tonic" : ""}" data-row="${k.row}" x="0" y="${k.y - k.h / 2}" width="${r.width}" height="${k.h}"/><text x="${side === "L" ? 6 : r.width - 6}" y="${k.y + 3}" text-anchor="${side === "L" ? "start" : "end"}" class="kt">${G.noteName(k.midi)}</text>`;
+        for (const k of kb.keys) if (!k.white) svg += `<polygon class="bk" data-row="${k.row}" points="${k.poly.map(([u, y]) => X(u) + "," + y).join(" ")}"/>`;
+        el.innerHTML = svg + "</svg>";
+      } else ROWS.forEach((m, i) => {
+        const d = document.createElement("div"); d.className = "trow" + (G.NAMES[m % 12] === G.NAMES[T.tonic] ? " tonic" : "");
+        const rh = G.rowH(ROWS.length, r.height);
+        Object.assign(d.style, { top: G.rowMid(ROWS.length, i, r.height) - rh / 2 + "px", height: rh + "px" });
+        d.textContent = G.noteName(m); d.dataset.row = i; el.appendChild(d);
+      });
+    }
+    const hit = T.layout === "piano" ? (side, x, y) => {
+      const r = rect[side], u = side === "left" ? r.right - x : x - r.left;
+      return KB[side === "left" ? "L" : "R"].hit(u, y - r.top).row;
+    } : null;
+    return { rect, hit };
+  }
+  const pcName = (m) => G.NAMES[((m % 12) + 12) % 12];
+  addEventListener("resize", () => { if (window.__mode === "touch") layout(); });
+
+  /* ---------- controls ---------- */
+  const KEYS = G.NAMES.map((n, i) => [i, n]);
+  $("tKey").innerHTML = KEYS.map(([i, n]) => `<option value="${i}">${n}</option>`).join("");
+  $("tKey").value = T.tonic; $("tMinor").value = T.minor ? "1" : "0"; $("tOct").value = T.octaves; $("tLayout").value = T.layout;
+  const remap = () => {
+    T.tonic = +$("tKey").value; T.minor = $("tMinor").value === "1"; T.octaves = +$("tOct").value; T.layout = $("tLayout").value;
+    T.mid = 60 + T.tonic; // the rows centred on the tonic nearest middle C (the game centres them on a voice's range)
+    computeRows(); save(); layout(); tlog(`rows: ${ROWS.map(G.noteName).join(" ")}`);
+    if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel);
+  };
+  $("tKey").onchange = $("tMinor").onchange = $("tOct").onchange = $("tLayout").onchange = remap;
+  const slider = (id, key, fmt) => { const r = $(id), o = $(id + "o"); r.value = T[key]; o.textContent = fmt(T[key]); r.oninput = () => { T[key] = +r.value; o.textContent = fmt(T[key]); save(); if (sound) sound.setLoop(T.bpm, T.mid, T.loopLevel); }; };
+  slider("tBpm", "bpm", (v) => v + " ♩/min"); slider("tLvl", "loopLevel", (v) => v.toFixed(2));
+  $("tLoop").onclick = () => {
+    T.loopOn = !T.loopOn; $("tLoop").textContent = "Loop: " + (T.loopOn ? "on" : "off"); $("tLoop").classList.toggle("sel", T.loopOn);
+    if (!sound) return;
+    if (T.loopOn) sound.startLoop(T.bpm, T.mid, T.loopLevel); else sound.stopLoop();
+  };
+  $("tMenu").onclick = () => window.__home();
+  $("tOpen").onclick = () => { $("tPanel").hidden = false; };
+  $("tClose").onclick = () => { $("tPanel").hidden = true; };
+  $("tDiag").onclick = () => { $("diag").hidden = !$("diag").hidden; };
+  $("tCsv").onclick = () => {
+    if (!SH.csv.on) { SH.csv.start(); $("tCsv").textContent = "Stop CSV"; $("tCsv").classList.add("sel"); return; }
+    SH.csv.stop(); $("tCsv").textContent = "Record CSV"; $("tCsv").classList.remove("sel"); window.__showCsv("touch");
+  };
+
+  function enterTouch() {
+    layout();
+    if (!sound && ctx) { sound = new S.TouchSound(ctx); Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
+    if (ctx && ctx.state !== "running") ctx.resume();
+    if (T.loopOn && sound) sound.startLoop(T.bpm, T.mid, T.loopLevel);
+  }
+  function leaveTouch() { gest.releaseAll(now()); if (sound) { sound.silence(); sound.stopLoop(); } }
+
+  /* ---------- CSV box (both modes) ---------- */
+  let csvShown = SH.csv;
+  window.__showCsv = (mode, which) => {
+    csvShown = which || SH.csv;
+    $("csvText").value = csvShown.text(); $("csvMsg").textContent = `${csvShown.rows.length} rows`;
+    $("csvBox").hidden = false; $("csvBox").dataset.mode = mode;
+  };
+  $("csvSave").onclick = async () => { $("csvMsg").textContent = await csvShown.save(`input-${$("csvBox").dataset.mode}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.csv`); };
+  $("csvCopy").onclick = () => SH.copyText($("csvText"), (m) => { $("csvMsg").textContent = m; });
+  $("csvClose").onclick = () => { $("csvBox").hidden = true; };
+
+  /* ---------- the probe: what this browser reports ---------- */
+  const FIELDS = ["radiusX", "radiusY", "rotationAngle", "force", "webkitForce", "webkitRadiusX", "webkitRadiusY", "touchType", "altitudeAngle"];
+  const PFIELDS = ["pointerType", "width", "height", "pressure", "tangentialPressure", "tiltX", "tiltY", "twist"];
+  const stat = {}; // field -> {min, max, vals:Set, n, undef}
+  function note(key, v) {
+    const s = stat[key] || (stat[key] = { min: Infinity, max: -Infinity, vals: new Set(), n: 0, undef: 0 });
+    if (v === undefined) { s.undef++; return; }
+    s.n++; if (typeof v === "number") { s.min = Math.min(s.min, v); s.max = Math.max(s.max, v); }
+    if (s.vals.size < 200) s.vals.add(typeof v === "number" ? Math.round(v * 1000) / 1000 : v);
+  }
+  const liveTouch = new Map(), livePointer = new Map();
+  const sens = { status: "not requested", ori: null, mot: null, nOri: 0, nMot: 0, t0: 0 };
+
+  function requestSensors() {
+    sens.t0 = now();
+    if (!window.isSecureContext) { sens.status = "page is not HTTPS: sensors blocked"; return; }
+    const attach = () => {
+      addEventListener("deviceorientation", (e) => { sens.nOri++; sens.ori = e; SH.csv.add({ mode: "touch", event: "orientation", alpha: e.alpha, beta: e.beta, gamma: e.gamma }); });
+      addEventListener("devicemotion", (e) => { sens.nMot++; sens.mot = e; onMotion(e); const a = e.accelerationIncludingGravity || {}, r = e.rotationRate || {}; SH.csv.add({ mode: "touch", event: "motion", accX: a.x, accY: a.y, accZ: a.z, rotA: r.alpha, rotB: r.beta, rotG: r.gamma }); });
+    };
+    const DOE = window.DeviceOrientationEvent, DME = window.DeviceMotionEvent;
+    if (DOE && typeof DOE.requestPermission === "function") {
+      sens.status = "asking…";
+      const p1 = DOE.requestPermission(), p2 = DME && typeof DME.requestPermission === "function" ? DME.requestPermission() : Promise.resolve("n/a");
+      Promise.all([p1, p2]).then(([a, b]) => { sens.status = `permission: orientation ${a}, motion ${b}`; if (a === "granted" || b === "granted") attach(); },
+        (e) => { sens.status = "permission request failed: " + (e && e.message || e) + (inFrame ? " (inside the claude.ai frame, motion is blocked)" : ""); });
+    } else { sens.status = DOE ? "no permission needed (not iOS?)" : "DeviceOrientationEvent missing"; attach(); }
+  }
+
+  /* ---------- raw input ---------- */
+  const onTouchMode = () => window.__mode === "touch" && $("csvBox").hidden && $("tSet").hidden && $("prOverlay").hidden && $("tPanel").hidden;
+  const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label"));
+  const inArea = (x, y) => gest.sideAt(x, y) !== null;
+  document.addEventListener("pointerdown", (e) => {
+    if (!onTouchMode() || onControl(e) || !inArea(e.clientX, e.clientY)) return;
+    e.preventDefault();
+    const t = SH.evTime(e);
+    livePointer.set(e.pointerId, e); PFIELDS.forEach((k) => note("pointer." + k, e[k]));
+    SH.csv.add({ t_ms: t, mode: "touch", event: "pointerdown", id: e.pointerId, zone: gest.sideAt(e.clientX, e.clientY), x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
+    if (calib) { calDown(e, t); return; }
+    gest.down(e.pointerId, t, e.clientX, e.clientY, contactOf(e));
+  }, { passive: false });
+  document.addEventListener("pointermove", (e) => {
+    if (calib && calRec && calRec.id === e.pointerId) { e.preventDefault(); const dt = SH.evTime(e) - calRec.t0; if (dt <= 400 && e.width > 1) calRec.seq.push([dt, e.width]); return; }
+    if (!gest.held.has(e.pointerId)) return;
+    e.preventDefault();
+    const t = SH.evTime(e);
+    livePointer.set(e.pointerId, e); PFIELDS.forEach((k) => note("pointer." + k, e[k]));
+    SH.csv.add({ t_ms: t, mode: "touch", event: "pointermove", id: e.pointerId, zone: gest.held.get(e.pointerId).side, x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height });
+    gest.move(e.pointerId, t, e.clientX, e.clientY, contactOf(e));
+  }, { passive: false });
+  const pend = (e) => {
+    livePointer.delete(e.pointerId);
+    if (calib && calRec && calRec.id === e.pointerId) { calUp(); return; }
+    if (!gest.held.has(e.pointerId)) return;
+    SH.csv.add({ t_ms: SH.evTime(e), mode: "touch", event: e.type, id: e.pointerId, x: e.clientX, y: e.clientY });
+    gest.up(e.pointerId, SH.evTime(e));
+  };
+  document.addEventListener("pointerup", pend); document.addEventListener("pointercancel", pend);
+
+  /* touch events: the contact data (radius, force) live only here */
+  function onTouch(e) {
+    if (!onTouchMode() || onControl(e)) return;
+    let ours = false;
+    for (const tc of e.changedTouches) {
+      if (e.type === "touchend" || e.type === "touchcancel") { liveTouch.delete(tc.identifier); continue; }
+      if (e.type === "touchstart" && !inArea(tc.clientX, tc.clientY) && !liveTouch.has(tc.identifier)) continue;
+      ours = true;
+      const p = SH.touchProps(tc); p.x = tc.clientX; p.y = tc.clientY;
+      liveTouch.set(tc.identifier, p); FIELDS.forEach((k) => note("touch." + k, p[k]));
+      SH.csv.add({ t_ms: SH.evTime(e), mode: "touch", event: e.type, id: tc.identifier, x: tc.clientX, y: tc.clientY, radiusX: p.radiusX, radiusY: p.radiusY, force: p.force, webkitForce: p.webkitForce });
+    }
+    if (ours && e.cancelable) e.preventDefault();
+  }
+  ["touchstart", "touchmove", "touchend", "touchcancel"].forEach((k) => document.addEventListener(k, onTouch, { passive: false }));
+  /* the latest Touch near a point (pointer and touch ids differ in Safari) */
+  function contactOf(e) { return Object.assign({}, touchFor(e.clientX, e.clientY) || {}, { width: e.width, height: e.height }); }
+  function touchFor(x, y) { let best = null, bd = 60; for (const p of liveTouch.values()) { const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } } return best; }
+
+  /* ---------- calibration: 10 taps per class, per area ---------- */
+  const STEPS = [];
+  for (const side of ["left", "right"]) for (const c of G.CLASSES) STEPS.push({ side, c });
+  const CNAME = { normal: "NOT FLAT\n(your ordinary press)", flat: "FLAT THUMB PAD" };
+  let calib = null, calRec = null;
+  function calStart() {
+    calib = { step: 0, taps: STEPS.map(() => []) };
+    $("tSet").hidden = true; $("tPanel").hidden = true; $("tCentre").hidden = true; $("calPanel").hidden = false; gest.releaseAll(now()); if (sound) sound.silence();
+    calPaint();
+  }
+  function calPaint() {
+    const st = STEPS[calib.step], n = calib.taps[calib.step].length;
+    $("calStep").textContent = `Step ${calib.step + 1} of ${STEPS.length}`;
+    $("calWhat").textContent = `${st.side === "left" ? "LEFT" : "RIGHT"} area\n${CNAME[st.c]}`;
+    $("calCount").textContent = `${n} / 10 taps` + (calRec ? "" : "");
+    $("tL").classList.toggle("target", st.side === "left"); $("tR").classList.toggle("target", st.side === "right");
+  }
+  function calDown(e, t) {
+    const st = STEPS[calib.step];
+    if (gest.sideAt(e.clientX, e.clientY) !== st.side || calRec) return;
+    calRec = { id: e.pointerId, t0: t, seq: e.width > 1 ? [[0, e.width]] : [] };
+    $("calLast").textContent = "";
+  }
+  function calUp() {
+    const rec = calRec; calRec = null;
+    if (!rec.seq.length) { $("calLast").textContent = "no size reported: tap again"; return; }
+    calib.taps[calib.step].push(rec.seq);
+    $("calLast").textContent = `last tap: ${rec.seq.map((q) => q[1].toFixed(0)).join("→")} px`;
+    if (calib.taps[calib.step].length >= 10) {
+      if (calib.step < STEPS.length - 1) calib.step++;
+      else return calFinish();
+    }
+    calPaint();
+  }
+  function calFinish() {
+    STEPS.forEach((st, i) => { CAL.samples[st.side][st.c] = calib.taps[i]; });
+    for (const side of ["left", "right"]) CAL.samples[side].tip = []; // a two-kind calibration replaces any older fingertip taps
+    CAL.savedAt = new Date().toISOString();
+    try { localStorage.setItem("touchcal", JSON.stringify(CAL)); } catch (e) { /* none */ }
+    calEnd(); refit(); T.contactOn = true; $("s_contactOn").checked = true; save();
+    tlog("calibration saved"); openSettings();
+  }
+  function calEnd() { calib = null; calRec = null; $("calPanel").hidden = true; $("tCentre").hidden = false; $("tL").classList.remove("target"); $("tR").classList.remove("target"); }
+  $("calRedo").onclick = () => { calib.taps[calib.step] = []; calPaint(); };
+  $("calBack").onclick = () => { if (calib.step > 0) { calib.taps[calib.step] = []; calib.step--; calib.taps[calib.step] = []; } calPaint(); };
+  $("calCancel").onclick = () => calEnd();
+
+  function calText() {
+    const L = [];
+    if (!CAL.savedAt) return "Not calibrated yet. Tap Calibrate.";
+    L.push(`Calibration of ${CAL.savedAt.slice(0, 16).replace("T", " ")}; class decided from the largest size within ${T.decideMs} ms of landing.`);
+    for (const side of ["left", "right"]) {
+      const f = FIT[side];
+      L.push("", `${side.toUpperCase()} AREA`);
+      if (!f) { L.push("  incomplete"); continue; }
+      L.push(`  cut point: not flat < ${f.t1.toFixed(1)} px ≤ flat`);
+      L.push(`  misclassified ${f.errors} of ${f.n} taps (${(f.errorRate * 100).toFixed(0)}%)`);
+      L.push(`  taps inside the other kind's size range: ${f.overlap}`);
+      L.push("  size px   not-flat  flat");
+      for (const [v, a, b] of f.hist) L.push(`  ${v.toFixed(1).padStart(6)}   ${String(a).padStart(8)} ${String(b).padStart(5)}`);
+      L.push("  heard as →    not-flat  flat");
+      for (const c of G.CLASSES) { const r = f.confusion[c]; L.push(`  ${(c === "normal" ? "not flat" : c).padEnd(10)}   ${String(r.normal).padStart(8)} ${String(r.flat).padStart(5)}`); }
+      const st = ["tip", "normal", "flat"].flatMap((c) => (CAL.samples[side][c] || []).map((q) => G.stableAfter(f, q)));
+      if (st.length) L.push(`  class settled after (calibration taps): average ${(st.reduce((a, b) => a + b, 0) / st.length).toFixed(0)} ms, worst ${Math.max(...st).toFixed(0)} ms`);
+    }
+    const live = gest.stable;
+    L.push("", live.length ? `Live notes (last ${live.length}): class settled after average ${(live.reduce((a, b) => a + b, 0) / live.length).toFixed(0)} ms, worst ${Math.max(...live).toFixed(0)} ms` : "Live notes: none yet");
+    return L.join("\n");
+  }
+
+  /* ---------- settings overlay ---------- */
+  const SET = [
+    ["Slides"],
+    ["slideDwellMs", "Slide: wait in a new row before it sounds", 0, 120, 1, (v) => (v ? v + " ms (skips rows crossed faster)" : "0 (no delay)")],
+    ["Contact size"],
+    ["contactOn", "Contact size on (class sets the sound; size moves held notes)"],
+    ["decideMs", "Decision delay (wait before sounding)", 0, 120, 1, (v) => v + " ms"],
+    ["ctDb", "Held note: loudness range", 0, 12, 0.5, (v) => "±" + v + " dB"],
+    ["ctBright", "Held note: brightness range", 0, 1.5, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["ctTau", "Held note: smoothing", 10, 400, 5, (v) => v + " ms"],
+    ["Tilt"],
+    ["tiltOn", "Tilt on"],
+    ["octLatch", "Octave latch: a held note keeps its octave; tilt sets the next note's"],
+    ["tiltSource", "Tilt sensing", ["fused", "gravity"]],
+    ["gyroCorrS", "Gyro: drift correction time", 0.2, 3, 0.1, (v) => v.toFixed(1) + " s"],
+    ["tiltLookMs", "Gyro: look-ahead (cancels sensor delay)", 0, 60, 1, (v) => v + " ms"],
+    ["leanMode", "Lean (tipping toward / away) controls", ["octave", "brightness", "bend", "off"]],
+    ["centreDeg", "Centre: lean that sounds normal", 20, 70, 1, (v) => v + "° (0° flat, 90° upright)"],
+    ["spanDeg", "Lean for one full step (centre → flat / upright)", 20, 60, 1, (v) => v + "°"],
+    ["up1Deg", "Octave up when the lean is at or below", 0, 44, 1, (v) => v + "°"],
+    ["up2Deg", "Two octaves up at or below", -45, 20, 1, (v) => v + "°"],
+    ["down1Deg", "Octave down when the lean is at or above", 46, 100, 1, (v) => v + "°"],
+    ["down2Deg", "Two octaves down at or above", 70, 135, 1, (v) => v + "°"],
+    ["octHystDeg", "Octave: hysteresis", 0, 10, 0.5, (v) => v + "°"],
+    ["breathBright", "Octave: brightness within a step (breath)", 0, 1200, 25, (v) => "±" + Math.round(v / 2) + " cents"],
+    ["leanBright", "Brightness at full lean", 0, 2, 0.05, (v) => "±" + v.toFixed(2) + " oct"],
+    ["deadDeg", "Dead zone round the centre", 0, 15, 0.5, (v) => v + "°"],
+    ["rollMode", "Roll (steering wheel) controls", ["off", "bend", "vibrato"]],
+    ["bendRange", "Bend at full lean / roll", 0.5, 12, 0.5, (v) => "±" + v + " semitones"],
+    ["vibMax", "Vibrato depth at full roll", 0, 100, 1, (v) => v + " cents"],
+    ["rollFullDeg", "Roll for full effect", 10, 60, 1, (v) => v + "°"],
+    ["tiltTau", "Tilt smoothing (gravity sensing only)", 10, 500, 5, (v) => v + " ms"],
+    ["invLean", "Invert lean"],
+    ["invRoll", "Invert roll"],
+    ["Piano layout (choose “piano” in the panel)"],
+    ["kbSplit", "Black keys: width (share of the area)", 0.3, 0.85, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbEdge", "Black keys: height at the inner edge (share of a white key)", 0.5, 0.98, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+    ["kbBlack", "Black keys: height at the tip", 0.2, 0.9, 0.01, (v) => (v * 100).toFixed(0) + "%"],
+  ];
+  const setInputs = {};
+  function applyT(k) {
+    save();
+    if (sound) { Object.assign(sound.P, { ctDb: T.ctDb, ctBright: T.ctBright, ctTau: T.ctTau }); sound.latch = T.octLatch; }
+    if (k === "decideMs") { refit(); $("calRes").textContent = calText(); }
+    if (k === "contactOn") $("calRes").textContent = calText();
+    if (k === "kbSplit" || k === "kbBlack" || k === "kbEdge") layout();
+    if (k === "tiltSource") tilt.cands = null;
+    if (k === "tiltOn") { $("tNeutral").hidden = !T.tiltOn; if (!T.tiltOn && sound) sound.resetTilt(); }
+    tlog(`set ${k} = ${T[k]}`);
+  }
+  for (const d of SET) {
+    const box = $("setBody");
+    if (d.length === 1) { const h = document.createElement("h3"); h.textContent = d[0]; box.appendChild(h); if (d[0] === "Contact size") { const b = document.createElement("div"); b.className = "bar"; b.innerHTML = '<button id="calGo">Calibrate…</button><button id="calClear">Forget calibration</button>'; box.appendChild(b); } if (d[0] === "Tilt") { const b = document.createElement("div"); b.className = "bar"; b.innerHTML = '<button id="setNeutral">Set neutral</button><span id="tiltRd" class="rd"></span>'; box.appendChild(b); } continue; }
+    const [k, label] = d;
+    if (d.length === 2) { const l = document.createElement("label"); l.className = "tg"; const c = document.createElement("input"); c.type = "checkbox"; c.id = "s_" + k; c.checked = !!T[k]; c.onchange = () => { T[k] = c.checked; applyT(k); }; l.append(c, label); box.appendChild(l); setInputs[k] = c; continue; }
+    if (d.length === 3) { const l = document.createElement("label"); l.className = "tg"; const sel = document.createElement("select"); sel.id = "s_" + k; sel.innerHTML = d[2].map((o) => `<option>${o}</option>`).join(""); sel.value = T[k]; sel.onchange = () => { T[k] = sel.value; applyT(k); }; l.append(label + " ", sel); box.appendChild(l); setInputs[k] = sel; continue; }
+    const [, , min, max, step, fmt] = d;
+    const w = document.createElement("label"); w.className = "sl"; const o = document.createElement("output"), r = document.createElement("input");
+    r.type = "range"; r.id = "s_" + k; r.min = min; r.max = max; r.step = step; r.value = T[k]; o.textContent = fmt(T[k]);
+    r.oninput = () => { T[k] = parseFloat(r.value); o.textContent = fmt(T[k]); applyT(k); };
+    w.append(label, o, r); box.appendChild(w); setInputs[k] = r;
+  }
+  const resetB = document.createElement("button"); resetB.textContent = "Reset settings"; resetB.onclick = () => { const keep = { tonic: T.tonic, minor: T.minor, octaves: T.octaves, mid: T.mid, bpm: T.bpm, loopLevel: T.loopLevel, loopOn: T.loopOn }; T = Object.assign({}, T_DEFAULTS, keep); for (const k in setInputs) { const i = setInputs[k]; if (i.type === "checkbox") i.checked = !!T[k]; else { i.value = T[k]; if (i.oninput) i.oninput(); } } applyT("tiltOn"); refit(); }; $("setBody").appendChild(resetB);
+  function openSettings() { $("calRes").textContent = calText(); $("tSet").hidden = false; }
+  $("tSettings").onclick = openSettings;
+  $("setClose").onclick = () => { $("tSet").hidden = true; };
+  $("calCopy").onclick = () => {
+    const ta = $("calSel");
+    ta.value = calText() + "\n\nRAW CALIBRATION (size px per tap, by area and kind; each tap: sizes seen in its first 400 ms)\n" +
+      ["left", "right"].map((side) => ["tip", "normal", "flat"].filter((c) => (CAL.samples[side][c] || []).length).map((c) => `${side} ${c === "tip" ? "fingertip (counted as not flat)" : c === "normal" ? "not flat" : "flat"}: ` + CAL.samples[side][c].map((q) => q.map((x) => x[1].toFixed(0) + "@" + Math.round(x[0])).join(">")).join("  ")).join("\n")).join("\n") + "\n(each reading: size px @ ms after landing)";
+    ta.hidden = false;
+    SH.copyText(ta, (m) => { $("calCopyMsg").textContent = m + ": paste it to Claude"; });
+  };
+  $("calGo").onclick = calStart;
+  $("calClear").onclick = () => { CAL = { samples: { left: { tip: [], normal: [], flat: [] }, right: { tip: [], normal: [], flat: [] } }, savedAt: null }; try { localStorage.removeItem("touchcal"); } catch (e) { /* none */ } refit(); $("calRes").textContent = calText(); };
+  $("setNeutral").onclick = $("tNeutral").onclick = () => {
+    const n = tilt.setNeutral(); if (!n) return;
+    T.centreDeg = Math.max(20, Math.min(70, Math.round(n.lean)));
+    const r = setInputs.centreDeg; if (r) { r.value = T.centreDeg; r.oninput(); }
+    tlog("tilt neutral: centre " + T.centreDeg + "°, roll zeroed");
+  };
+  $("tNeutral").hidden = !T.tiltOn;
+
+  /* ---------- diagnostics text ---------- */
+  const f = (v, d = 2) => (v === undefined ? "—" : v === null ? "null" : typeof v === "number" ? v.toFixed(d) : String(v));
+  function verdict(key) {
+    const s = stat[key];
+    if (!s) return "not seen yet";
+    if (!s.n) return "NOT EXPOSED (undefined)";
+    const vals = [...s.vals];
+    if (vals.length === 1) return `CONSTANT ${vals[0]} (n=${s.n})`;
+    return `varies: ${vals.length}${vals.length >= 200 ? "+" : ""} distinct, ${f(s.min, 3)} … ${f(s.max, 3)} (n=${s.n})${vals.length <= 12 ? " values: " + vals.sort((a, b) => a - b).join(" ") : ""}`;
+  }
+  function probeReport() {
+    const L = [];
+    L.push(`PROBE  ${new Date().toISOString()}  ${navigator.userAgent}`);
+    L.push(`viewport ${innerWidth}×${innerHeight}, dpr ${devicePixelRatio}, HTTPS ${window.isSecureContext}, inside a frame ${inFrame}`);
+    L.push("");
+    L.push("LIVE TOUCHES (touch events)");
+    if (!liveTouch.size) L.push("  none down");
+    for (const [id, p] of liveTouch) L.push(`  #${id}: radiusX ${f(p.radiusX)} radiusY ${f(p.radiusY)} force ${f(p.force, 3)} webkitForce ${f(p.webkitForce, 3)} webkitRadiusX ${f(p.webkitRadiusX)} rot ${f(p.rotationAngle)} type ${f(p.touchType)}`);
+    L.push("LIVE POINTERS (pointer events)");
+    if (!livePointer.size) L.push("  none down");
+    for (const [id, e] of livePointer) L.push(`  #${id}: ${e.pointerType} width ${f(e.width)} height ${f(e.height)} pressure ${f(e.pressure, 3)}`);
+    L.push("");
+    L.push("SINCE LOAD (every touch in the two areas)");
+    for (const k of FIELDS) L.push(`  touch.${k.padEnd(14)} ${verdict("touch." + k)}`);
+    for (const k of PFIELDS) L.push(`  pointer.${k.padEnd(12)} ${verdict("pointer." + k)}`);
+    L.push("");
+    const age = ((now() - sens.t0) / 1000).toFixed(0);
+    L.push(`MOTION SENSORS: ${sens.status}; orientation events ${sens.nOri}, motion events ${sens.nMot} in ${age} s`);
+    const o = sens.ori, m = sens.mot;
+    if (o) L.push(`  orientation alpha ${f(o.alpha, 1)} beta ${f(o.beta, 1)} gamma ${f(o.gamma, 1)} absolute ${o.absolute}`);
+    if (m) {
+      const a = m.acceleration || {}, g = m.accelerationIncludingGravity || {}, r = m.rotationRate || {};
+      L.push(`  acceleration ${f(a.x)} ${f(a.y)} ${f(a.z)} | incl. gravity ${f(g.x)} ${f(g.y)} ${f(g.z)}`);
+      L.push(`  rotationRate α ${f(r.alpha, 1)} β ${f(r.beta, 1)} γ ${f(r.gamma, 1)} | interval ${f(m.interval, 1)} ms`);
+    }
+    if (!sens.nOri && !sens.nMot && now() - sens.t0 > 2000) L.push("  no sensor events received" + (inFrame ? " (expected inside the claude.ai frame: open the standalone page)" : ""));
+    return L.join("\n");
+  }
+  $("diagCopy").onclick = () => { $("diagSel").value = probeReport(); $("diagSel").hidden = false; SH.copyText($("diagSel"), (m) => { $("diagMsg").textContent = m; }); };
+  $("diagClose").onclick = () => { $("diag").hidden = true; $("diagSel").hidden = true; };
+
+  /* ---------- frame loop ---------- */
+  let lastD = 0, lastRows = "";
+  function frame() {
+    if (window.__mode === "touch") {
+      gest.tick(now());
+      const key = [...active.values()].map((a) => a.side + a.row).join(",");
+      if (key !== lastRows) {
+        lastRows = key;
+        for (const side of ["left", "right"]) {
+          const on = new Set([...active.values()].filter((a) => a.side === side).map((a) => a.row));
+          for (const d of $(side === "left" ? "tL" : "tR").querySelectorAll("[data-row]")) d.classList.toggle("on", on.has(+d.dataset.row));
+        }
+      }
+      if (now() - lastD > 100) {
+        lastD = now();
+        if (!$("diag").hidden) $("diagText").textContent = probeReport();
+        $("tRd").textContent = (ctx && ctx.state !== "running" ? `SOUND PAUSED (${ctx.state}): tap anywhere\n` : `sound ${ctx ? ctx.state : "not started"}\n`) + `${innerWidth}×${innerHeight}  rows ${G.noteName(ROWS[0])}–${G.noteName(ROWS[ROWS.length - 1])} (${ROWS.length})\n` +
+          (lastEv ? `last: ${lastEv.type}${lastEv.midi != null ? " " + G.noteName(lastEv.midi) : ""}` : "last: –") + `  held ${active.size}` +
+          (T.contactOn ? `\nclass ${lastOnset ? (lastOnset.cls || "–") + " (" + (lastOnset.size != null ? lastOnset.size.toFixed(0) : "?") + " px)" : "–"}` + (gest.stable.length ? `  settles avg ${(gest.stable.reduce((a, b) => a + b, 0) / gest.stable.length).toFixed(0)} / worst ${Math.max(...gest.stable).toFixed(0)} ms` : "") : "") +
+          (T.tiltOn ? `\n${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}° (step ${tilt.v >= 0 ? "+" : ""}${tilt.v.toFixed(2)})` + (T.leanMode === "octave" ? `  octave ${tilt.octave > 0 ? "+" : ""}${tilt.octave}` : "") + (T.rollMode !== "off" ? `  roll ${tilt.roll.toFixed(0)}°` : "") + (sens.nMot ? "" : "  (no motion data)") : "") +
+          (SH.csv.on ? `\nCSV ${SH.csv.rows.length} rows` : "");
+        if (!$("tSet").hidden) $("tiltRd").textContent = ` ${tilt.gyroLabel()}  lean ${tilt.lean.toFixed(0)}°  octave ${tilt.octave}  roll ${tilt.roll.toFixed(0)}°` + (sens.nMot ? "" : " (no motion data)");
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  /* hooks for the practice screen (practice.js) */
+  window.__touchHooks = {
+    drawAreas, gopts, rows: () => ROWS, requestSensors: () => { if (sens.status === "not requested") requestSensors(); }, onMotion: (f) => motionListeners.push(f),
+    areaWidth: (W) => Math.round(Math.min(280, Math.max(160, W * 0.3))),
+    listen: (f) => listeners.push(f), unlisten: (f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); },
+    fit: () => FIT, T: () => T, ctx: () => ctx, sound: () => sound, now, calDate: () => CAL.savedAt,
+    setContactOn: (on) => { T.contactOn = on; const c = document.getElementById("s_contactOn"); if (c) c.checked = on; save(); },
+    loopOn: (on) => { if (!sound) return null; T.loopOn = on; $("tLoop").textContent = "Loop: " + (on ? "on" : "off"); $("tLoop").classList.toggle("sel", on); if (on) return sound.startLoop(T.bpm, T.mid, T.loopLevel); sound.stopLoop(); return null; },
+    target: (side) => { $("tL").classList.toggle("target", side === "left" || side === "both"); $("tR").classList.toggle("target", side === "right" || side === "both"); },
+    panel: (show) => { $("tPanel").hidden = true; $("tCentre").hidden = show; $("prPanel").hidden = !show; },
+    releaseAll: () => { gest.releaseAll(now()); if (sound) sound.silence(); },
+  };
+  window.__touch = { gest, tilt, rows: () => ROWS, report: probeReport, stat, sound: () => sound, rect, T: () => T, fit: () => FIT, calText, onMotion };
+})();
+
+</script>
+<script>
+/* Touch-area mode, PRACTICE: four items for learning the two kinds of press (not flat, flat).
+   Every drill plays through the real gesture and sound layers (you hear what you pressed) and judges the
+   kind from your calibration, exactly as play would. Results are kept on this device with the date.
+     1 Mixed: 30 prompts, kind and area at random (balanced).
+     2 Rhythm: with the loop, one bar of count-in, then 8 bars of 4 beats, each beat a kind; bars alternate
+       left and right areas. Judged on the kind and on the timing (±200 ms window round each beat).
+     3 Two thumbs: 18 prompts, a kind for each area at once (left and right pressed together).
+     4 Progress: every finished drill, with date, accuracy per kind and per area, and timing. */
+(function (root) {
+  "use strict";
+  const KINDS = ["normal", "flat"]; // two kinds since 24 Nov 2026: not flat, flat
+  const NAME = { normal: "NOT FLAT", flat: "FLAT" };
+  const SHORT = { normal: "N", flat: "F" };
+
+  /* ---------- pure parts (tested in node) ---------- */
+  function rand(seed) { let r = seed || Date.now() % 2147483647 || 1; return () => ((r = (r * 16807) % 2147483647) / 2147483647); }
+  function shuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  /* n prompts, kinds (and sides) as even as n allows, shuffled */
+  function makeDeck(n, sides, rnd) { // kinds even, sides even, each shuffled on its own
+    const fill = (list) => shuffle(Array.from({ length: n }, (_, i) => list[i % list.length]), rnd);
+    const ks = fill(KINDS), ss = fill(sides);
+    return ks.map((kind, i) => ({ side: ss[i], kind }));
+  }
+  function tally(items) { // items: {side, kind, got}
+    const by = (f) => { const m = {}; for (const it of items) { const k = f(it); m[k] = m[k] || { n: 0, ok: 0 }; m[k].n++; if (it.got === it.kind) m[k].ok++; } return m; };
+    const confusion = {}; for (const k of KINDS) { confusion[k] = { normal: 0, flat: 0, none: 0 }; }
+    for (const it of items) confusion[it.kind][it.got || "none"]++;
+    const ok = items.filter((it) => it.got === it.kind).length;
+    return { n: items.length, ok, pct: items.length ? (100 * ok) / items.length : 0, byKind: by((it) => it.kind), bySide: by((it) => it.side), confusion };
+  }
+  /* beats: [{t (s), side, kind}], onsets: [{t (s), side, kind}] -> one judgement per beat (nearest unused onset
+     on that side within ±win) and the extra onsets */
+  function rhythmScore(beats, onsets, win = 0.2) {
+    const used = new Set(), res = [];
+    for (const b of beats) {
+      let best = -1, bd = Infinity;
+      onsets.forEach((o, i) => { if (!used.has(i) && o.side === b.side && Math.abs(o.t - b.t) <= win && Math.abs(o.t - b.t) < bd) { bd = Math.abs(o.t - b.t); best = i; } });
+      if (best < 0) { res.push({ ...b, got: null, err: null }); continue; }
+      used.add(best);
+      res.push({ ...b, got: onsets[best].kind, err: (onsets[best].t - b.t) * 1000 });
+    }
+    const errs = res.filter((r) => r.err != null).map((r) => r.err);
+    const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+    return { res, missed: res.filter((r) => r.got === null).length, extra: onsets.length - used.size,
+      meanAbsMs: mean(errs.map(Math.abs)), meanMs: mean(errs), tally: tally(res) };
+  }
+
+  /* ---------- the screen ---------- */
+  function boot() {
+    const H = root.__touchHooks, $ = (id) => document.getElementById(id);
+    if (!H || !$("prPanel")) return;
+    const G = root.TouchGest;
+    let run = null;
+    const pct = (x) => (x == null ? "–" : x.toFixed(0) + "%");
+    const kindOf = (ev) => { const f = H.fit()[ev.side]; return f ? G.classify(f, ev.size) : null; };
+    const show = (title, prompt, info, last) => { $("prTitle").textContent = title; $("prPrompt").textContent = prompt; $("prInfo").textContent = info; $("prLast").textContent = last || ""; };
+    function open() { H.panel(true); $("prMenu").hidden = false; $("prRun").hidden = true; H.target(null); show("PRACTICE", "", "", H.fit().left && H.fit().right ? "Calibrated " + (H.calDate() || "").slice(0, 16).replace("T", " ") : "Calibrate first (Settings)."); }
+    function close() { stop(); H.panel(false); H.target(null); }
+    function stop() { if (run) { H.unlisten(run.fn); if (run.timer) clearInterval(run.timer); if (run.loopWas === false) H.loopOn(false); run = null; } $("prMenu").hidden = false; $("prRun").hidden = true; H.target(null); }
+    function begin(kind, fn) {
+      if (!H.fit().left || !H.fit().right) { show("PRACTICE", "", "", "Calibrate both areas first (Settings → Calibrate)."); return false; }
+      if (!H.T().contactOn) H.setContactOn(true); // you hear the kind you pressed
+      H.releaseAll();
+      run = { kind, fn, t0: new Date().toISOString() }; H.listen(fn);
+      $("prMenu").hidden = true; $("prRun").hidden = false;
+      return true;
+    }
+    function finish(entry) {
+      stop();
+      entry.date = new Date().toISOString(); entry.cal = H.calDate(); entry.decideMs = H.T().decideMs;
+      const all = load(); all.push(entry); try { localStorage.setItem("touchpractice", JSON.stringify(all)); } catch (e) { /* none */ }
+      overlay(summary(entry) + "\n\nSaved. Progress (item 4) lists every session.");
+    }
+    const load = () => { try { return JSON.parse(localStorage.getItem("touchpractice") || "[]"); } catch (e) { return []; } };
+
+    /* 1 Mixed */
+    function mixed() {
+      const deck = makeDeck(30, ["left", "right"], rand()), items = [];
+      let i = 0, down = false;
+      const prompt = () => { const d = deck[i]; H.target(d.side); show(`MIXED ${i + 1}/30`, `${d.side === "left" ? "LEFT" : "RIGHT"}\n${NAME[d.kind]}`, `${items.filter((x) => x.got === x.kind).length} right`, items.length ? lastText(items[items.length - 1]) : ""); };
+      const fn = (ev) => {
+        if (ev.type === "onset" && !down) {
+          if (ev.side !== deck[i].side) { $("prLast").textContent = "other area: try again"; return; }
+          down = true; items.push({ ...deck[i], got: kindOf(ev), size: ev.size });
+        }
+        if (ev.type === "release" && down) { down = false; i++; if (i >= deck.length) return finish({ drill: "mixed", tally: tally(items), items }); prompt(); }
+      };
+      if (begin("mixed", fn)) prompt();
+    }
+    const lastText = (it) => `last: ${it.got === it.kind ? "✓" : "✗"} asked ${it.kind}, got ${it.got || "?"}${it.size != null ? " (" + it.size.toFixed(0) + " px)" : ""}`;
+
+    /* 2 Rhythm */
+    function rhythm() {
+      const ctx = H.ctx(); if (!ctx) return;
+      const deck = makeDeck(32, ["x"], rand()).map((d) => d.kind), bars = 8;
+      const loopWas = H.T().loopOn;
+      const onsets = [];
+      const fn = (ev) => { if (ev.type === "onset") onsets.push({ t: ctx.currentTime - (H.now() - ev.t) / 1000, side: ev.side, kind: kindOf(ev), size: ev.size }); };
+      if (!begin("rhythm", fn)) return;
+      run.loopWas = loopWas;
+      const t0 = H.loopOn(true), spb = 60 / H.T().bpm;
+      const beats = []; for (let b = 0; b < bars; b++) for (let k = 0; k < 4; k++) beats.push({ t: t0 + (4 + b * 4 + k) * spb, side: b % 2 ? "right" : "left", kind: deck[b * 4 + k] });
+      const bpmAt = H.T().bpm;
+      run.timer = setInterval(() => {
+        if (H.T().bpm !== bpmAt) { stop(); show("RHYTHM", "", "", "Stopped: the tempo changed."); return; }
+        // the beat shown is the nearest one: from halfway after a beat on, the screen shows the coming beat
+        const now = ctx.currentTime, beat = Math.floor((now - t0) / spb + 0.5);
+        if (beat < 4) { H.target(null); show("RHYTHM: count-in", `${4 - beat}`, "next: LEFT " + deck.slice(0, 4).map((k) => SHORT[k]).join(" "), "N not flat · F flat"); return; }
+        const bar = Math.floor((beat - 4) / 4), inBar = (beat - 4) % 4;
+        if (bar >= bars) { if (now > beats[beats.length - 1].t + 0.3) { const sc = rhythmScore(beats, onsets.filter((o) => o.t >= beats[0].t - 0.25)); finish({ drill: "rhythm", bpm: bpmAt, tally: sc.tally, missed: sc.missed, extra: sc.extra, meanAbsMs: sc.meanAbsMs, meanMs: sc.meanMs, items: sc.res.map((r) => ({ side: r.side, kind: r.kind, got: r.got, err: r.err })) }); } return; }
+        const side = bar % 2 ? "right" : "left"; H.target(side);
+        const pat = deck.slice(bar * 4, bar * 4 + 4).map((k, j) => (j === inBar ? `[${SHORT[k]}]` : SHORT[k])).join(" ");
+        const nxt = bar + 1 < bars ? `next: ${bar % 2 ? "LEFT" : "RIGHT"} ` + deck.slice((bar + 1) * 4, (bar + 1) * 4 + 4).map((k) => SHORT[k]).join(" ") : "last bar";
+        show(`RHYTHM bar ${bar + 1}/${bars}`, `${side === "left" ? "LEFT" : "RIGHT"}\n${pat}`, nxt, "N not flat · F flat");
+      }, 30);
+    }
+
+    /* 3 Two thumbs */
+    function two() {
+      const rnd = rand(), pairs = [];
+      for (const a of KINDS) for (const b of KINDS) pairs.push([a, b]);
+      const deck = shuffle([...pairs, ...pairs, ...pairs, ...pairs], rnd); // 16: every combination four times
+      const items = [], gaps = [];
+      let i = 0, cur = null;
+      const prompt = () => { const [l, r] = deck[i]; H.target("both"); show(`TWO THUMBS ${i + 1}/${deck.length}`, `L ${NAME[l]}\nR ${NAME[r]}`, `${items.filter((x) => x.got === x.kind).length / 2 | 0} pairs right`, ""); cur = { l: null, r: null, held: 0 }; };
+      const fn = (ev) => {
+        if (ev.type === "onset") { cur.held++; const s = ev.side === "left" ? "l" : "r"; if (!cur[s]) cur[s] = { kind: kindOf(ev), t: ev.t, size: ev.size }; }
+        if (ev.type === "release") {
+          cur.held = Math.max(0, cur.held - 1);
+          if (cur.held === 0 && cur.l && cur.r) {
+            const [l, r] = deck[i];
+            items.push({ side: "left", kind: l, got: cur.l.kind }, { side: "right", kind: r, got: cur.r.kind });
+            gaps.push(Math.abs(cur.l.t - cur.r.t));
+            $("prLast").textContent = `last: L ${cur.l.kind === l ? "✓" : "✗ " + (cur.l.kind || "?")}  R ${cur.r.kind === r ? "✓" : "✗ " + (cur.r.kind || "?")}  together within ${Math.abs(cur.l.t - cur.r.t).toFixed(0)} ms`;
+            i++;
+            if (i >= deck.length) {
+              const both = deck.filter((_, j) => items[2 * j].got === items[2 * j].kind && items[2 * j + 1].got === items[2 * j + 1].kind).length;
+              return finish({ drill: "two", tally: tally(items), pairsRight: both, pairs: deck.length, meanGapMs: gaps.reduce((a, b) => a + b, 0) / gaps.length, items });
+            }
+            const keep = $("prLast").textContent; prompt(); $("prLast").textContent = keep;
+          }
+        }
+      };
+      if (begin("two", fn)) prompt();
+    }
+
+    /* reports */
+    function summary(e) {
+      const t = e.tally, L = [];
+      const head = { mixed: "MIXED (30 prompts)", rhythm: `RHYTHM (32 beats at ${e.bpm} ♩/min)`, two: `TWO THUMBS (${e.pairs} pairs)` }[e.drill];
+      L.push(`${head}  ${e.date.slice(0, 16).replace("T", " ")}`);
+      L.push(`kinds right: ${t.ok} of ${t.n} (${pct(t.pct)})` + (e.drill === "two" ? `; both thumbs right: ${e.pairsRight} of ${e.pairs}; pressed together within ${e.meanGapMs.toFixed(0)} ms on average` : ""));
+      if (e.drill === "rhythm") L.push(`beats missed ${e.missed}, extra taps ${e.extra}; timing off by ${e.meanAbsMs == null ? "–" : e.meanAbsMs.toFixed(0)} ms on average (${e.meanMs == null ? "" : e.meanMs < 0 ? "early" : "late"} ${e.meanMs == null ? "" : Math.abs(e.meanMs).toFixed(0) + " ms overall"})`);
+      L.push("by kind:  " + KINDS.map((k) => `${NAME[k].toLowerCase()} ${t.byKind[k] ? pct((100 * t.byKind[k].ok) / t.byKind[k].n) : "–"}`).join("   "));
+      L.push("by area:  " + ["left", "right"].map((s) => `${s} ${t.bySide[s] ? pct((100 * t.bySide[s].ok) / t.bySide[s].n) : "–"}`).join("   "));
+      L.push("asked → heard as   not-flat  flat  none");
+      for (const k of KINDS) { const c = t.confusion[k]; L.push(`  ${NAME[k].toLowerCase().padEnd(16)} ${String(c.normal).padStart(8)} ${String(c.flat).padStart(5)} ${String(c.none).padStart(5)}`); }
+      return L.join("\n");
+    }
+    function progress() {
+      const all = load();
+      if (!all.length) { overlay("No practice sessions yet."); return; }
+      const L = ["PRACTICE PROGRESS (this device)", "date              drill    right  notflat  flat   left right  timing  cal. of", ""];
+      for (const e of all) {
+        const t = e.tally, k = (x) => (t.byKind[x] ? pct((100 * t.byKind[x].ok) / t.byKind[x].n) : "–"), s = (x) => (t.bySide[x] ? pct((100 * t.bySide[x].ok) / t.bySide[x].n) : "–");
+        L.push(`${e.date.slice(0, 16).replace("T", " ")}  ${e.drill.padEnd(7)} ${pct(t.pct).padStart(5)}  ${k("normal").padStart(7)} ${k("flat").padStart(5)}  ${s("left").padStart(5)} ${s("right").padStart(5)}  ${e.drill === "rhythm" && e.meanAbsMs != null ? (e.meanAbsMs.toFixed(0) + "ms").padStart(6) : e.drill === "two" ? (e.meanGapMs.toFixed(0) + "ms⇄").padStart(6) : "     –"}  ${(e.cal || "").slice(5, 16).replace("T", " ")}`);
+      }
+      L.push("", "timing: rhythm = average distance from the beat; two thumbs (⇄) = average gap between the thumbs.", "", "DETAIL", ...all.map(summary));
+      overlay(L.join("\n"));
+    }
+    function overlay(text) { $("prOvText").value = text; $("prOvMsg").textContent = ""; $("prOverlay").hidden = false; }
+    $("tPractice").onclick = open;
+    $("prClose").onclick = close; $("prStop").onclick = () => { stop(); show("PRACTICE", "", "", "Stopped (nothing saved)."); };
+    $("prMixed").onclick = mixed; $("prRhythm").onclick = rhythm; $("prTwo").onclick = two; $("prProgress").onclick = progress;
+    $("prOvClose").onclick = () => { $("prOverlay").hidden = true; };
+    $("prOvCopy").onclick = () => root.Shared.copyText($("prOvText"), (m) => { $("prOvMsg").textContent = m; });
+  }
+
+  root.Practice = { makeDeck, tally, rhythmScore, rand, KINDS };
+  if (typeof document !== "undefined" && document.getElementById) boot();
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker, CORE: the pure parts (no page, no sound), tested in node.
+   Times are in seconds. A take's times are relative to the top of the loop pass it was recorded in, on the
+   audio clock, already corrected by the latency offset; they may run past the loop's end (a note held across
+   the boundary) and are kept verbatim: quantizing happens only when a take is played or drawn. */
+(function (root) {
+  "use strict";
+
+  function loopLen(s) { return s.bars * s.beats * (60 / s.bpm); }
+  function barLen(s) { return s.beats * (60 / s.bpm); }
+  const mod = (x, m) => ((x % m) + m) % m;
+
+  /* Quantize an onset time: off = raw; light = halfway to the nearest sixteenth; strong = onto it.
+     Returns the shift to apply to the whole note (its sub-events move with it). */
+  function qShift(at, s, mode) {
+    if (mode === "off") return 0;
+    const grid = 60 / s.bpm / 4, target = Math.round(at / grid) * grid;
+    return (target - at) * (mode === "light" ? 0.5 : 1);
+  }
+
+  /* A finished take's notes for playback: each note's start folded into the loop [0, L), quantized,
+     its duration capped just under one loop (so a note never overlaps its own next pass). */
+  function playNotes(take, s, mode) {
+    const L = loopLen(s);
+    return take.notes.map((n) => {
+      const sh = qShift(n.on, s, mode);
+      const on = mod(n.on + sh, L);
+      // a note still held (no release yet: the take is being reviewed while the thumb is down) runs open
+      const dur = n.off != null ? Math.max(0.03, Math.min(L - 0.01, n.off - n.on)) : L - 0.01;
+      return { ...n, start: on, dur, shift: sh, src: n };
+    });
+  }
+  /* Tilt events within the pass (wrapped), sorted; the state at the pass's top is the last one before. */
+  function playTilt(take, s) {
+    const L = loopLen(s);
+    return (take.tilt || []).filter((e) => e.at < L).map((e) => ({ ...e, at: mod(e.at, L) })).sort((a, b) => a.at - b.at);
+  }
+
+  /* The finale: the voices enter one at a time in the order they were recorded (one pass each, the earlier
+     ones carrying on), then everything twice. Returns a list of passes: [voice ids], and the total length. */
+  function finalePlan(voiceIds) {
+    const passes = [];
+    for (let i = 0; i < voiceIds.length; i++) passes.push(voiceIds.slice(0, i + 1));
+    if (voiceIds.length) { passes.push(voiceIds.slice()); passes.push(voiceIds.slice()); }
+    return passes;
+  }
+
+  /* Latency calibration: taps against click times -> the offset (median), its spread, and how many matched. */
+  function latencyFrom(clicks, taps, win = 0.25) {
+    const d = [];
+    for (const t of taps) { let best = null; for (const c of clicks) if (Math.abs(t - c) <= win && (best === null || Math.abs(t - c) < Math.abs(best))) best = t - c; if (best !== null) d.push(best); }
+    if (d.length < 4) return null;
+    const s = d.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)];
+    const mad = s.map((x) => Math.abs(x - med)).sort((a, b) => a - b)[Math.floor(s.length / 2)];
+    return { offset: med, spread: mad, n: d.length };
+  }
+
+  /* WAV (16-bit PCM) and a stored (uncompressed) ZIP holding it (the artifact frame only saves .zip, not .wav). */
+  function wavBytes(chans, sr) {
+    const n = chans[0].length, nc = chans.length, b = new ArrayBuffer(44 + n * nc * 2), d = new DataView(b);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) d.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, "RIFF"); d.setUint32(4, 36 + n * nc * 2, true); w(8, "WAVE"); w(12, "fmt "); d.setUint32(16, 16, true);
+    d.setUint16(20, 1, true); d.setUint16(22, nc, true); d.setUint32(24, sr, true); d.setUint32(28, sr * nc * 2, true);
+    d.setUint16(32, nc * 2, true); d.setUint16(34, 16, true); w(36, "data"); d.setUint32(40, n * nc * 2, true);
+    let o = 44;
+    for (let i = 0; i < n; i++) for (let c = 0; c < nc; c++) { const v = Math.max(-1, Math.min(1, chans[c][i])); d.setInt16(o, v < 0 ? v * 0x8000 : v * 0x7fff, true); o += 2; }
+    return new Uint8Array(b);
+  }
+  let CRC = null;
+  function crc32(u8) {
+    if (!CRC) { CRC = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC[n] = c >>> 0; } }
+    let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  function zipOne(name, data) {
+    const nm = new TextEncoder().encode(name), crc = crc32(data), size = data.length;
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true); lh.setUint16(26, nm.length, true);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true); ch.setUint16(28, nm.length, true);
+    const cdOff = 30 + nm.length + size;
+    const end = new DataView(new ArrayBuffer(22)); end.setUint32(0, 0x06054b50, true); end.setUint16(8, 1, true); end.setUint16(10, 1, true); end.setUint32(12, 46 + nm.length, true); end.setUint32(16, cdOff, true);
+    const parts = [new Uint8Array(lh.buffer), nm, data, new Uint8Array(ch.buffer), nm, new Uint8Array(end.buffer)];
+    const out = new Uint8Array(parts.reduce((a, p) => a + p.length, 0)); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+
+  root.LoopCore = { loopLen, barLen, mod, qShift, playNotes, playTilt, finalePlan, latencyFrom, wavBytes, zipOne, crc32 };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker, SOUND: the five instruments, the drums, the count-in click, and a Channel per voice.
+   Everything takes an AudioContext and a time, so the same code plays live and renders offline (Export).
+   A Channel carries the voice's tilt (octave + bend as one pitch offset in cents, vibrato depth, brightness)
+   to all its notes, its pan, and its mute/solo gain. Notes carry the contact class (tip brighter, flat
+   short and muted) and contact-size expression (loudness and brightness), as in the touch-area prototype. */
+(function (root) {
+  "use strict";
+  const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const noiseOf = new WeakMap();
+  function noise(ctx) {
+    let b = noiseOf.get(ctx);
+    if (!b) { b = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; noiseOf.set(ctx, b); }
+    return b;
+  }
+
+  class Channel {
+    constructor(ctx, dest, pan) {
+      this.ctx = ctx;
+      this.out = ctx.createGain(); this.out.gain.value = 1;
+      const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (p) { p.pan.value = pan; this.out.connect(p); p.connect(dest); } else this.out.connect(dest);
+      this.pitch = ctx.createConstantSource(); this.pitch.offset.value = 0; this.pitch.start();
+      this.lfo = ctx.createOscillator(); this.lfo.frequency.value = 5.5; this.lfo.start();
+      this.vib = ctx.createGain(); this.vib.gain.value = 0; this.lfo.connect(this.vib);
+      this.bright = ctx.createConstantSource(); this.bright.offset.value = 0; this.bright.start();
+      this.oct = 0;
+    }
+    modPitch(param) { this.pitch.connect(param); this.vib.connect(param); }
+    modBright(param) { this.bright.connect(param); }
+    tilt(t, e) {
+      const cents = (e.octave || 0) * 1200 + (e.bend || 0) * 100;
+      if ((e.octave || 0) !== this.oct) { this.oct = e.octave || 0; this.pitch.offset.cancelScheduledValues(t); this.pitch.offset.setValueAtTime(cents, t); }
+      else this.pitch.offset.setTargetAtTime(cents, t, 0.015);
+      this.vib.gain.setTargetAtTime(e.vib || 0, t, 0.03);
+      this.bright.offset.setTargetAtTime(e.bright || 0, t, 0.03);
+    }
+    stopAll(t) { this.out.gain.cancelScheduledValues(t); this.out.gain.setTargetAtTime(0, t, 0.02); }
+  }
+
+  /* ---- instruments: start(ch, t, midi, o) -> note {pitch(t, midi), expr(t, gainMul, centsBright), stop(t)} ---- */
+  // o.cls: "tip" | "normal" | "flat" | null; o.level 0..1
+  function shell(ch, t, o, cutoff, q) {
+    const c = ch.ctx, lp = c.createBiquadFilter(), env = c.createGain(), expr = c.createGain();
+    lp.type = "lowpass"; lp.Q.value = q || 0.7;
+    lp.frequency.value = Math.min(16000, cutoff * (o.cls === "tip" ? 1.7 : o.cls === "flat" ? 0.45 : 1));
+    ch.modBright(lp.detune);
+    env.gain.value = 0; lp.connect(env); env.connect(expr); expr.connect(ch.out);
+    return { lp, env, expr };
+  }
+  const flatCut = (env, t, o, peak) => { if (o.cls === "flat") env.gain.setTargetAtTime(0, t + 0.06, 0.05); else return peak; };
+  function noteApi(c, oscs, sh, extra) {
+    return {
+      oscs,
+      pitch(t, m) { for (const [o, r] of oscs) (o.frequency || o.playbackRate).setTargetAtTime(r(m), t, 0.008); },
+      expr(t, gm, cents) { sh.expr.gain.setTargetAtTime(gm, t, extra.tau); sh.lp.detune.setTargetAtTime(cents, t, extra.tau); },
+      stop(t, rel = 0.06) { sh.env.gain.cancelScheduledValues(t); sh.env.gain.setTargetAtTime(0, t, rel); for (const [o] of oscs) o.stop(t + rel * 8 + 0.05); if (extra.after) extra.after(t + rel * 8 + 0.05); },
+    };
+  }
+  const ksCache = new WeakMap();
+  function ksBuffer(c, midi) {
+    let m = ksCache.get(c); if (!m) { m = new Map(); ksCache.set(c, m); }
+    const key = Math.round(midi); if (m.has(key)) return m.get(key);
+    const sr = c.sampleRate, N = Math.max(2, Math.round(sr / hz(key))), len = Math.floor(sr * 2.5);
+    const b = c.createBuffer(1, len, sr), y = b.getChannelData(0);
+    let prev = 0; for (let i = 0; i < N; i++) { const v = Math.random() * 2 - 1; y[i] = (v + prev) * 0.5; prev = v; } // a softened burst
+    for (let i = N; i < len; i++) y[i] = 0.4985 * (y[i - N] + (i - N - 1 >= 0 ? y[i - N - 1] : 0)); // Karplus-Strong
+    const r = { b, f0: sr / N }; m.set(key, r); return r;
+  }
+
+  const INSTR = {
+    flute: { name: "Flute", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 4, 0.5), oscs = [];
+      const a = c.createOscillator(); a.type = "sine"; a.frequency.value = f; ch.modPitch(a.detune); a.connect(sh.lp); oscs.push([a, (m) => hz(m)]);
+      const b2 = c.createOscillator(); b2.type = "sine"; b2.frequency.value = 2 * f; ch.modPitch(b2.detune); const g2 = c.createGain(); g2.gain.value = 0.12; b2.connect(g2); g2.connect(sh.lp); oscs.push([b2, (m) => 2 * hz(m)]);
+      const n = c.createBufferSource(); n.buffer = noise(c); n.loop = true; const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = Math.min(9000, f * 3); bp.Q.value = 1.5; const gn = c.createGain(); gn.gain.value = 0.07; n.connect(bp); bp.connect(gn); gn.connect(sh.env); oscs.push([n, () => 1]);
+      a.start(t); b2.start(t); n.start(t, Math.random());
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.3, t + 0.045);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.24, t + 0.05, 0.2); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs.slice(0, 2), sh, o); api.stop = ((s) => (tt, rel = 0.07) => { s(tt, rel); n.stop(tt + 0.7); })(api.stop); return api;
+    } },
+    pluck: { name: "Plucked string", start(ch, t, midi, o) {
+      const c = ch.ctx, ks = ksBuffer(c, midi), sh = shell(ch, t, o, hz(midi) * 10, 0.6);
+      const s = c.createBufferSource(); s.buffer = ks.b; s.playbackRate.value = hz(midi) / ks.f0; ch.modPitch(s.detune); s.connect(sh.lp); s.start(t);
+      sh.env.gain.setValueAtTime(o.cls === "flat" ? 0.5 : 0.62, t); if (o.cls === "flat") sh.env.gain.setTargetAtTime(0, t + 0.04, 0.06);
+      return noteApi(c, [[s, (m) => hz(m) / ks.f0]], sh, o);
+    } },
+    bowed: { name: "Bowed", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 5, 0.8), oscs = [];
+      const v = c.createOscillator(); v.frequency.value = 4.8; const vg = c.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(14, t + 0.5); v.connect(vg); v.start(t);
+      for (const d of [-7, 7]) { const s = c.createOscillator(); s.type = "sawtooth"; s.frequency.value = f; s.detune.value = d; ch.modPitch(s.detune); vg.connect(s.detune); s.connect(sh.lp); s.start(t); oscs.push([s, (m) => hz(m)]); }
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.2, t + (o.cls === "tip" ? 0.03 : 0.1));
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.17, t + 0.12, 0.3); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs, sh, o); api.stop = ((st) => (tt, rel = 0.09) => { st(tt, rel); v.stop(tt + 1); })(api.stop); return api;
+    } },
+    voice: { name: "Voice (ah)", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, 5000, 0.5), oscs = [];
+      const s = c.createOscillator(); s.type = "sawtooth"; s.frequency.value = f; ch.modPitch(s.detune); oscs.push([s, (m) => hz(m)]);
+      const v = c.createOscillator(); v.frequency.value = 5.2; const vg = c.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(22, t + 0.4); v.connect(vg); vg.connect(s.detune); v.start(t);
+      for (const [fr, g, q] of [[730, 1, 9], [1090, 0.5, 10], [2440, 0.22, 12]]) { const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr; bp.Q.value = q; const gg = c.createGain(); gg.gain.value = g * 3.2; s.connect(bp); bp.connect(gg); gg.connect(sh.lp); }
+      s.start(t);
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.6, t + 0.06);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.52, t + 0.08, 0.3); else flatCut(sh.env, t, o);
+      const api = noteApi(c, oscs, sh, o); api.stop = ((st) => (tt, rel = 0.08) => { st(tt, rel); v.stop(tt + 1); })(api.stop); return api;
+    } },
+    lead: { name: "Synth lead", start(ch, t, midi, o) {
+      const c = ch.ctx, f = hz(midi), sh = shell(ch, t, o, f * 3, 5), oscs = [];
+      for (const [type, d, g] of [["square", 0, 0.5], ["sawtooth", 6, 0.5]]) { const s = c.createOscillator(); s.type = type; s.frequency.value = f; s.detune.value = d; ch.modPitch(s.detune); const gg = c.createGain(); gg.gain.value = g; s.connect(gg); gg.connect(sh.lp); s.start(t); oscs.push([s, (m) => hz(m)]); }
+      const base = sh.lp.frequency.value; sh.lp.frequency.setValueAtTime(Math.min(16000, base * 4), t); sh.lp.frequency.setTargetAtTime(base, t + 0.01, 0.08);
+      sh.env.gain.setValueAtTime(0, t); sh.env.gain.linearRampToValueAtTime(0.3, t + 0.006);
+      if (o.cls !== "flat") sh.env.gain.setTargetAtTime(0.24, t + 0.02, 0.2); else flatCut(sh.env, t, o);
+      return noteApi(c, oscs, sh, o);
+    } },
+  };
+
+  /* ---- drums (subtle) and the count-in click ---- */
+  function drumsBar(ctx, dest, t, s) {
+    const spb = 60 / s.bpm;
+    for (let b = 0; b < s.beats; b++) {
+      const tb = t + b * spb;
+      if (b === 0 || (s.beats === 4 && b === 2)) kick(ctx, dest, tb, b === 0 ? 1 : 0.7);
+      hat(ctx, dest, tb, b === 0 ? 0.5 : 0.38); hat(ctx, dest, tb + spb / 2, 0.24);
+    }
+  }
+  function kick(ctx, dest, t, v) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.9 * v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.3); }
+  function hat(ctx, dest, t, v) { const n = ctx.createBufferSource(); n.buffer = noise(ctx); const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7500; const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045); n.connect(f); f.connect(g); g.connect(dest); n.start(t, Math.random() * 0.5); n.stop(t + 0.06); }
+  function click(ctx, dest, t, accent) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = accent ? 2000 : 1400; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(accent ? 0.35 : 0.22, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.04); o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.05); }
+
+  root.LoopSound = { INSTR, Channel, drumsBar, kick, click, hz };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* Loop maker: build a piece one voice at a time over a fixed loop. A toy, not a game: nothing is judged.
+   Input: the touch-area prototype's own gesture layer (TouchGestures), thumb areas (drawAreas), pitch rows,
+   contact classes and tilt (TiltReader), with the touch-area settings. Sound: loopsound.js. Pure timing
+   helpers: loopcore.js. Every take is kept verbatim (raw times on the audio clock, minus the latency offset);
+   quantizing is applied only when playing or drawing. */
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const G = window.TouchGest, C = window.LoopCore, S = window.LoopSound, SH = window.Shared;
+  const H = () => window.__touchHooks;
+  const nowMs = () => performance.now();
+  const COLORS = ["#e0a64a", "#7fb0c9", "#c98fb8", "#93c47d"];
+  const PAN = [-0.35, 0.35, -0.12, 0.12];
+  const SOUNDS = ["flute", "pluck", "bowed", "voice", "lead"];
+  const REG = { "-1": "low", "0": "middle", "1": "high" };
+
+  /* ---------- session (saved on the device) ---------- */
+  let ses = null;
+  const load = () => { try { const s = JSON.parse(localStorage.getItem("loopsession") || "null"); return s && s.setup ? s : null; } catch (e) { return null; } };
+  function save() {
+    if (!ses) return;
+    try { localStorage.setItem("loopsession", JSON.stringify(ses)); $("lSaveMsg").textContent = ""; }
+    catch (e) { // too big: keep the music, drop the raw input logs
+      try { const lite = JSON.parse(JSON.stringify(ses)); for (const v of lite.voices) v.take.csv = []; localStorage.setItem("loopsession", JSON.stringify(lite)); $("lSaveMsg").textContent = "Saved without the raw input logs (storage full)."; }
+      catch (e2) { $("lSaveMsg").textContent = "Could not save on this device."; }
+    }
+  }
+  let latency = 0;
+  try { latency = +(localStorage.getItem("loopLatency") || 0) || 0; } catch (e) { /* none */ }
+
+  /* ---------- audio ---------- */
+  let ctx = null, master = null, liveCh = null;
+  function audio() {
+    ctx = SH.audio();
+    if (!ctx) return false;
+    if (!master) {
+      const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -6; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.15;
+      master = ctx.createGain(); master.gain.value = 0.8; master.connect(comp); comp.connect(ctx.destination);
+      const lb = ctx.createGain(); lb.connect(master); liveCh = new S.Channel(ctx, lb, 0);
+    }
+    return true;
+  }
+  /* the audio-clock time a touch happened at (what was being heard then) */
+  function ctxAt(perfMs) {
+    const ts = ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
+    if (ts && ts.performanceTime > 0 && ts.contextTime > 0) return ts.contextTime + (perfMs - ts.performanceTime) / 1000;
+    return ctx.currentTime - (nowMs() - perfMs) / 1000;
+  }
+
+  /* ---------- the transport: per-note look-ahead scheduling of drums and voices ---------- */
+  function schedNote(ch, sound, reg, n, t0, P, handles) {
+    const o = n.oct || 0; // the note's own octave (octave latch), else 0 and the channel carries tilt's octave
+    const h = S.INSTR[sound].start(ch, t0, n.midi + 12 * (reg + o), { cls: n.cls, tau: (P.tau || 80) / 1000 });
+    for (const e of n.ev || []) {
+      const te = t0 + (e.at - n.on); if (te >= t0 + n.dur) continue;
+      if (e.type === "pitch") h.pitch(te, e.midi + 12 * (reg + o));
+      else if (e.type === "contact") { const d = e.norm - e.norm0; h.expr(te, Math.pow(10, (d * (P.ctDb || 0)) / 20), d * (P.ctBright || 0) * 1200); }
+    }
+    if (n.off != null) h.stop(t0 + n.dur); else handles.push({ h, n: n.src || n, t0 });
+    return h;
+  }
+  class Transport {
+    /* provider(k) -> null (the end) or {voices: [{id, slot, sound, reg, take, muted}], drums: bool} */
+    constructor(c, dest, setup, T0, provider, opts) {
+      this.ctx = c; this.s = setup; this.T0 = T0; this.L = C.loopLen(setup); this.provider = provider; this.opts = opts || {};
+      this.bus = c.createGain(); this.bus.connect(dest);
+      this.drums = c.createGain(); this.drums.gain.value = setup.drumVol; this.drums.connect(this.bus);
+      this.chans = new Map(); this.open = []; this.h = T0 - 0.001; this.ended = false;
+    }
+    chan(v) { let ch = this.chans.get(v.id); if (!ch) { ch = new S.Channel(this.ctx, this.bus, PAN[v.slot] || 0); if (this.opts.audible && !this.opts.audible(v)) ch.out.gain.value = 0; this.chans.set(v.id, ch); } return ch; }
+    scheduleUntil(horizon) {
+      if (this.ended || horizon <= this.h) return;
+      const L = this.L, s = this.s, spb = 60 / s.bpm, a = this.h, b = horizon;
+      for (let k = Math.max(0, Math.floor((a - this.T0) / L)); this.T0 + k * L < b; k++) {
+        const ps = this.T0 + k * L, inWin = (t) => t >= a && t < b;
+        const pass = this.provider(k);
+        if (!pass) { // the end: a last downbeat, then a fade
+          if (inWin(ps)) { S.kick(this.ctx, this.drums, ps, 1); this.bus.gain.setTargetAtTime(0, ps + 0.4, 0.35); this.ended = true; this.endAt = ps + 2; }
+          break;
+        }
+        if (pass.drums) for (let e = 0; e < s.bars * s.beats * 2; e++) { const t = ps + e * spb / 2; if (!inWin(t)) continue; const beat = e / 2; if (e % 2 === 0) { const bInBar = beat % s.beats; if (bInBar === 0 || (s.beats === 4 && bInBar === 2)) S.kick(this.ctx, this.drums, t, bInBar === 0 ? 1 : 0.7); hatAt(this.ctx, this.drums, t, bInBar === 0 ? 0.5 : 0.38); } else hatAt(this.ctx, this.drums, t, 0.24); }
+        for (const v of pass.voices) {
+          const ch = this.chan(v), P = v.take.expr || {};
+          const tl = C.playTilt(v.take, s);
+          const tv = (e) => (v.take.octLatch ? { ...e, octave: 0 } : e); // latched takes: octaves are per note
+          if (inWin(ps)) ch.tilt(ps, tv(v.take.tilt0 || { octave: 0 })); // the tilt as it stood when the take began
+          for (const e of tl) if (inWin(ps + e.at)) ch.tilt(ps + e.at, tv(e));
+          for (const n of C.playNotes(v.take, s, this.opts.quant())) if (inWin(ps + n.start)) schedNote(ch, v.sound, v.reg, n, ps + n.start, P, this.open);
+        }
+      }
+      this.h = horizon;
+    }
+    mix(voices) { for (const v of voices) { const ch = this.chans.get(v.id); if (ch) ch.out.gain.setTargetAtTime(audible(v) ? 1 : 0, this.ctx.currentTime, 0.02); } }
+    closeOpen(n) { // a held note was released: stop its scheduled copies at their proper length
+      this.open = this.open.filter((o) => { if (o.n !== n) return true; o.h.stop(Math.max(this.ctx.currentTime, o.t0 + Math.min(this.L - 0.01, n.off - n.on))); return false; });
+    }
+    stop() {
+      const t = this.ctx.currentTime;
+      this.ended = true; this.bus.gain.cancelScheduledValues(t); this.bus.gain.setTargetAtTime(0, t, 0.03);
+      for (const o of this.open) o.h.stop(t + 0.1); this.open = [];
+      const b = this.bus; setTimeout(() => { try { b.disconnect(); } catch (e) { /* gone */ } }, 600);
+    }
+  }
+  function hatAt(c, dest, t, v) { // the drum kit's hi-hat (loopsound's drumsBar draws the same; inline for windowing)
+    const n = c.createBufferSource(); n.buffer = hatNoise(c); const f = c.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 7500; const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * v, t + 0.002); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+    n.connect(f); f.connect(g); g.connect(dest); n.start(t, Math.random() * 0.5); n.stop(t + 0.06);
+  }
+  const hn = new WeakMap();
+  function hatNoise(c) { let b = hn.get(c); if (!b) { b = c.createBuffer(1, c.sampleRate, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; hn.set(c, b); } return b; }
+
+  let tr = null, trTimer = null;
+  function startTransport(T0, provider) {
+    stopTransport();
+    tr = new Transport(ctx, master, ses.setup, T0, provider, { quant: () => ses.quant, audible });
+    trTimer = setInterval(tick, 25); tick();
+  }
+  function stopTransport() { if (tr) tr.stop(); tr = null; clearInterval(trTimer); trTimer = null; }
+
+  /* ---------- state ---------- */
+  let state = "idle"; // idle | countin | rec | review | loop | piece
+  let rec = null, review = null; // rec: the take being recorded; review: {take, sound, reg}
+  const audible = (v) => { const solo = ses.voices.some((x) => x.solo); return !v.muted && (!solo || v.solo); };
+  const committed = () => ses.voices.slice().sort((a, b) => a.order - b.order);
+  const freeSlot = () => [0, 1, 2, 3].find((s) => !ses.voices.some((v) => v.slot === s));
+
+  function tick() {
+    if (!tr) return;
+    const now = ctx.currentTime;
+    if (state === "countin" && now >= tr.T0) state = "rec";
+    if (state === "rec" && now >= tr.T0 + tr.L) { state = "review"; rec.closed = true; paint(); }
+    tr.scheduleUntil(now + 0.2);
+    if (tr.ended && tr.endAt && now > tr.endAt) { stopTransport(); state = "idle"; paint(); }
+  }
+
+  function record() {
+    if (!audio()) return;
+    if (ses.voices.length >= 4) return msg("Four voices is the most. Delete one to make room.");
+    const slot = freeSlot(), sound = $("lSound").value, reg = +$("lReg").value;
+    const T = H().T(), bar = C.barLen(ses.setup), T0 = ctx.currentTime + 0.25 + bar;
+    rec = { top: T0, offset: latency, slot, sound, reg, notes: new Map(), list: [], tilt: [], tilt0: lastTilt || { octave: 0, bend: 0, vib: 0, bright: 0 }, closed: false,
+      csv: SH.makeCsv(), expr: { ctDb: T.ctDb, ctBright: T.ctBright, tau: T.ctTau }, contactOn: T.contactOn, tiltOn: T.tiltOn, octLatch: !!T.octLatch };
+    rec.csv.start();
+    review = { id: "new", slot, sound, reg, muted: false,
+      take: { get notes() { return rec ? rec.list : []; }, tilt: rec.tilt, tilt0: rec.tilt0, expr: rec.expr, octLatch: rec.octLatch } };
+    state = "countin";
+    for (let b = 0; b < ses.setup.beats; b++) S.click(ctx, master, T0 - bar + b * (60 / ses.setup.bpm), b === 0);
+    startTransport(T0, (k) => ({ drums: true, voices: committed().filter(audible).concat(k >= 1 ? [review] : []) }));
+    paint();
+  }
+  function takeOf(r) { // a plain, storable take
+    return { notes: r.list.map((n) => ({ on: n.on, off: n.off != null ? n.off : null, midi: n.midi, cls: n.cls, ev: n.ev, oct: n.oct || 0 })), tilt: r.tilt, tilt0: r.tilt0,
+      offset: r.offset, octLatch: r.octLatch, expr: r.expr, contactOn: r.contactOn, tiltOn: r.tiltOn, csv: r.csv.rows, recordedAt: new Date().toISOString() };
+  }
+  function keep() {
+    if (state !== "review") return;
+    for (const n of rec.list) if (n.off == null) n.off = n.on + Math.min(C.loopLen(ses.setup) - 0.01, ctxAt(nowMs()) - rec.top - rec.offset - n.on);
+    const order = ses.voices.reduce((m, v) => Math.max(m, v.order), 0) + 1;
+    const v = { id: "v" + Date.now(), slot: rec.slot, order, sound: rec.sound, reg: rec.reg, take: takeOf(rec), muted: false, solo: false };
+    ses.voices.push(v); save();
+    rec = null; review = null;
+    state = "loop";
+    // carry on looping everything, in time: the same transport, now with the kept voice among the committed
+    if (tr) tr.provider = () => ({ drums: true, voices: committed() }); else loopAll();
+    paint();
+  }
+  function retake() { if (state !== "review" && state !== "rec" && state !== "countin") return; rec = null; review = null; record(); }
+  function loopAll() { if (!audio()) return; if (state === "countin" || state === "rec" || state === "review") { rec = null; review = null; } state = "loop"; startTransport(ctx.currentTime + 0.15, () => ({ drums: true, voices: committed() })); tr.mix(ses.voices); paint(); }
+  function piece() {
+    if (!audio()) return; if (!ses.voices.length) return msg("Record a voice first.");
+    rec = null; review = null; state = "piece";
+    const vs = committed().filter((v) => !v.muted), plan = C.finalePlan(vs.map((v) => v.id));
+    startTransport(ctx.currentTime + 0.15, (k) => (k < plan.length ? { drums: true, voices: vs.filter((v) => plan[k].includes(v.id)) } : null));
+    paint();
+  }
+  function stop() { stopTransport(); if (state !== "idle") { rec = null; review = null; } state = "idle"; releaseLive(); paint(); }
+
+  /* ---------- export: the finale rendered offline ---------- */
+  async function exportAudio() {
+    if (!ses.voices.length) return msg("Record a voice first.");
+    $("lExport").disabled = true; msg("Rendering…");
+    try {
+      const vs = committed().filter((v) => !v.muted), plan = C.finalePlan(vs.map((v) => v.id)), L = C.loopLen(ses.setup);
+      const sr = 44100, dur = 0.2 + plan.length * L + 2.2, oc = new OfflineAudioContext(2, Math.ceil(sr * dur), sr);
+      const comp = oc.createDynamicsCompressor(); comp.threshold.value = -6; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.15;
+      const m = oc.createGain(); m.gain.value = 0.8; m.connect(comp); comp.connect(oc.destination);
+      const t = new Transport(oc, m, ses.setup, 0.2, (k) => (k < plan.length ? { drums: true, voices: vs.filter((v) => plan[k].includes(v.id)) } : null), { quant: () => ses.quant });
+      t.scheduleUntil(dur);
+      const buf = await oc.startRendering();
+      const wav = C.wavBytes([buf.getChannelData(0), buf.getChannelData(1)], sr);
+      const name = `loop-piece-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}`;
+      msg(await SH.saveBytes(name + ".wav", wav, "audio/wav", name + ".zip", () => C.zipOne(name + ".wav", wav)));
+    } catch (e) { msg("Export failed: " + (e && e.message || e)); }
+    $("lExport").disabled = false;
+  }
+
+  /* ---------- input: the touch-area prototype's gesture layer ---------- */
+  const live = new Map(); // gesture id -> live note handle
+  const activeRows = new Map();
+  let gest = null, tilt = null, lastTilt = null, areas = null;
+  function onEvent(ev) {
+    if (!ctx || !liveCh) return;
+    const t = ctx.currentTime, voiceSound = rec && !rec.closed ? rec.sound : $("lSound").value, reg = rec && !rec.closed ? rec.reg : +$("lReg").value;
+    const latch = !!H().T().octLatch;
+    if (ev.type === "tilt") { lastTilt = { octave: ev.octave || 0, bend: ev.bend || 0, vib: ev.vib || 0, bright: ev.bright || 0 }; liveCh.tilt(t, latch ? { ...lastTilt, octave: 0 } : lastTilt); if (recording()) rec.tilt.push({ at: takeTime(ev.t), ...lastTilt }); return; }
+    if (ev.type === "onset") {
+      activeRows.set(ev.id, { row: ev.row, side: ev.side });
+      const old = live.get(ev.id); if (old) old.h.stop(t);
+      const cls = H().T().contactOn ? ev.cls : null;
+      const oct = latch && lastTilt ? lastTilt.octave : 0;
+      const h = S.INSTR[voiceSound].start(liveCh, t, ev.midi + 12 * (reg + oct), { cls, tau: H().T().ctTau / 1000 });
+      const entry = { h, rec: null, oct };
+      if (recording()) { const at = takeTime(ev.t); if (at >= -0.5 * 60 / ses.setup.bpm && at < C.loopLen(ses.setup)) { entry.rec = { on: at, off: null, midi: ev.midi, cls, ev: [], oct }; rec.list.push(entry.rec); } }
+      live.set(ev.id, entry);
+    } else if (ev.type === "pitch") {
+      activeRows.set(ev.id, { row: ev.row, side: (activeRows.get(ev.id) || {}).side });
+      const e = live.get(ev.id); if (!e) return;
+      e.h.pitch(t, ev.midi + 12 * (reg + e.oct));
+      if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "pitch", midi: ev.midi });
+    } else if (ev.type === "contact") {
+      const e = live.get(ev.id); if (!e || !H().T().contactOn) return;
+      const T = H().T(), d = ev.norm - ev.norm0;
+      e.h.expr(t, Math.pow(10, (d * T.ctDb) / 20), d * T.ctBright * 1200);
+      if (e.rec) e.rec.ev.push({ at: takeTime(ev.t), type: "contact", norm: ev.norm, norm0: ev.norm0 });
+    } else if (ev.type === "release") {
+      activeRows.delete(ev.id);
+      const e = live.get(ev.id); if (!e) return;
+      e.h.stop(t); live.delete(ev.id);
+      if (e.rec && rec) { e.rec.off = takeTime(ev.t); if (tr) tr.closeOpen(e.rec); }
+    }
+  }
+  const recording = () => rec && !rec.closed && (state === "countin" || state === "rec");
+  const takeTime = (perfMs) => ctxAt(perfMs) - rec.top - rec.offset;
+  function releaseLive() { if (gest) gest.releaseAll(nowMs()); for (const e of live.values()) e.h.stop(ctx.currentTime); live.clear(); activeRows.clear(); }
+
+  function layout() {
+    const W = innerWidth, Hh = innerHeight, MX = 48, MY = 44, aw = H().areaWidth(W), h = Hh - 2 * MY;
+    Object.assign($("lL").style, { left: MX + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    Object.assign($("lR").style, { left: W - MX - aw + "px", top: MY + "px", width: aw + "px", height: h + "px" });
+    Object.assign($("lPanel").style, { left: MX + aw + 10 + "px", width: W - 2 * MX - 2 * aw - 20 + "px", top: "6px", height: Hh - 12 + "px" });
+    areas = H().drawAreas($("lL"), $("lR"));
+    gest.hitFn = areas.hit;
+    const cv = $("lCanvas"), w = W - 2 * MX - 2 * aw - 20;
+    cv.width = Math.round(w * devicePixelRatio); cv.height = Math.round(118 * devicePixelRatio); cv.style.width = w + "px"; cv.style.height = "118px";
+  }
+
+  function boot() {
+    gest = new G.TouchGestures(() => areas ? areas.rect : { left: { left: 0, right: 0, top: 0, bottom: 0 }, right: { left: 0, right: 0, top: 0, bottom: 0 } }, () => H().rows(), onEvent, () => H().gopts());
+    tilt = new G.TiltReader(onEvent);
+    H().onMotion((e) => { if (window.__mode !== "loop" || !H().T().tiltOn) return; const g = e.accelerationIncludingGravity; if (!g || g.x == null) return; tilt.feed(nowMs(), g.x, g.y, g.z, H().T(), e.rotationRate); });
+    const inLoop = () => window.__mode === "loop" && $("lSetup").hidden && $("lLatBox").hidden && $("csvBox").hidden;
+    const onControl = (e) => !!(e.target && e.target.closest && e.target.closest("button,select,input,textarea,label,canvas"));
+    document.addEventListener("pointerdown", (e) => {
+      if (!inLoop() || onControl(e) || !areas) return;
+      if (!gest.sideAt(e.clientX, e.clientY)) return;
+      e.preventDefault();
+      const t = SH.evTime(e);
+      if (recording()) rec.csv.add({ t_ms: t, mode: "loop", event: "pointerdown", id: e.pointerId, zone: gest.sideAt(e.clientX, e.clientY), x: e.clientX, y: e.clientY, pressure: e.pressure, width: e.width, height: e.height, note: "take " + (ses.voices.length + 1) });
+      gest.down(e.pointerId, t, e.clientX, e.clientY, { width: e.width, height: e.height });
+    }, { passive: false });
+    document.addEventListener("pointermove", (e) => {
+      if (window.__mode !== "loop" || !gest.held.has(e.pointerId)) return;
+      e.preventDefault();
+      const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+      for (const s of list.length ? list : [e]) {
+        const t = SH.evTime(s);
+        if (recording()) rec.csv.add({ t_ms: t, mode: "loop", event: s === e ? "pointermove" : "coalesced", id: e.pointerId, x: s.clientX, y: s.clientY, pressure: s.pressure, width: s.width, height: s.height, note: "take " + (ses.voices.length + 1) });
+        gest.move(e.pointerId, t, s.clientX, s.clientY, { width: s.width, height: s.height });
+      }
+    }, { passive: false });
+    const up = (e) => {
+      if (window.__mode !== "loop" || !gest.held.has(e.pointerId)) return;
+      const t = SH.evTime(e);
+      if (rec && !rec.csvDone) rec.csv.add({ t_ms: t, mode: "loop", event: e.type, id: e.pointerId, x: e.clientX, y: e.clientY, note: "take " + (ses.voices.length + 1) });
+      gest.up(e.pointerId, t);
+    };
+    document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+    ["touchstart", "touchmove"].forEach((k) => document.addEventListener(k, (e) => { if (inLoop() && !onControl(e) && [...e.changedTouches].some((tc) => gest.sideAt(tc.clientX, tc.clientY) || gest.held.size)) e.preventDefault(); }, { passive: false }));
+
+    /* controls */
+    $("lSound").innerHTML = SOUNDS.map((k) => `<option value="${k}">${S.INSTR[k].name}</option>`).join("");
+    $("lRec").onclick = record; $("lKeep").onclick = keep; $("lRetake").onclick = retake; $("lStop").onclick = stop;
+    $("lAll").onclick = loopAll; $("lPiece").onclick = piece; $("lExport").onclick = exportAudio;
+    $("lQuant").onchange = () => { ses.quant = $("lQuant").value; save(); };
+    $("lDrum").oninput = () => { ses.setup.drumVol = +$("lDrum").value; $("lDrumO").textContent = (+$("lDrum").value).toFixed(2); if (tr) tr.drums.gain.setTargetAtTime(ses.setup.drumVol, ctx.currentTime, 0.03); save(); };
+    $("lMenu").onclick = () => window.__home();
+    $("lNew").onclick = () => { if ($("lNew").dataset.sure) { delete $("lNew").dataset.sure; $("lNew").textContent = "New session"; stop(); ses = null; try { localStorage.removeItem("loopsession"); } catch (e) { /* none */ } openSetup(); } else { $("lNew").dataset.sure = "1"; $("lNew").textContent = "Sure? Tap again"; setTimeout(() => { delete $("lNew").dataset.sure; $("lNew").textContent = "New session"; }, 2500); } };
+    $("lCsv").onclick = () => {
+      const all = SH.makeCsv();
+      for (const v of committed()) all.rows.push(...(v.take.csv || []));
+      if (review && rec) all.rows.push(...rec.csv.rows);
+      window.__showCsv("loop", all);
+    };
+    // setup
+    const sv = (id, o, f) => { $(id).oninput = () => { $(o).textContent = f(+$(id).value); }; $(id).oninput(); };
+    sv("lsBpm", "lsBpmO", (v) => v + " BPM"); sv("lsDrum", "lsDrumO", (v) => v.toFixed(2));
+    $("lsStart").onclick = () => {
+      audio();
+      ses = { setup: { bpm: +$("lsBpm").value, beats: +$("lsMeter").value, bars: +$("lsBars").value, drumVol: +$("lsDrum").value }, voices: [], quant: "off", created: new Date().toISOString() };
+      save(); $("lSetup").hidden = true; syncControls(); paint();
+    };
+    // latency calibration
+    $("lLat").onclick = () => { $("lLatBox").hidden = false; $("llRes").textContent = `Current offset: ${(latency * 1000).toFixed(0)} ms.`; };
+    $("llClose").onclick = () => { $("lLatBox").hidden = true; };
+    $("llGo").onclick = latencyRun;
+    $("llUse").onclick = () => { if (latRes) { latency = latRes.offset; try { localStorage.setItem("loopLatency", String(latency)); } catch (e) { /* none */ } $("llRes").textContent += "  Saved."; } };
+    $("lLatBox").addEventListener("pointerdown", (e) => { if (latRun && !onControl(e)) { e.preventDefault(); latRun.taps.push(ctxAt(SH.evTime(e))); $("llCount").textContent = `${latRun.taps.length} taps`; } }, { passive: false });
+    addEventListener("resize", () => { if (window.__mode === "loop") layout(); });
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------- latency: tap along to 16 clicks; the first 4 are a lead-in ---------- */
+  let latRun = null, latRes = null;
+  function latencyRun() {
+    if (!audio()) return;
+    const spb = 60 / (ses ? ses.setup.bpm : 90), t0 = ctx.currentTime + 0.4, clicks = [];
+    for (let i = 0; i < 16; i++) { const t = t0 + i * spb; S.click(ctx, master, t, i % 4 === 0); clicks.push(t); }
+    latRun = { taps: [], clicks }; latRes = null;
+    $("llRes").textContent = "Tap anywhere in time with the clicks (the first four are a lead-in)…"; $("llCount").textContent = "";
+    setTimeout(() => {
+      const r = C.latencyFrom(clicks.slice(4), latRun.taps);
+      latRun = null; latRes = r;
+      $("llRes").textContent = r ? `Your taps land ${(r.offset * 1000).toFixed(0)} ms ${r.offset >= 0 ? "after" : "before"} the clicks (spread ±${(r.spread * 1000).toFixed(0)} ms, ${r.n} taps). Tap "Use this" to correct new takes by it.` : "Too few taps matched the clicks: try again.";
+    }, (16 * spb + 0.8) * 1000);
+  }
+
+  /* ---------- screen ---------- */
+  function msg(t) { $("lMsg").textContent = t; }
+  function syncControls() {
+    if (!ses) return;
+    $("lQuant").value = ses.quant; $("lDrum").value = ses.setup.drumVol; $("lDrumO").textContent = ses.setup.drumVol.toFixed(2);
+  }
+  function paint() {
+    if (!ses) return;
+    const s = ses.setup;
+    $("lSetupLine").textContent = `${s.bpm} BPM · ${s.beats}/4 · ${s.bars} bars · latency ${(latency * 1000).toFixed(0)} ms`;
+    $("lKeep").hidden = $("lRetake").hidden = state !== "review";
+    $("lRec").disabled = ses.voices.length >= 4 || state === "countin" || state === "rec" || state === "review";
+    const box = $("lVoices"); box.innerHTML = "";
+    for (const v of committed()) {
+      const row = document.createElement("div"); row.className = "lvrow";
+      row.innerHTML = `<span class="lchip" style="background:${COLORS[v.slot]}"></span><span class="lvname">${v.order}. ${S.INSTR[v.sound].name}, ${REG[v.reg]}</span>`;
+      const b = (label, on, f) => { const x = document.createElement("button"); x.textContent = label; if (on) x.classList.add("sel"); x.onclick = f; row.appendChild(x); return x; };
+      b("M", v.muted, () => { v.muted = !v.muted; save(); if (tr) tr.mix(ses.voices); paint(); });
+      b("S", v.solo, () => { v.solo = !v.solo; save(); if (tr) tr.mix(ses.voices); paint(); });
+      const del = b("×", false, () => {
+        if (!del.dataset.sure) { del.dataset.sure = "1"; del.textContent = "sure?"; setTimeout(() => { if (del.isConnected) { delete del.dataset.sure; del.textContent = "×"; } }, 2500); return; }
+        ses.voices = ses.voices.filter((x) => x !== v); save(); if (state === "loop") loopAll(); paint();
+      });
+      box.appendChild(row);
+    }
+    if (!ses.voices.length) box.textContent = "No voices yet.";
+  }
+  function status() {
+    if (!ctx || !ses) return "";
+    const L = C.loopLen(ses.setup), spb = 60 / ses.setup.bpm;
+    if (state === "countin") return `Count-in: ${Math.max(1, Math.ceil((tr.T0 - ctx.currentTime) / spb))}`;
+    if (state === "rec") return "● Recording";
+    if (state === "review") return "Listening back: Keep or Retake?";
+    if (state === "loop") return "Looping everything";
+    if (state === "piece") { const k = Math.floor((ctx.currentTime - tr.T0) / L); const n = committed().filter((v) => !v.muted).length; return k < n ? `Piece: voice ${k + 1} enters` : k < n + 2 ? "Piece: all together" : "Piece: ending"; }
+    return ses.voices.length >= 4 ? "Four voices: play the piece, or delete one." : "Choose a sound and register, then Record.";
+  }
+
+  /* lanes: one per voice slot, notes as bars over the loop, a playhead */
+  function draw() {
+    requestAnimationFrame(draw);
+    if (window.__mode !== "loop" || !ses) return;
+    if (gest) gest.tick(nowMs());
+    const cv = $("lCanvas"), g = cv.getContext("2d"), dpr = devicePixelRatio, W = cv.width / dpr, Hc = cv.height / dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hc);
+    const s = ses.setup, L = C.loopLen(s), lh = (Hc - 6) / 4, rows = H().rows(), lo = Math.min(...rows) - 12, hi = Math.max(...rows) + 12;
+    // bar lines
+    g.fillStyle = "rgba(255,255,255,0.06)";
+    for (let b = 0; b <= s.bars * s.beats; b++) g.fillRect((b / (s.bars * s.beats)) * W, 0, b % s.beats ? 0.5 : 1, Hc);
+    const lane = (slot, take, reg, live) => {
+      const y0 = 3 + slot * lh;
+      g.fillStyle = COLORS[slot] + "18"; g.fillRect(0, y0 + 1, W, lh - 2);
+      if (!take) return;
+      g.fillStyle = COLORS[slot];
+      const notes = live ? take.list.map((n) => ({ ...n, start: C.mod(n.on + C.qShift(n.on, s, ses.quant), L), dur: Math.max(0.03, Math.min(L - 0.01, (n.off != null ? n.off : ctxAt(nowMs()) - take.top - take.offset) - n.on)) })) : C.playNotes(take, s, ses.quant);
+      for (const n of notes) {
+        const p = Math.max(0, Math.min(1, (n.midi + 12 * reg - lo) / (hi - lo))), y = y0 + lh - 3 - p * (lh - 6), x = (n.start / L) * W, w = Math.max(2, (n.dur / L) * W);
+        g.fillRect(x, y - 1.5, Math.min(w, W - x), 3); if (x + w > W) g.fillRect(0, y - 1.5, x + w - W, 3);
+      }
+    };
+    const used = new Set();
+    for (const v of ses.voices) { used.add(v.slot); g.globalAlpha = audible(v) ? 1 : 0.35; lane(v.slot, v.take, v.reg, false); }
+    g.globalAlpha = 1;
+    if (rec) lane(rec.slot, rec, rec.reg, true);
+    for (let k = 0; k < 4; k++) if (!used.has(k) && !(rec && rec.slot === k)) lane(k, null);
+    if (tr && ctx.currentTime >= tr.T0) { const x = (C.mod(ctx.currentTime - tr.T0, L) / L) * W; g.fillStyle = "#e8e4da"; g.fillRect(x, 0, 1.5, Hc); }
+    $("lStatus").textContent = status();
+    // the thumbs' rows, as in the touch-area prototype
+    for (const [side, el] of [["left", $("lL")], ["right", $("lR")]]) {
+      const on = new Set([...activeRows.values()].filter((a) => a.side === side).map((a) => a.row));
+      for (const d of el.querySelectorAll("[data-row]")) d.classList.toggle("on", on.has(+d.dataset.row));
+    }
+  }
+
+  function openSetup() { $("lSetup").hidden = false; }
+  window.__loopEnter = () => {
+    audio(); layout();
+    if (!ses) ses = load();
+    if (!ses) openSetup(); else { $("lSetup").hidden = true; syncControls(); paint(); }
+  };
+  window.__loopLeave = () => { stop(); };
+  window.__loop = { state: () => state, ses: () => ses, rec: () => rec, tr: () => tr, latency: () => latency, setLatency: (x) => { latency = x; }, ctxAt: (p) => ctxAt(p), gest: () => gest, onEvent };
+  boot();
+})();
+
+</script>
+
+</body></html>

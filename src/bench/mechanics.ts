@@ -301,6 +301,9 @@ export const MECH_DEFAULTS = {
   // the Lab (preset A, or this switch off); a recorded set that does not name it meant off (CLASSIC_VALUES).
   /** Glenn's mechanics: real over-legato, a keyboard slide begins a slur, slides and shakes told apart, joins judged by ear, a new bow against a slur. */
   glenn: true,
+  // THE BOW (D1055-D1058: src/touch/bow.ts, src/bench/bowing.ts). Off: the game as it was, every note and join as before.
+  /** STRING CONSORT bowed by the held thumb's sideways motion: its speed the colour, its start the attack, its direction the bow changes and slurs. On only in THE NEW LAB (lab.html?lab=new) and the developer view's NEW MECHANICS (lockMech). */
+  bow: false,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -343,8 +346,17 @@ export function asRecorded<T extends Partial<Record<string, unknown>>>(m: T | un
 /** The parameters in force (the lab changes them; the game never does). */
 export const MECH: Mech = { ...MECH_DEFAULTS };
 
+/** D1055: parameters set by the page, not the Lab's MECHANICS panel (no control: THE OLD LAB as it was; THE NEW LAB holds the bow on). */
+export const PAGE_MECH: readonly MechKey[] = ["bow"];
+/** D1055: parameters a page holds whatever a preset, a reset or a stored setting says (THE NEW LAB's bow; the developer view's NEW MECHANICS). */
+const MECH_LOCK: Partial<Mech> = {};
+export function lockMech(values: Partial<Mech>) {
+  Object.assign(MECH_LOCK, values);
+  Object.assign(MECH, MECH_LOCK);
+}
+
 export function resetMech() {
-  Object.assign(MECH, MECH_DEFAULTS);
+  Object.assign(MECH, MECH_DEFAULTS, MECH_LOCK);
 }
 
 /** Sets some parameters (unknown keys ignored; values coerced to the default's type). Returns the keys set. */
@@ -359,6 +371,7 @@ export function setMech(values: Partial<Record<string, unknown>>): MechKey[] {
     (MECH as Record<string, unknown>)[key] = val;
     set.push(key);
   }
+  Object.assign(MECH, MECH_LOCK);
   return set;
 }
 

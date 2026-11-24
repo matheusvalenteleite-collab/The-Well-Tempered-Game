@@ -38,6 +38,7 @@ import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
+import { newMechStored, saveNewMech } from "./new-mech.ts";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
 import { MECH } from "./mechanics.ts";
@@ -1986,6 +1987,17 @@ export function BenchApp() {
               />
               {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
               <DisplayChoice value={display} set={setDisplay} piece={f} />
+              {/* D1059: NEW MECHANICS (the strings' bow, MECH.bow), kept on this device, off by default; the page reloads. */}
+              <Choice
+                id="new-mechanics"
+                label="NEW MECHANICS"
+                options={[["off", "OFF"], ["on", "ON · STRING CONSORT BOWED"]]}
+                value={newMechStored() ? "on" : "off"}
+                set={(v: "on" | "off") => {
+                  saveNewMech(v === "on");
+                  window.location.reload();
+                }}
+              />
               {/* D327: the tuning, INSTRUMENT DEFAULT first. */}
               <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
               {/* D317: THE LAB, for the owner only (once opened, or ?lab in the address). */}

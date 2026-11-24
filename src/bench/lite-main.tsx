@@ -15,6 +15,7 @@ import { loadPiecePair, prefetchPieces } from "../touch/fugue.ts";
 import { MobileOnly } from "./MobileOnly.tsx";
 import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
 import { isInstalled, watchInstall } from "./install.ts";
+import { applyNewMech } from "./new-mech.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -28,6 +29,8 @@ APP.dev = false;
 // D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else,
 // unless the device is unlocked (unlock.ts): then the game, as before, with ⚙ PLAY ON.
 markVersion();
+// D1059: the developer view's NEW MECHANICS (the bow), where this unlocked device switched them on; else nothing.
+applyNewMech();
 // D369: sideways only: a phone or tablet upright is asked to turn (Sideways.tsx, over everything; the run
 // paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.
 document.documentElement.classList.add("tb-play-page");

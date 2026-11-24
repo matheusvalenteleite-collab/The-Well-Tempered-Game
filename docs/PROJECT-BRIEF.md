@@ -38,11 +38,28 @@ Live now: Book I and II fugues, *The Art of Fugue*, Inventions and Sinfonias, Go
 
 ## The people and the shape of the work
 
-One owner and designer, a philosophy professor, not a programmer; Claude Code sessions do the building and report in plain English. Decisions are kept as numbered rows (D1 to D1052) in `docs/decisions/`; the open and parked work is in `docs/BACKLOG.md`.
+One owner and designer, a philosophy professor, not a programmer; Claude Code sessions do the building and report in plain English. Decisions are kept as numbered rows (D1 to D1054) in `docs/decisions/`; the open and parked work is in `docs/BACKLOG.md`.
 
 ## Useful things to ask Claude chat
 
-How a gesture could teach a specific contrapunctal idea (stretto, inversion, answer at the fifth); how to word an explanation for a player with no theory; whether a design idea would break one of the standing rules above; how a given Bach piece might be shown on the roll. Claude chat cannot see the code or hear the sound, so judgement about feel and sound stays with the owner.
+For a new repertoire, see the section just above. For the Bach game itself: how a gesture could teach a specific contrapunctal idea (stretto, inversion, answer at the fifth); how to word an explanation for a player with no theory; whether a design idea would break one of the standing rules above; how a given Bach piece might be shown on the roll. Claude chat cannot see the code or hear the sound, so judgement about feel and sound stays with the owner.
+
+## For brainstorming another repertoire (a Beatles version)
+
+The aim of this section is to help think about what a Beatles game could be, so these are the things to reason from, not conclusions.
+
+**What the game is really made of.** (1) A piece is a set of separate lines, and you take one line while the rest keep sounding, so you always hear the whole piece and your part is inside it. (2) A big, readable picture of the piece scrolling toward a "now" line: a rhythm-game layout that doubles as a score. (3) Two thumbs and a few gestures (tap, hold, slide, pass a note between thumbs) that stand in for how the music is shaped. (4) Honest judging: right note, right time, plus touch. (5) A world for each piece, so the grid is a gallery you want to browse. (6) The sound is chosen by the player, and the piece survives being played on very different instruments. (7) The learning is a side effect of playing: you hear how a fugue works because you were inside one of its voices.
+
+**What fits a Beatles repertoire naturally.** The bass lines (a bass part worth playing for its own sake), the vocal harmonies (two- and three-part singing as separate lines), the guitar and piano countermelodies, and the studio-era songs where several parts interlock. "Don't offer dull lines as the player's part" is the test: a rhythm-guitar strum is dull to tap, a McCartney bass line or a harmony vocal is not.
+
+**What does not carry over without rethinking.**
+- Bach's pieces are written as independent voices. Most pop songs are one lead voice over accompaniment, so "take a voice" needs a new meaning: a part (bass, lead, harmony, a guitar line), or a layer of the arrangement.
+- The game's rule is whole works and no added notes, taken from a printed score. For the Beatles the source would be a transcription or the recording itself. Which of those, and who vouches for it, is open.
+- Bach is out of copyright; the Beatles' songs and their published transcriptions are not. A version with their music would need permission, and that decides much about how public it could be. A good brainstorm should say early whether it assumes a private or friends-only toy, a licensed product, or an original game inspired by the idea with no Beatles music in it.
+- Lyrics and the sound of the recordings carry much of a Beatles song's identity. Bach's pieces were designed to survive any instrument; a song may not.
+- Names and pictures: the game gives each Bach piece an invented title and pixel scene, a rule kept only for the WTC pieces. For songs, the real titles would probably stay, which changes what the cards can say.
+
+**Open questions worth brainstorming.** What is a "voice" in a Beatles song, and which songs have enough of them? Would the player play melody or the part underneath it? Is the unit one song or an album as a journey (the grid as a record sleeve)? What could the "crowd" and the "subject's entries" be in a pop song: the chorus coming back, the hook? How would the gestures map onto a bass slide or a guitar bend? What would the worlds be: one scene per song? What is the teaching, if any: harmony, arrangement, the studio?
 
 ## Technical footing, in one paragraph
 

@@ -174,7 +174,8 @@ interface Trace {
   label: string;
 }
 
-export function LabApp() {
+/** D1055: `newLab`, THE NEW LAB (lab.html?lab=new): the same Lab with the bow on (MECH.bow), a small mark and a way back to the chooser. */
+export function LabApp({ newLab = false }: { newLab?: boolean } = {}) {
   const [platform] = useState(detectedPlatform);
   const [setup, setSetupRaw] = useState<Setup>(() => {
     const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
@@ -750,7 +751,8 @@ export function LabApp() {
   };
   const [paste, setPaste] = useState("");
 
-  const changed = Object.keys(mechChanges()).length;
+  // D1055: THE NEW LAB's bow is the page's, not a change.
+  const changed = Object.keys(mechChanges()).filter((k) => !(newLab && k === "bow")).length;
   const voices = voicesFrom(f, span.from);
   const freeOn = setup.mode === "free";
   const hudTitle = freeOn
@@ -770,6 +772,11 @@ export function LabApp() {
         hud={
           <>
             <span className="tg-hud-title">{hudTitle}</span>
+            {newLab && (
+              <a className="lab-new-mark" id="lab-new-mark" href="./lab.html" title="THE NEW LAB (the bow on). Back to the choice of labs">
+                NEW ◀
+              </a>
+            )}
             {/* D322: the stops for the voice played (kept per piece, as in the game). D420: the three pistons. */}
             {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} voice={setup.voice} />}
             {changed > 0 && (

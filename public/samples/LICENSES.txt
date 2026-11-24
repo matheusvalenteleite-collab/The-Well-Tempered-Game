@@ -125,6 +125,14 @@ violinSolo/ celloSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent
          each note's level evened (K-weighted, and measured through the game's engine); the loudest peak at -1 dBFS;
          mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/consort/build_consort.py.
 
+D1056, the bow's colour layers for STRING CONSORT's violin, viola and cello (THE NEW LAB's bowing only):
+violinSoloPp/ violinSoloFf/ celloSoloPp/ celloSoloFf/ violaSoloPp/ violaSoloFf/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi,
+         Vincent Lostanlen, Fabien Lévy, Joshua Fineberg, Yan Maresz; IRCAM; zenodo.org/records/3685367). CC BY 4.0
+         (https://creativecommons.org/licenses/by/4.0/). Ordinario pp and ff at the same pitches and on the same strings as violinSolo/,
+         celloSolo/ and violaSolo/. Changed as those (the violin and cello: build_consort.py's preparation; the viola: build_viola.py's);
+         each note's level brought to its mf recording's through a phone model (pp 0.75 dB under, ff 0.75 dB over), written 4 dB under
+         that; mono 44.1 kHz 80 kbit/s MP3. Script: tools/playback/consort/build_consort_bow.py.
+
 D1031, the touch game's BAROQUE BAND's oboe (its own: ZELENKA TRIO and the trials keep oboe/ above):
 oboeSolo/   TinySOL (Carmine-Emanuele Cella, Daniele Ghisi, Vincent Lostanlen, Fabien Lévy, Joshua Fineberg, Yan Maresz;
          IRCAM; zenodo.org/records/3685367). CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
