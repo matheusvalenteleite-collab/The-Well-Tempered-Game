@@ -38,7 +38,8 @@ import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
-import { newMechStored, saveNewMech } from "./new-mech.ts";
+import { guitarTiltStored, newMechStored, saveGuitarTilt, saveNewMech } from "./new-mech.ts";
+import { askTilt } from "./guitaring.ts";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
 import { MECH } from "./mechanics.ts";
@@ -1153,6 +1154,8 @@ export function BenchApp() {
     hintGone.current = false;
     stopHearing();
     if (!now && performance.now() - shownAt.current < 350) return;
+    // D1065: PSYCH's tilt asked on the PLAY tap (only on PSYCH; iOS asks once), its neutral taken again for the piece.
+    askTilt(presetById(soundNow).id);
     // D425: the hard tap's motion sensor asked on the PLAY tap (iOS asks only from a gesture), once; never waited for.
     void askMotion();
     const ch = ensureChip();
@@ -1183,6 +1186,7 @@ export function BenchApp() {
   /** D326, TOOLS: PRACTICE (unscored) or HEAR THE OTHERS, straight into the run. */
   const practise = (s: ToolsState, listen: boolean) => {
     stopHearing();
+    askTilt(presetById(soundNow).id);
     void askMotion();
     const ch = ensureChip();
     setLesson(null);
@@ -1995,6 +1999,17 @@ export function BenchApp() {
                 value={newMechStored() ? "on" : "off"}
                 set={(v: "on" | "off") => {
                   saveNewMech(v === "on");
+                  window.location.reload();
+                }}
+              />
+              {/* D1066: GUITAR & TILT (the guitars' hands, PSYCH's tilt: MECH.guitar, MECH.tilt), kept on this device, ON by default (the game's); the page reloads. */}
+              <Choice
+                id="guitar-tilt"
+                label="GUITAR & TILT"
+                options={[["off", "OFF"], ["on", "ON · GUITARS, PSYCH TILT"]]}
+                value={guitarTiltStored() ? "on" : "off"}
+                set={(v: "on" | "off") => {
+                  saveGuitarTilt(v === "on");
                   window.location.reload();
                 }}
               />

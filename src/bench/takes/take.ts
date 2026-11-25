@@ -30,7 +30,7 @@ export interface TakeVoicing {
  * released (`how`, a bowed note's way of giving way); `trim` [level, tick, untilTick]; the rest as
  * Sounding's own (bend cents, glide midi tau?, muffle, dyn level, shape s).
  */
-export type TakeCall = [tick: number, i: number, what: "stop" | "bend" | "glide" | "muffle" | "dyn" | "shape" | "trim", ...args: unknown[]];
+export type TakeCall = [tick: number, i: number, what: "stop" | "bend" | "glide" | "muffle" | "dyn" | "shape" | "trim" | "guitar", ...args: unknown[]];
 
 /** Each of the player's notes in the score as the run judged it: "r" right, "w" wrong, "m" missed, "-" not reached. */
 export type TakeOutcomes = string[];
@@ -129,6 +129,8 @@ export class TakeRecorder {
     if (sd.muffle) out.muffle = () => (keep("muffle"), sd.muffle!());
     if (sd.dyn) out.dyn = (l) => (keep("dyn", Math.round(l * 1e4) / 1e4), sd.dyn!(l));
     if (sd.shape) out.shape = (s) => (keep("shape", Math.round(s * 1e4) / 1e4), sd.shape!(s));
+    // D1061, D1065: a guitar note's hard pick and lean (Sounding.guitar), kept as the rest.
+    if (sd.guitar) out.guitar = (c) => (keep("guitar", JSON.parse(JSON.stringify(c))), sd.guitar!(c));
     if (sd.trim) out.trim = (l, a, u) => (this.calls.push([now(), i, "trim", Math.round(l * 1e4) / 1e4, this.tickOf(a), this.tickOf(u)]), sd.trim!(l, a, u));
     return out;
   }
@@ -216,6 +218,7 @@ export class TakePlayer {
       else if (k[2] === "muffle") sd.muffle?.();
       else if (k[2] === "dyn") sd.dyn?.(a[0] as number);
       else if (k[2] === "shape") sd.shape?.(a[0] as number);
+      else if (k[2] === "guitar") sd.guitar?.(a[0] as never);
     }
   }
   /** Every note released now (the end, ✕). */

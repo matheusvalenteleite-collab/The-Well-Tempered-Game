@@ -1,0 +1,93 @@
+{
+ "about": "D1061-D1065: each gesture's loudness (LU) against the same notes today (bloom: against the same 2.5 s notes held, no lean), PSYCH's clean (k2Clean) and fuzz (k2Fuzz) guitars, E3-E5, the phone model and full band. tools/touch/gesture/calib-guitar.cjs",
+ "lu": {
+  "clean-today-soft": {
+   "phone": -2.8,
+   "full": -2.6
+  },
+  "clean-today-strong": {
+   "phone": 2.1,
+   "full": 2.2
+  },
+  "clean-neck": {
+   "phone": -1.0,
+   "full": -0.1
+  },
+  "clean-bridge": {
+   "phone": 1.5,
+   "full": 0.8
+  },
+  "clean-hard": {
+   "phone": 0.3,
+   "full": 0.2
+  },
+  "clean-hammer": {
+   "phone": -1.5,
+   "full": -1.1
+  },
+  "clean-pull": {
+   "phone": -1.3,
+   "full": -0.8
+  },
+  "clean-vibe": {
+   "phone": -0.6,
+   "full": -0.5
+  },
+  "clean-fuzz": {
+   "phone": -0.4,
+   "full": -0.9
+  },
+  "clean-bloom": {
+   "phone": 0.7,
+   "full": 0.8
+  },
+  "clean-bloom-half": {
+   "phone": -0.4,
+   "full": -0.6
+  },
+  "fuzz-today-soft": {
+   "phone": -1.3,
+   "full": -1.0
+  },
+  "fuzz-today-strong": {
+   "phone": 1.1,
+   "full": 0.8
+  },
+  "fuzz-neck": {
+   "phone": -0.2,
+   "full": 0.1
+  },
+  "fuzz-bridge": {
+   "phone": 0.5,
+   "full": 0.1
+  },
+  "fuzz-hard": {
+   "phone": 0.2,
+   "full": 0.1
+  },
+  "fuzz-hammer": {
+   "phone": -0.9,
+   "full": -0.4
+  },
+  "fuzz-pull": {
+   "phone": -0.7,
+   "full": -0.3
+  },
+  "fuzz-vibe": {
+   "phone": 0.1,
+   "full": 0.4
+  },
+  "fuzz-fuzz": {
+   "phone": 0.0,
+   "full": -0.6
+  },
+  "fuzz-bloom": {
+   "phone": 1.5,
+   "full": 1.1
+  },
+  "fuzz-bloom-half": {
+   "phone": -0.2,
+   "full": 0.1
+  }
+ }
+}

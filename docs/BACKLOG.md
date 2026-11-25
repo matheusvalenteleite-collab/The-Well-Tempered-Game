@@ -7,11 +7,17 @@ DECISIONS.md (or delete it) when it is done or dropped.
 
 **A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
 the player improvise on sound is something that should be a strong priority of us ... I'm rediscovering the game,
-and it rocks"). Resume with Batch 2.
+and it rocks"). Batch 2 is built (D1061-D1066, 25 Nov 2026; not yet deployed): the next is Batch 3 once the owner has played it.
 
 Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
 developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
 From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
+Batch 2 (D1061-D1066) is built on the dev branch: every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off,
+glide; PSYCH's tilt (lean = feedback, steer = vibe / fuzz); `src/touch/guitar.ts`, `src/touch/tilt.ts`, `src/bench/guitaring.ts`,
+MECH.guitar and MECH.tilt. The owner said "directly to main game, I believe you": play.html's default for every player, the
+developer view's GUITAR & TILT switch turns it off. **Owner to check on the phone:** the steering (both thumbs playing, never by
+accident? left/right the right way round?) and which way of LEAN feels like "toward the amp" (tilt.ts LEAN_AMP_SIGN,
+STEER_LEFT_SIGN flip them). Left open: a guitar slide over more than a fifth is a fresh pick, not a glide.
 The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
 one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
 stay the ornaments. Horizontal responses continuous wherever possible (no classifier). Never adds notes.
