@@ -10,7 +10,7 @@ the player improvise on sound is something that should be a strong priority of u
 and it rocks"). Resume with Batch 2.
 
 Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
-developer view's NEW MECHANICS switch, MECH.bow); not yet offered to normal players (a listening page first).
+developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
 From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
 The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
 one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
@@ -35,7 +35,7 @@ stay the ornaments. Horizontal responses continuous wherever possible (no classi
 - **Then: a USER'S MANUAL** with playable animations: the game and the music box shown, arrows drawn on or
   around the notes in sync with the thumbs' vertical and horizontal movements, extending over time as the
   sound does. Not started; after the mechanics are approved.
-- **Open from Batch 1:** a listening page with A/B clips before bowing ships to players; low cello notes
+- **Open from Batch 1:** low cello notes
   swing about ±4 dB on headphones (fine on the phone model); PASSAGE bowing not driven live; BAROQUE BAND and
   ORCHESTRA & ORGAN strings not bowed (no pp/ff layers).
 

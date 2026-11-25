@@ -291,27 +291,33 @@ test("D1055/D1056: a bowed note: the pp and ff beside the mf (silent at colour 0
   }
 });
 
-test("D1059: the developer view's NEW MECHANICS: off unless kept on AND the device unlocked", async () => {
+test("D1059/D1060: NEW MECHANICS: on for every player by default; only an unlocked device that switched them off goes without", async () => {
   const store = new Map<string, string>();
   (globalThis as unknown as { localStorage: Storage }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) } as Storage;
   const { applyNewMech, newMechStored, saveNewMech } = await import("../src/bench/new-mech.ts");
   const { setUnlocked } = await import("../src/bench/unlock.ts");
-  assert.equal(newMechStored(), false);
-  saveNewMech(true);
+  assert.equal(newMechStored(), true);
+  // a normal player: on, whatever is kept
   setUnlocked(false);
-  assert.equal(applyNewMech(), false);
-  assert.equal(MECH.bow, false);
-  setUnlocked(true);
+  saveNewMech(false);
   assert.equal(applyNewMech(), true);
   assert.equal(MECH.bow, true);
-  // locked on: a reset (the Lab's presets) keeps it
+  lockMech({ bow: false });
+  resetMech();
+  // an unlocked device that switched it off: off
+  setUnlocked(true);
+  assert.equal(applyNewMech(), false);
+  assert.equal(MECH.bow, false);
+  // switched back on: on, and a reset (the Lab's presets) keeps it
+  saveNewMech(true);
+  assert.equal(newMechStored(), true);
+  assert.equal(applyNewMech(), true);
   resetMech();
   assert.equal(MECH.bow, true);
   lockMech({ bow: false });
   resetMech();
   setBowLayersWanted(false);
   setUnlocked(false);
-  saveNewMech(false);
   assert.equal(MIN_HOLD_S > 0, true);
 });
 

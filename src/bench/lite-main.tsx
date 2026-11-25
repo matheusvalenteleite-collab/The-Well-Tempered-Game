@@ -29,7 +29,7 @@ APP.dev = false;
 // D343: phones and tablets only. A computer (surely one: see isSurelyComputer) is told so, and nothing else,
 // unless the device is unlocked (unlock.ts): then the game, as before, with ⚙ PLAY ON.
 markVersion();
-// D1059: the developer view's NEW MECHANICS (the bow), where this unlocked device switched them on; else nothing.
+// D1059/D1060: the new mechanics (the strings' bow) for every player; the developer view's NEW MECHANICS can switch them off.
 applyNewMech();
 // D369: sideways only: a phone or tablet upright is asked to turn (Sideways.tsx, over everything; the run
 // paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.

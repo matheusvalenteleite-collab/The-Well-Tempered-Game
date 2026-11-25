@@ -1987,7 +1987,7 @@ export function BenchApp() {
               />
               {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
               <DisplayChoice value={display} set={setDisplay} piece={f} />
-              {/* D1059: NEW MECHANICS (the strings' bow, MECH.bow), kept on this device, off by default; the page reloads. */}
+              {/* D1059/D1060: NEW MECHANICS (the strings' bow, MECH.bow), kept on this device, ON by default (the game's); the page reloads. */}
               <Choice
                 id="new-mechanics"
                 label="NEW MECHANICS"
