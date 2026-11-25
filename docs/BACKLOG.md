@@ -3,6 +3,23 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Strings: dragging should glide, not swell (owner, 25 November 2026; for next week)
+
+The owner: "the dragging in string instruments is giving a volume boost which is a terrible idea and sounds awful.
+string instrument's dragging, should be glissando, and how fast one drags dictates whether the glissando is super quick
+(as an attack?) or more like gradual." APPROVED in principle; to build when the owner's tokens are back.
+- **Remove the boost.** Find which path makes it: suspects are D1016's bow contact point (`bowGain`/`bowTone`,
+  `src/touch/touch-expr.ts`, used in `src/touch/chip.ts` ~l.1934; meant level-neutral, but the +4 dB bridge shelf may
+  read as louder) and any messa/swell still reaching bowed sounds. Measure in LU on the phone model before and after.
+  Removing a loudness effect on the player's voice is a D508 fix and may ship without a listening page.
+- **Drag = glissando (portamento), its speed the thumb's.** A fast drag gives a quick slide into the note (string
+  players call a fast audible shift a portamento too; a very quick slide into a note from below is usually called a
+  "scoop" or slide-in); a slow drag a gradual glide. Builds on D424/D486 (strings' shift glide 25/25/45/70 ms, fixed
+  today): the glide's time from the thumb's speed, landing in tune on the written note at its written time. No notes
+  added, no loudness change. Which instruments: STRING CONSORT, BAROQUE BAND's and ORCHESTRA & ORGAN's strings; ask
+  whether the lute's long-leap glissando (D426) should follow.
+- **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
+
 ## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
 
 Report: docs/audits/CODE-AUDIT-PHASE1.md. Owner decisions: "delete all retired features outright"; "the older
