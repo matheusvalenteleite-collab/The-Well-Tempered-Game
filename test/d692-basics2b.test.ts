@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fugueById, loadExtras } from "../src/touch/fugue.ts";
 import { ProtoGame } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
-import { LensTally } from "../src/bench/manual/lens.ts";
+import { LensTally } from "../src/bench/basics/lens.ts";
 import { ACTS, ACTS_READY, stagePassed, type Stage } from "../src/bench/basics/plan.ts";
 import { basicsRun, nextAt, type Phase } from "../src/bench/basics/runner.ts";
 import { BASICS_PT } from "../src/i18n/basics-pt.ts";

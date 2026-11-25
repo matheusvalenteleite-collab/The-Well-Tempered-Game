@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fugueById } from "../src/touch/fugue.ts";
 import type { Chip } from "../src/touch/chip.ts";
-import { chooseReading, chosenReading, LEVEL_D, NO_READING, performSubject, READINGS, readingsOf, type Reading } from "../src/touch/readings.ts";
+import { LEVEL_D, performSubject, READINGS, readingsOf, type Reading } from "../src/touch/readings.ts";
 import { ProtoGame, type Rows } from "../src/bench/proto-game.ts";
 import { protoById } from "../src/bench/protos.ts";
 
@@ -44,22 +44,6 @@ test("D272: HEAR THE SUBJECT: joined notes reach the next, detached ones stop sh
   assert.ok(p[1].len < 0.125 * 0.8, "detached (D304: three quarters)");
   assert.ok(p[2].len < p[1].len, "staccato shorter");
   assert.ok(p[1].d > p[0].d, "the accent louder");
-});
-
-test("D325: every reading is open from the start and remembered (D369: nothing chosen, D344's reading for the fugue, here none)", () => {
-  const store = new Map<string, string>();
-  (globalThis as { localStorage?: unknown }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
-  const id = "wtc1f99";
-  const rs = [{ id: "a" }, { id: "b" }] as Reading[];
-  READINGS[id] = rs;
-  assert.equal(chosenReading(id), null, "no reading chosen for this made-up fugue by D344: NONE");
-  chooseReading(id, "b");
-  assert.equal(chosenReading(id)?.id, "b", "open at once (D272 locked it until the fugue was finished)");
-  chooseReading(id, NO_READING);
-  assert.equal(chosenReading(id), null, "NONE chosen again");
-  chooseReading(id, "gone");
-  assert.equal(chosenReading(id), null, "a reading the fugue no longer has: NONE");
-  delete READINGS[id];
 });
 
 function fakeChip(clock: { t: number }) {

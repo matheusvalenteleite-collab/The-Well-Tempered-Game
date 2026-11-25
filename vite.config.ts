@@ -3,20 +3,23 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { benchServiceWorker } from "./tools/bench/sw-plugin.ts";
 import { playServiceWorker } from "./tools/play-app/sw-plugin.ts";
+import { piecesSplit } from "./tools/touch/pieces-split.ts";
 
 export default defineConfig(({ mode }) => ({
   // Relative asset paths, so the built game works from any folder (e.g. GitHub Pages).
   base: "./",
   // bench-sw.js, the bench's offline cache for the Home Screen (D195).
   // D380: play-sw.js, play.html's (installed from the home screen, offline).
-  plugins: [react(), benchServiceWorker(), playServiceWorker()],
+  plugins: [piecesSplit(), react(), benchServiceWorker(), playServiceWorker()],
+  // D1054: the browser build reads the WTC pieces as stubs plus a chunk of notes per piece (tools/touch/pieces-split.ts, which also swaps src/touch/pieces-source.ts for pieces-source.web.ts); tests and tools read pieces.json whole.
   json: { stringify: true },
   // `vite build --mode artifact`: one script, no chunks loaded on demand, for the single-file page
   // published on claude.ai (tools/build-artifact.mjs), whose file count is limited.
+  // D1051: index.html is only the redirect to play.html; the older counterpoint app (counterpoint.html, developer server and the artifact mode) is no longer built for the site.
   // The Pages build also carries the touch game's page (touch.html, D158) and its instrument bench (bench.html, D170), and the minimal page for friends (play.html, D237).
   // D317: and THE LAB (lab.html), the mechanics laid open. D497: and THE SOUND LAB (soundlab.html), reached by its address only.
   build:
     mode === "artifact"
-      ? { outDir: "dist-artifact", rollupOptions: { output: { inlineDynamicImports: true } } }
-      : { rollupOptions: { input: { main: fileURLToPath(new URL("./index.html", import.meta.url)), touch: fileURLToPath(new URL("./touch.html", import.meta.url)), bench: fileURLToPath(new URL("./bench.html", import.meta.url)), play: fileURLToPath(new URL("./play.html", import.meta.url)), lab: fileURLToPath(new URL("./lab.html", import.meta.url)), soundlab: fileURLToPath(new URL("./soundlab.html", import.meta.url)) } } },
+      ? { outDir: "dist-artifact", rollupOptions: { input: fileURLToPath(new URL("./counterpoint.html", import.meta.url)), output: { inlineDynamicImports: true } } }
+      : { rollupOptions: { input: { index: fileURLToPath(new URL("./index.html", import.meta.url)), touch: fileURLToPath(new URL("./touch.html", import.meta.url)), bench: fileURLToPath(new URL("./bench.html", import.meta.url)), play: fileURLToPath(new URL("./play.html", import.meta.url)), lab: fileURLToPath(new URL("./lab.html", import.meta.url)), soundlab: fileURLToPath(new URL("./soundlab.html", import.meta.url)) } } },
 }));

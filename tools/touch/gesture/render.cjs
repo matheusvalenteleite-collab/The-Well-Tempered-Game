@@ -10,7 +10,7 @@
 // the line keeps one way, else it lifts and the other thumb strikes; no sway. `solo: "player"` mutes the band
 // (ProtoGame's own mute), else the whole mix. Writes <out>/<name>.wav (mono, (L+R)/2) and <name>.json (the notes swayed).
 // usage: PORT=<port> node tools/touch/gesture/render.cjs <out dir> <jobs.json>
-//   jobs: [{name, piece, sound, player, fromBar, secs, solo?: "player", land?, slides?, sway: {shape, amp, delay?, minDur}}]
+//   jobs: [{name, piece, sound, player, fromBar, secs, solo?: "player", land?, slides?, mech?, sway: {shape, amp, delay?, minDur}}]
 const { chromium } = require(process.env.PLAYWRIGHT || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
@@ -59,6 +59,8 @@ fs.mkdirSync(outDir, { recursive: true });
       const pv = job.player;
       await ch.prepare(f.voices.flat().map((n) => n[2]), f.voices[pv].map((n) => n[2]), chipM.openingOf(f));
       const mute = job.solo === 'player' ? f.voices.map((_, u) => u).filter((u) => u !== pv) : [];
+      // D1061: `mech`: the game's mechanics held for the job (e.g. {guitar: true, tilt: true}: play.html's GUITAR & TILT).
+      if (job.mech) (await import('/src/bench/mechanics.ts')).lockMech(job.mech);
       const proto = protoById('ladder');
       const g = new ProtoGame(f, [pv], from, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false, mute }, ch);
       g.wall = () => 0;

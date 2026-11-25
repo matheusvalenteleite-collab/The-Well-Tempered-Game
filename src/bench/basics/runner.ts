@@ -6,7 +6,7 @@
  */
 import { fugueById } from "../../touch/fugue.ts";
 import type { Run } from "../lessons.ts";
-import { runOf, type Material } from "../manual/lessons.ts";
+import { runOf, type Material } from "./material.ts";
 import { ACTS, beatFor, slower, type Stage } from "./plan.ts";
 import { versionOf } from "./exercises.ts";
 
@@ -86,16 +86,13 @@ export function basicsRun(st: Stage, phase: Phase, notches: number, k = 0): Run 
     fromBar: ver.fromBar ?? 1,
     toBar: ver.toBar ?? lastBar,
     tempo: { bpm: slower(st.bpm, notches) },
-    label: `BASICS ${st.id}`,
-    badge: "IN GAME",
     wait: st.wait === "all",
     solo: st.solo,
     ...(st.easy ? { easy: st.easy } : {}),
-    ...(st.side ? { side: st.side } : {}),
     ...(ver.skip ? { skip: ver.skip } : {}),
     ...(ver.count ? { count: ver.count } : {}),
   };
-  const r = runOf(m, undefined, [], !!st.ornaments, false);
+  const r = runOf(m, !!st.ornaments);
   const beat = beatFor(st);
   const early = Number(st.id[0]) <= 4;
   return {

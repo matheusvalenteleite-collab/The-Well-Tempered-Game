@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { Crowd, CROWD_LEAVE, gradeFor, GRACE_S, streakFactor, STREAK_STEPS } from "../src/bench/scoring.ts";
 import { fugueById } from "../src/touch/fugue.ts";
 import { defaultVoice } from "../src/bench/flow.ts";
-import { ex } from "../src/bench/manual/kit.ts";
+import { ex } from "./d342-sim.ts";
 import { playerRun } from "./d359-players.ts";
 
 test("D445: the grade from the performance alone, rounded once", () => {

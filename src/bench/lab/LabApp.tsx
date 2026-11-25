@@ -21,7 +21,6 @@ import { presetById, setPreset } from "../../touch/sound.ts";
 import { PIECE_SOUND } from "../../touch/piece-sound.ts";
 import { accompaniment, entrySpans, stepRange, subjectMarks, voicesFrom } from "../../touch/voice-mode.ts";
 import { btOn, latencyOf, type BtMode } from "../../touch/headphones.ts";
-import { uiRows } from "../../touch/ui/index.ts";
 import { STRONG_SIDE } from "../../touch/touch-expr.ts";
 import { LagSetting, loadDrums } from "../../touch/Panels.tsx";
 import type { Side } from "../../touch/thumbs.ts";
@@ -175,7 +174,8 @@ interface Trace {
   label: string;
 }
 
-export function LabApp() {
+/** D1055: `newLab`, THE NEW LAB (lab.html?lab=new): the same Lab with the bow on (MECH.bow), a small mark and a way back to the chooser. */
+export function LabApp({ newLab = false }: { newLab?: boolean } = {}) {
   const [platform] = useState(detectedPlatform);
   const [setup, setSetupRaw] = useState<Setup>(() => {
     const st = load<(Partial<Setup> & { mech?: Record<string, unknown>; mechBase?: string }) | null>(STORE, null);
@@ -322,10 +322,9 @@ export function LabApp() {
     const area = document.querySelector(".tg-play");
     if (!r || !area) return null;
     const a = area.getBoundingClientRect();
-    const ui = uiRows(f.id, setup.voice, range, r.height);
-    const geo = ui ?? ladderGeometry(range.lo, range.hi, r.height);
+    const geo = ladderGeometry(range.lo, range.hi, r.height);
     // D414: CLASSIC's altered notes drawn off their row (D332): a slide aims at the block as drawn.
-    const sig = ui ? null : signatureOf(f.key);
+    const sig = signatureOf(f.key);
     const y0 = r.top - a.top + geo.yOf(0);
     const spanT = 3 * f.barTicks;
     return { y0, rowH: geo.rowH, rows: { yOf: (step: number) => y0 - step * geo.rowH, stepAt: (y: number) => Math.round((y0 - y) / geo.rowH), rowH: geo.rowH, ...(sig ? { lift: (step: number, midi: number) => chromaLiftPx(geo.rowH, step, midi, sig, BOX_PX) } : {}), xOf: (tick: number) => r.left - a.left + ((tick - (now - 0.25 * spanT)) / spanT) * r.width } };
@@ -752,7 +751,8 @@ export function LabApp() {
   };
   const [paste, setPaste] = useState("");
 
-  const changed = Object.keys(mechChanges()).length;
+  // D1055: THE NEW LAB's bow is the page's, not a change.
+  const changed = Object.keys(mechChanges()).filter((k) => !(newLab && k === "bow")).length;
   const voices = voicesFrom(f, span.from);
   const freeOn = setup.mode === "free";
   const hudTitle = freeOn
@@ -772,6 +772,11 @@ export function LabApp() {
         hud={
           <>
             <span className="tg-hud-title">{hudTitle}</span>
+            {newLab && (
+              <a className="lab-new-mark" id="lab-new-mark" href="./lab.html" title="THE NEW LAB (the bow on). Back to the choice of labs">
+                NEW ◀
+              </a>
+            )}
             {/* D322: the stops for the voice played (kept per piece, as in the game). D420: the three pistons. */}
             {hasStops(presetById(sound).id) && <RegistrationStops presetId={presetById(sound).id} patch={voicePatch(sound, setup.voice, f.voices.length)} piece={f.id} voice={setup.voice} />}
             {changed > 0 && (

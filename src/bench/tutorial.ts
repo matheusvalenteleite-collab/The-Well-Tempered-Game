@@ -6,7 +6,6 @@
  */
 import { LESSONS, TRACKS, type Lesson } from "./lessons.ts";
 import type { Platform } from "./protos.ts";
-import { manualBehind, readManual } from "./manual/store.ts";
 
 export const TUTORIAL_KEY = "tb-tutorial-v1";
 export const OLD_LESSONS_KEY = "tb-lessons-easy";
@@ -128,10 +127,9 @@ export const triesAt = (pl: Platform, id: string) => trackState(pl).tries?.[id] 
 
 /**
  * D327: the tutorial behind the player on this platform: every step passed, or skipped (HAVE YOU PLAYED
- * BEFORE? YES). D342: on a phone, THE MANUAL's (manual/store.ts manualBehind).
+ * BEFORE? YES). (D342's phone case, THE MANUAL's record, retired with it: D1050.)
  */
 export function tutorialDone(pl: Platform): boolean {
-  if (pl === "mobile") return manualBehind(readManual());
   const t = trackState(pl);
   return t.skipped || TRACKS[pl].every((l) => !!t.passed[l.id]);
 }

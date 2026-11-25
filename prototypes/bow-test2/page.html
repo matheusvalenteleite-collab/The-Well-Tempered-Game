@@ -1,0 +1,237 @@
+<title>Bow Test 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: landscape stage. Bow strip at one side, seven pitch rows at the other,
+   tuning panel in the middle; all clear of the screen edges (48 px sides, 44 px top/bottom).
+   Single dark look, chosen on purpose: a dim practice-room stage so the lit strip reads. */
+:root {
+  --bg: #14161b; --surface: #1d2028; --line: #343a47; --fg: #e8e4da; --dim: #9a9ca6;
+  --rosin: #e0a64a; --rosin-soft: rgba(224, 166, 74, 0.18); --string: #7fb0c9; --warn: #e2725b;
+  --f-ui: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.35 var(--f-ui);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  position: fixed; inset: 0; touch-action: none; }
+.zone { position: absolute; touch-action: none; box-sizing: border-box; }
+#strip { border-radius: 14px; background: linear-gradient(180deg, #232733, #1b1e26); border: 1px solid var(--line); overflow: hidden; }
+#strip .hair { position: absolute; left: 50%; top: 8px; bottom: 8px; width: 1px; background: var(--line); }
+#bowmark { position: absolute; left: 6px; right: 6px; height: 10px; margin-top: -5px; border-radius: 5px; background: var(--rosin); opacity: 0; }
+#bowglow { position: absolute; inset: 0; background: var(--rosin-soft); opacity: 0; }
+#rows { display: flex; flex-direction: column-reverse; gap: 3px; }
+.row { flex: 1; border-radius: 9px; background: var(--surface); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; font: 600 15px var(--f-ui); color: var(--dim); }
+.row.on { background: #23303a; border-color: var(--string); color: var(--fg); }
+.row.latched { border-color: var(--string); border-style: dashed; color: var(--fg); }
+.row.cand { border-color: var(--dim); }
+#panel { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+#panel .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; flex: 1; min-height: 0; padding-right: 2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 4px; }
+button { font: 600 11px var(--f-ui); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 7px; touch-action: manipulation; }
+button.sel { background: var(--rosin); color: #1a1408; border-color: var(--rosin); }
+button:focus-visible { outline: 2px solid var(--string); }
+#readout { font: 11px/1.4 var(--f-num); color: var(--dim); font-variant-numeric: tabular-nums; white-space: pre; background: var(--surface); border-radius: 8px; padding: 5px 7px; }
+#readout b { color: var(--fg); font-weight: 500; }
+#meter { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+#meter i { display: block; height: 100%; width: 0; background: var(--rosin); }
+.sl { display: grid; grid-template-columns: 1fr auto; gap: 0 6px; margin: 5px 0; font-size: 11px; color: var(--dim); }
+.sl output { font: 11px var(--f-num); color: var(--fg); }
+.sl input { grid-column: 1 / -1; width: 100%; margin: 2px 0 0; accent-color: var(--rosin); }
+.tg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); margin: 6px 0; }
+h3 { font: 600 10px var(--f-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); margin: 10px 0 2px; }
+.overlay { position: absolute; inset: 0; background: rgba(12, 13, 17, 0.94); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 44px 48px; box-sizing: border-box; text-align: center; touch-action: manipulation; }
+.overlay p { max-width: 520px; margin: 0; color: var(--dim); }
+.overlay .big { font: 600 22px var(--f-ui); color: var(--fg); }
+#log { flex-direction: column; align-items: stretch; }
+#logtext { flex: 1; width: 100%; font: 10px/1.35 var(--f-num); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px; box-sizing: border-box; -webkit-user-select: text; user-select: text; touch-action: pan-y; }
+#endur { position: absolute; pointer-events: none; font: 600 28px var(--f-num); color: var(--rosin); text-align: center; }
+#mini { position: absolute; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+[hidden] { display: none !important; }
+.choice { font-size: 15px; padding: 14px 20px; }
+.tarea { border-radius: 14px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.trow { position: absolute; left: 0; right: 0; box-sizing: border-box; border-bottom: 1px solid var(--line); font: 9px var(--f-num); color: var(--dim); padding: 1px 6px; pointer-events: none; }
+.trow.tonic { background: rgba(127, 176, 201, 0.07); }
+.trow.on { background: var(--rosin); color: #1a1408; }
+.wk { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.wk.tonic { fill: #222a31; }
+.bk { fill: #08090c; stroke: #59606f; stroke-width: 1; }
+.wk.on, .bk.on { fill: var(--rosin); }
+.kt { font: 9px var(--f-num); fill: var(--dim); pointer-events: none; }
+.tarea svg { pointer-events: none; }
+#tPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; touch-action: pan-y; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-sizing: border-box; z-index: 5; }
+#tCentre { position: absolute; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+#tCentre .bar { justify-content: center; }
+#tCentre .rd { font-size: 9px; }
+.calbig { overflow-wrap: anywhere; }
+.tsel select { font: 11px var(--f-ui); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px; }
+#lPanel { position: absolute; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; touch-action: pan-y; }
+#lCanvas { display: block; background: var(--surface); border-radius: 6px; flex: none; }
+.lstatus { font: 600 12px var(--f-ui); color: var(--fg); min-height: 16px; flex: 1; min-width: 0; }
+.lstatrow { display: flex; gap: 6px; align-items: flex-start; }
+.lstatrow button { padding: 3px 6px; flex: none; }
+#lPanel > * { flex-shrink: 0; }
+#lVoices { font-size: 11px; color: var(--dim); display: flex; flex-direction: column; gap: 3px; }
+.lvrow { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.lvrow button { padding: 3px 6px; }
+.lvname { flex: 1; min-width: 0; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lchip { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.lsform { display: flex; flex-direction: column; gap: 4px; width: min(360px, 100%); text-align: left; }
+#lSetup, #lLatBox { touch-action: manipulation; }
+#prPanel { position: absolute; display: flex; flex-direction: column; gap: 6px; text-align: center; align-items: center; }
+#prOverlay { flex-direction: column; align-items: stretch; }
+#calPanel { position: absolute; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
+.calbig { font: 600 16px/1.3 var(--f-ui); white-space: pre-line; color: var(--fg); }
+.calcount { font: 500 20px var(--f-num); color: var(--rosin); }
+.tarea.target { border: 2px solid var(--rosin); }
+#tSet { align-items: stretch; justify-content: flex-start; padding: 8px 48px; overflow-y: auto; touch-action: pan-y; text-align: left; }
+.setcols { display: flex; gap: 18px; align-items: flex-start; }
+#setBody { flex: 1; min-width: 0; }
+#calRes { flex: 1.1; min-width: 0; margin: 0; font: 10px/1.35 var(--f-num); color: var(--fg); white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+.rd { font: 10px/1.4 var(--f-num); color: var(--dim); white-space: pre-wrap; }
+#diag { position: absolute; inset: 0; pointer-events: none; background: rgba(12, 13, 17, 0.72); padding: 8px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; }
+#diag .bar { pointer-events: auto; align-self: center; }
+#diagMsg { color: var(--dim); font-size: 11px; align-self: center; }
+#diagText { margin: 0; columns: 2; column-gap: 18px; font: 9.5px/1.3 var(--f-num); color: var(--fg); white-space: pre-wrap; overflow: hidden; flex: 1; }
+#diagSel { pointer-events: auto; height: 60px; font: 9px var(--f-num); -webkit-user-select: text; user-select: text; }
+#csvBox { flex-direction: column; align-items: stretch; }
+.logbox { flex: 1; width: 100%; font: 10px/1.35 var(--f-num); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px; box-sizing: border-box; -webkit-user-select: text; user-select: text; touch-action: pan-y; }
+#rotate { display: none; }
+@media (orientation: portrait) { #rotate { display: flex; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+
+<div id="home" class="overlay">
+  <div class="big">Two-thumb test bench</div>
+  <p>Hold the phone sideways. Check the ring/silent switch and the volume.</p>
+  <div class="bar" style="justify-content:center"><button id="goBowed" class="choice">Bowed prototype</button><button id="goTouch" class="choice">Touch-area prototype</button><button id="goLoop" class="choice">Loop maker</button></div>
+  <p style="font-size:11px">The touch-area button also asks for motion-sensor access (tilt).</p>
+</div>
+
+<div id="bowedMode" hidden>
+<div id="strip" class="zone"><div id="bowglow"></div><div class="hair"></div><div id="bowmark"></div></div>
+<div id="rows" class="zone"></div>
+<div id="panel">
+  <div class="bar" id="modes"></div>
+  <div class="bar">
+    <button id="bMenu">◂ Menu</button><button id="bSwap">Swap sides</button><button id="bHide">Hide panel</button><button id="bEnd">60 s test</button><button id="bLog">Log</button><button id="bCsv">Record CSV</button>
+  </div>
+  <div id="readout">–</div>
+  <div class="scroll" id="tune"></div>
+</div>
+<div id="mini" hidden><div class="bar"><button id="bMenu2">◂ Menu</button><button id="bShow">Show panel</button></div><div id="minird" style="font:11px var(--f-num);color:var(--dim)"></div></div>
+<div id="endur" hidden></div>
+
+<div id="start" class="overlay">
+  <div class="big">Bow test 2</div>
+  <p>Turn the phone sideways. Check that the ring/silent switch is not on silent and the volume is up. Bow by sliding one thumb up and down the long strip; choose notes with the other thumb on the seven rows.</p>
+  <button id="bStart" style="font-size:15px;padding:12px 22px">Tap to start sound</button>
+</div>
+<div id="rate" class="overlay" hidden>
+  <div class="big">60 seconds done</div>
+  <p>How comfortable were your thumbs? 1 = painful or awkward, 5 = could play like this for an hour.</p>
+  <div class="bar" id="rateBtns"></div>
+</div>
+<div id="log" class="overlay" hidden>
+  <div class="bar"><button id="bCopy">Copy log</button><button id="bCloseLog">Close</button><span id="copied" style="color:var(--dim);font-size:11px;align-self:center"></span></div>
+  <textarea id="logtext" readonly></textarea>
+</div>
+</div>
+
+<div id="touchMode" hidden>
+  <div id="tL" class="zone tarea"></div>
+  <div id="tR" class="zone tarea"></div>
+  <div id="tPanel" hidden>
+    <div class="bar"><button id="tClose">✕ Close</button><button id="tDiag" hidden>Diagnostics</button><button id="tLoop">Loop: off</button><button id="tCsv">Record CSV</button><button id="tSettings">Settings</button><button id="tPractice">Practice</button></div>
+    <div class="bar tsel"><select id="tKey" aria-label="Key"></select><select id="tMinor" aria-label="Mode" hidden><option value="0">major</option><option value="1">minor</option></select><select id="tLayout" aria-label="Layout" hidden><option value="key">key notes</option><option value="piano">piano</option></select><select id="tOct" aria-label="Octaves"><option value="1">1 oct</option><option value="2">2 oct</option><option value="3">3 oct</option></select></div>
+    <label class="sl">Loop tempo <output id="tBpmo"></output><input id="tBpm" type="range" min="50" max="160" step="1"></label>
+    <label class="sl">Loop level <output id="tLvlo"></output><input id="tLvl" type="range" min="0" max="1" step="0.05"></label>
+  </div>
+  <div id="tCentre">
+    <div class="bar"><button id="tMenu">◂ Menu</button><button id="tOpen">☰ Panel</button></div>
+    <button id="tNeutral">Set neutral</button>
+    <div id="tRd" class="rd"></div>
+  </div>
+  <div id="calPanel" hidden>
+    <div id="calStep" class="rd"></div>
+    <div id="calWhat" class="calbig"></div>
+    <div id="calCount" class="calcount"></div>
+    <div id="calLast" class="rd"></div>
+    <div class="bar"><button id="calRedo">Redo step</button><button id="calBack">Back a step</button><button id="calCancel">Cancel</button></div>
+  </div>
+  <div id="prPanel" hidden>
+    <div id="prTitle" class="rd"></div>
+    <div id="prPrompt" class="calbig"></div>
+    <div id="prInfo" class="calcount"></div>
+    <div id="prLast" class="rd"></div>
+    <div id="prMenu" class="bar"><button id="prMixed">1 Mixed</button><button id="prRhythm">2 Rhythm</button><button id="prTwo">3 Two thumbs</button><button id="prProgress">4 Progress</button><button id="prClose">Close</button></div>
+    <div id="prRun" class="bar" hidden><button id="prStop">Stop</button></div>
+  </div>
+  <div id="prOverlay" class="overlay" hidden>
+    <div class="bar"><button id="prOvClose">Close</button><button id="prOvCopy">Copy</button><span id="prOvMsg" class="rd"></span></div>
+    <textarea id="prOvText" class="logbox" readonly></textarea>
+  </div>
+  <div id="tSet" class="overlay" hidden>
+    <div class="bar"><button id="setClose">Close</button><button id="calCopy">Copy results</button><span id="calCopyMsg" class="rd"></span></div>
+    <textarea id="calSel" class="logbox" hidden readonly style="height:70px;flex:none"></textarea>
+    <div class="setcols"><div id="setBody"></div><pre id="calRes"></pre></div>
+  </div>
+  <div id="diag" hidden>
+    <div class="bar"><button id="diagCopy">Copy probe report</button><button id="diagClose">Close</button><span id="diagMsg"></span></div>
+    <pre id="diagText"></pre>
+    <textarea id="diagSel" hidden readonly></textarea>
+  </div>
+</div>
+
+<div id="loopMode" hidden>
+  <div id="lL" class="zone tarea"></div>
+  <div id="lR" class="zone tarea"></div>
+  <div id="lPanel">
+    <canvas id="lCanvas"></canvas>
+    <div class="lstatrow"><div id="lStatus" class="lstatus"></div><button id="lMenu">◂ Menu</button></div>
+    <div class="bar"><button id="lRec">● Record</button><button id="lKeep" hidden>Keep</button><button id="lRetake" hidden>Retake</button><button id="lStop">Stop</button></div>
+    <div class="bar tsel"><select id="lSound" aria-label="Sound"></select><select id="lReg" aria-label="Register"><option value="-1">low</option><option value="0" selected>middle</option><option value="1">high</option></select></div>
+    <div id="lVoices"></div>
+    <div class="bar"><button id="lPiece">Play piece</button><button id="lAll">Loop all</button><button id="lExport">Export audio</button></div>
+    <div class="bar tsel"><label class="rd">Quantize <select id="lQuant"><option value="off">off</option><option value="light">light</option><option value="strong">strong</option></select></label></div>
+    <label class="sl">Drums <output id="lDrumO"></output><input id="lDrum" type="range" min="0" max="1" step="0.05"></label>
+    <div id="lMsg" class="rd"></div><div id="lSaveMsg" class="rd"></div>
+    <div id="lSetupLine" class="rd"></div>
+    <div class="bar"><button id="lLat">Latency…</button><button id="lCsv">Takes CSV</button><button id="lNew">New session</button></div>
+  </div>
+  <div id="lSetup" class="overlay" hidden>
+    <div class="big">New piece</div>
+    <p>These stay fixed for the whole session.</p>
+    <div class="lsform">
+      <label class="sl">Tempo <output id="lsBpmO"></output><input id="lsBpm" type="range" min="50" max="160" step="1" value="90"></label>
+      <label class="tg">Meter <select id="lsMeter"><option value="4">4/4</option><option value="3">3/4</option></select></label>
+      <label class="tg">Loop length <select id="lsBars"><option value="2">2 bars</option><option value="4">4 bars</option></select></label>
+      <label class="sl">Drum volume <output id="lsDrumO"></output><input id="lsDrum" type="range" min="0" max="1" step="0.05" value="0.35"></label>
+    </div>
+    <button id="lsStart" class="choice">Start</button>
+  </div>
+  <div id="lLatBox" class="overlay" hidden>
+    <div class="big">Latency</div>
+    <p>Press Start, then tap anywhere on the screen in time with the clicks. The offset found is taken off every new take, so takes line up with the beat.</p>
+    <div class="bar"><button id="llGo">Start</button><button id="llUse">Use this</button><button id="llClose">Close</button></div>
+    <div id="llCount" class="calcount"></div>
+    <p id="llRes"></p>
+  </div>
+</div>
+
+<div id="csvBox" class="overlay" hidden>
+  <div class="bar"><button id="csvSave">Save file</button><button id="csvCopy">Copy</button><button id="csvClose">Close</button><span id="csvMsg" style="color:var(--dim);font-size:11px;align-self:center"></span></div>
+  <textarea id="csvText" class="logbox" readonly></textarea>
+</div>
+<div id="rotate" class="overlay"><div class="big">Turn the phone sideways</div></div>
+
+<script src="bowcore.js"></script>
+<script src="shared.js"></script>
+<script src="app.js"></script>
+<script src="touchgest.js"></script>
+<script src="touchsound.js"></script>
+<script src="touchapp.js"></script>
+<script src="practice.js"></script>
+<script src="loopcore.js"></script>
+<script src="loopsound.js"></script>
+<script src="loopapp.js"></script>

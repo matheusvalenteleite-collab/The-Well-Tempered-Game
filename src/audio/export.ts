@@ -4,7 +4,6 @@
  * an audio file) or WAV (16-bit PCM, lossless, about ten times larger). Pure functions here; the
  * capture itself is in the engine.
  */
-import { Mp3Encoder } from "@breezystack/lamejs";
 
 export type ExportFormat = "mp3" | "wav";
 export const EXPORT_FORMATS: ExportFormat[] = ["mp3", "wav"];
@@ -46,8 +45,9 @@ export function encodeWav(channels: Float32Array[], sampleRate: number): Blob {
   return new Blob([buf], { type: "audio/wav" });
 }
 
-/** An MP3 file (constant bit rate, default 192 kbps). */
-export function encodeMp3(channels: Float32Array[], sampleRate: number, kbps = 192): Blob {
+/** An MP3 file (constant bit rate, default 192 kbps). The encoder (about 260 kB) is fetched only now, when a file is saved (code audit, Phase 2). */
+export async function encodeMp3(channels: Float32Array[], sampleRate: number, kbps = 192): Promise<Blob> {
+  const { Mp3Encoder } = await import("@breezystack/lamejs");
   const stereo = channels.length > 1;
   const enc = new Mp3Encoder(stereo ? 2 : 1, sampleRate, kbps);
   const left = toInt16(channels[0]);
@@ -63,7 +63,7 @@ export function encodeMp3(channels: Float32Array[], sampleRate: number, kbps = 1
   return new Blob(parts as BlobPart[], { type: "audio/mpeg" });
 }
 
-export function encode(format: ExportFormat, channels: Float32Array[], sampleRate: number): Blob {
+export async function encode(format: ExportFormat, channels: Float32Array[], sampleRate: number): Promise<Blob> {
   return format === "mp3" ? encodeMp3(channels, sampleRate) : encodeWav(channels, sampleRate);
 }
 

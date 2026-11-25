@@ -24,7 +24,7 @@ import { replay } from "../src/bench/lab/replay.ts";
 import { parseLog, type LabLog } from "../src/bench/lab/log.ts";
 import { parseStudy } from "../src/bench/lab/study.ts";
 import { RULES } from "../src/bench/lite.ts";
-import type { Material } from "../src/bench/manual/lessons.ts";
+import type { Material } from "./d342-sim.ts";
 import { gameFor, ROWS as GROWS } from "./d342-sim.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");

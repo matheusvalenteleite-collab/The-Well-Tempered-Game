@@ -33,6 +33,8 @@ import { freeOrnamentParts } from "../../touch/ornament-play.ts";
 import { holdValue, STRONG_SIDE, TOUCH_NEUTRAL } from "../../touch/touch-expr.ts";
 import type { Side } from "../../touch/thumbs.ts";
 import { MECH } from "../mechanics.ts";
+import { BowHand, bowedNow } from "../bowing.ts";
+import { joinOf, type OutBow } from "../../touch/bow.ts";
 import { dragFamily, dragFill, dragLine, fillNoteMs, pitchAtRow, scaleOfKey, snappedRow } from "../drag.ts";
 import { preset } from "../../touch/sound.ts";
 import { BAR, barAcross, barDynamic, dynamic } from "../protos.ts";
@@ -272,6 +274,8 @@ export class Keyboard {
 
 interface Held {
   side: Side;
+  /** D1055 (MECH.bow): the thumb's bow on this note (bowing.ts). */
+  bow?: BowHand;
   /** The row (index into rows) sounding, and its pitch. */
   row: number;
   midi: number;
@@ -338,7 +342,7 @@ export class FreePlay {
   readonly rows: number[];
   readonly tps: number;
   private held = new Map<number, Held>();
-  private lastLift: { side: Side; at: number; midi: number } | null = null;
+  private lastLift: { side: Side; at: number; midi: number; bow?: OutBow | null } | null = null;
   private nextClick = 0;
   private beatS: number;
   private perBar: number;
@@ -465,12 +469,17 @@ export class FreePlay {
     const land = MECH.expression && !this.kbOn ? strength : TOUCH_NEUTRAL;
     // Joined: the other thumb still holds: it gives way, this one comes in without a new attack.
     let joined = false;
+    // D1058 (MECH.bow): the bow giving way, read before it stops: moving, the new note enters under it as a slur, decided after.
+    const bowed = bowedNow() && !this.kbOn;
+    let outBow: OutBow | null = null;
     for (const [hid, o] of this.held) {
       if (hid === id) continue;
       if (o.passive) continue;
       joined = true;
       o.passive = true;
-      for (const sd of o.sounds) sd.stop(now + 0.03);
+      if (bowed) outBow = o.bow?.out(ts) ?? null;
+      const carry = bowed && joinOf(outBow, 0, 0).kind === "pending";
+      for (const sd of o.sounds) carry ? sd.stop(now, "slur") : sd.stop(now + 0.03);
       o.sounds = [];
       if (o.trill) o.trill.settled = true;
     }
@@ -487,9 +496,11 @@ export class FreePlay {
     const on0 = dyn0 ? pianoOnset(dyn0.total) : null;
     const touch = on0 ? on0.touch : land;
     const base = dynamic(0.5);
-    const play: Play = { ...base, ...(on0 ? { level: (base.level ?? 1) * on0.level } : {}), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound) };
+    if (bowed && !joined && handover) outBow = this.lastLift?.bow ?? null;
+    const bh = bowed ? new BowHand(ts, barDynamic(x, w) * w * BAR, w * BAR, joined || handover ? outBow : null) : undefined;
+    const play: Play = { ...base, ...(on0 ? { level: (base.level ?? 1) * on0.level } : {}), lead: true, envelope: "synth", touch, legato: joined || (handover && MECH.joinedSound), ...(bh ? { bow: bh.start, ...(bh.carried ? { legato: true, slur: true } : {}) } : {}) };
     const sounds = delay > 0 ? [] : [this.chip.note(midi, now, HOLD_MAX, v, play)];
-    const hd: Held = { side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: this.reader(x, y, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
+    const hd: Held = { ...(bh ? { bow: bh } : {}), side, row, midi, land, ax: x, ay: y, setY: y, setX: x, at: now, sounds, v, play: { ...play, legato: true }, sMin: 0, sMax: 0, sNow: 0, shapes: 0, shake: this.reader(x, y, ts), pts: 1, lastLeg: -Infinity, cx: x, cy: y, still: ts };
     this.held.set(id, hd);
     this.played.push({ row, on: now, side, id });
     if (this.played.length > 200) this.played.splice(0, this.played.length - 200);
@@ -567,6 +578,8 @@ export class FreePlay {
         for (const l of hd.trill?.live ?? []) l.sd.shape?.(sv);
       }
     }
+    // D1055: the bow (MECH.bow): the thumb's motion along its own bar.
+    if (hd.bow) hd.bow.move(ts, barDynamic(x, w) * w * BAR, hd.sounds, (l) => this.say(l));
     const t = this.tick();
     // D314/D319: a shake along the bar: a free ornament; once begun, no slides.
     if (MECH.freeOrnaments) {
@@ -738,11 +751,14 @@ export class FreePlay {
     if (!hd) return;
     this.held.delete(id);
     const now = this.chip.ctx.currentTime;
+    // D1057: a flick lifted at once ends on the spiccato (the stops after it then do nothing).
+    const ms = _ts;
+    if (hd.bow && !hd.passive) hd.bow.lift(ms, hd.sounds, (l) => this.say(l));
     for (const s of hd.sounds) s.stop(now);
     if (hd.trill) hd.trill.settled = true;
     const p = [...this.played].reverse().find((q) => q.id === id && q.off === undefined);
     if (p) p.off = now;
-    this.lastLift = { side: hd.side, at: now, midi: hd.midi };
+    this.lastLift = { side: hd.side, at: now, midi: hd.midi, ...(hd.bow && !hd.passive ? { bow: hd.bow.out(ms) } : {}) };
     const held = Math.round((now - hd.at) * 1000);
     const sus = !MECH.expression ? "" : hd.shapes ? ` · sustain moves: ${hd.shapes}, from ${hd.sMin.toFixed(2)} to ${hd.sMax.toFixed(2)} (−1 toward the soft side, +1 the strong)` : " · no sustain move";
     this.say(`${cancelled ? "! IOS CANCEL" : "↑ LIFT"} ${this.name(hd.midi)} after ${held} ms${sus}${hd.ornament ? ` · ${hd.ornament}` : ""}`);
@@ -756,6 +772,8 @@ export class FreePlay {
     if (MECH.freeOrnaments) for (const hd of this.held.values()) if (!hd.passive && hd.ornament !== "trill") this.shaken(hd, hd.shake.tick(ms), ms, t);
     for (const [id, hd] of this.held) if (hd.pend && !hd.passive) this.trySlide(id, hd, ms);
     for (const [id, hd] of this.held) if (hd.gl?.at && !hd.passive) this.arrive(id, hd, ms);
+    // D1055: a bow that stopped eases back (read on the clock: a still thumb sends nothing).
+    for (const hd of this.held.values()) if (hd.bow && !hd.passive) hd.bow.tick(ms, hd.sounds, (l) => this.say(l));
     if (!this.o.click) return;
     const now = this.chip.ctx.currentTime;
     while (this.nextClick < now + 0.15) {

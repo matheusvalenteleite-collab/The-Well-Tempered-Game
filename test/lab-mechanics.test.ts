@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import { DOUBLE_MS, EDGE_SHARE, LADDER_ROW_MIN, OWN_FRESH_S, PERFECT_MS, SLIDE_MIN_PX, SPLIT_FLOOR_MS, TRAVEL_MIN, BT_EARLY_MS, BT_LATE_MS } from "../src/bench/proto-game.ts";
 import { LEGATO_GAP_MS, LEGATO_GAP_SHARE, legatoGapMs } from "../src/bench/articulation.ts";
 import { options } from "../src/touch/lanes.ts";
-import { CLASSIC_VALUES, MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, mechChanges, resetMech, setMech, withMech } from "../src/bench/mechanics.ts";
+import { CLASSIC_VALUES, MECH, MECH_CLASSIC, MECH_DEFAULTS, MECH_SPEC, mechChanges, PAGE_MECH, resetMech, setMech, withMech } from "../src/bench/mechanics.ts";
 import { diff, replay, tally } from "../src/bench/lab/replay.ts";
 import { describe as lines } from "../src/bench/lab/describe.ts";
 import { parseLog, logText, type LabPassage } from "../src/bench/lab/log.ts";
@@ -43,10 +43,10 @@ test("D317: MECH's defaults were the constants the engine read before (D337: WTC
   // The ones that were literals in the code (D286, D289, D296): their values then.
   assert.deepEqual([MECH_CLASSIC.repeatRows, MECH_CLASSIC.stepLeewayRows, MECH_CLASSIC.leapRows, MECH_CLASSIC.slideReachRows], [2.5, 1, 0.5, 0.5]);
   assert.deepEqual([MECH_CLASSIC.slides, MECH_CLASSIC.freeOrnaments, MECH_CLASSIC.expression, MECH_CLASSIC.cancel, MECH_CLASSIC.directionRef], [true, true, true, "overlap", "own"]);
-  // The game runs on the defaults, and every parameter has a control in the lab.
+  // The game runs on the defaults, and every parameter has a control in the lab (D1055: but a page's own, PAGE_MECH: THE NEW LAB's bow, the OLD LAB unchanged).
   assert.deepEqual(MECH, MECH_DEFAULTS);
   assert.deepEqual(mechChanges(), {});
-  assert.deepEqual(new Set(MECH_SPEC.map((s) => s.key)), new Set(Object.keys(MECH_DEFAULTS)));
+  assert.deepEqual(new Set(MECH_SPEC.map((s) => s.key)), new Set(Object.keys(MECH_DEFAULTS).filter((k) => !(PAGE_MECH as readonly string[]).includes(k))));
   // D289: the legato allowance as before (the larger of 90 ms and 35% of the note), in ABSOLUTE.
   withMech(CLASSIC_VALUES, () => {
     assert.equal(legatoGapMs(100), 90);

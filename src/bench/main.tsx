@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BenchApp } from "./BenchApp.tsx";
+import { loadAllPieces } from "../touch/fugue.ts";
 import { markVersion } from "./version.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
@@ -16,8 +17,11 @@ markVersion();
   window.addEventListener("orientationchange", () => setTimeout(setVh, 300));
   window.visualViewport?.addEventListener("resize", setVh);
 }
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BenchApp />
-  </StrictMode>,
+// D1054: this page reads every piece's notes: they are all fetched before it is drawn.
+void loadAllPieces().then(() =>
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <BenchApp />
+    </StrictMode>,
+  ),
 );

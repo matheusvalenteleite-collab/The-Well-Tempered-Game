@@ -8,10 +8,14 @@ DECISIONS.md (or delete it) when it is done or dropped.
 The owner: "the dragging in string instruments is giving a volume boost which is a terrible idea and sounds awful.
 string instrument's dragging, should be glissando, and how fast one drags dictates whether the glissando is super quick
 (as an attack?) or more like gradual." APPROVED in principle; to build when the owner's tokens are back.
-- **Remove the boost.** Find which path makes it: suspects are D1016's bow contact point (`bowGain`/`bowTone`,
-  `src/touch/touch-expr.ts`, used in `src/touch/chip.ts` ~l.1934; meant level-neutral, but the +4 dB bridge shelf may
-  read as louder) and any messa/swell still reaching bowed sounds. Measure in LU on the phone model before and after.
+- **Remove the boost.** Prime suspect: the new bow (D1055-D1058, `src/touch/bow.ts`, the main game's default for STRING
+  CONSORT since 3.36): a faster sideways drag crossfades toward the ff recording and a flick gives a "bite"; levelled to
+  the mf within ±0.75 dB on the phone model, but the ff's colour evidently reads as louder. Older suspect: D1016's bow
+  contact point (`bowGain`/`bowTone`, `src/touch/touch-expr.ts`, +4 dB bridge shelf). Measure in LU before and after.
   Removing a loudness effect on the player's voice is a D508 fix and may ship without a listening page.
+- **Ask the owner first, one question:** which drag is meant, the sideways one (the bow, D1055) or the vertical one
+  toward the next note (the slide, D486)? A glissando goes from note to note, so it naturally belongs to the vertical
+  slide; if the sideways drag is meant, what should sideways do once the ff colour is gone (nothing; vibrato; colour only)?
 - **Drag = glissando (portamento), its speed the thumb's.** A fast drag gives a quick slide into the note (string
   players call a fast audible shift a portamento too; a very quick slide into a note from below is usually called a
   "scoop" or slide-in); a slow drag a gradual glide. Builds on D424/D486 (strings' shift glide 25/25/45/70 ms, fixed
@@ -21,15 +25,68 @@ string instrument's dragging, should be glissando, and how fast one drags dictat
 - **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
 
 ## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
+## Instrument gestures and tilt, by batches (agreed 24 November 2026; the owner is short of tokens)
 
-Report: docs/audits/CODE-AUDIT-PHASE1.md. Owner decisions: "delete all retired features outright"; "the older
-counterpoint app is not a product anymore and should stop being published"; start with the quick safe wins. The job was
-handed to the design studio session (rows D1050-D1069), then stopped at once; any WIP is on its branches, unreviewed.
-Order: A delete retired features (MANUAL, TWO HANDS, unoffered readings, FILM, SYNTH_LAYERS_SOUND, five unused skins);
-B lazy-load lamejs and developer-only code (not the pieces.json split yet); C stop publishing index.html, root redirects to
-play.html; D quick/full test tiers; E JSON type declarations so tsc runs without the 4096 MB flag; F x.tmp.ts, merged
-branches (list to the board before deleting), DECISIONS.md split. Owner to do: set GitHub's default branch to the dev branch.
-Merged but not yet released (deploy when work resumes): Canons batch B (#496), the Musical Offering voicing (#498).
+**A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
+the player improvise on sound is something that should be a strong priority of us ... I'm rediscovering the game,
+and it rocks"). Batch 2 is built (D1061-D1066, 25 Nov 2026; not yet deployed): the next is Batch 3 once the owner has played it.
+
+Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
+developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
+From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
+Batch 2 (D1061-D1066) is built on the dev branch: every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off,
+glide; PSYCH's tilt (lean = feedback, steer = vibe / fuzz); `src/touch/guitar.ts`, `src/touch/tilt.ts`, `src/bench/guitaring.ts`,
+MECH.guitar and MECH.tilt. The owner said "directly to main game, I believe you": play.html's default for every player, the
+developer view's GUITAR & TILT switch turns it off. **Owner to check on the phone:** the steering (both thumbs playing, never by
+accident? left/right the right way round?) and which way of LEAN feels like "toward the amp" (tilt.ts LEAN_AMP_SIGN,
+STEER_LEFT_SIGN flip them). Left open: a guitar slide over more than a fifth is a fresh pick, not a glide.
+The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
+one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
+stay the ornaments. Horizontal responses continuous wherever possible (no classifier). Never adds notes.
+- **Batch 2, PSYCH guitar (approved):** landing place = pick position (inner/bridge bright, outer/neck warm);
+  landing flick = hard pick; held sideways displacement = bend (at most a quarter tone, returns on release;
+  back-and-forth = vibrato, absorbing D1014); join up = hammer-on, join down / set-and-release = pull-off (no
+  pick); slide = smooth quick glide (no fret steps, as D1018); palm mute, harmonics, tremolo picking left out.
+  Tilt for it: LEAN = turning toward the amp, a held note blooming into feedback sustain (may reach its octave
+  partial, owner's yes); STEER left/right (big, with hysteresis) = stomp boxes: rotary "vibe" / fuzz. Start
+  with a short bench test of steering (prototypes/bow-test2): easy with both thumbs playing, never accidental?
+- **Tilt rules (approved):** never affects judging; neutral = how the phone is held when the piece starts;
+  LEAN continuous with a dead zone; STEER on/off stops needing a big turn and a return past neutral; on
+  struck/plucked sounds a stop applies from the next note; motion access asked by a tap (as D335).
+  The table (approved, replaces octave doubling): other guitars lean wah, steer neck/bridge pickup; flute lean
+  rolling in/out, steer flattement off/on; brass lean bell up/down, steer mute; strings lean bow contact point
+  (bridge-fingerboard), steer no vibrato / mute; organ lean swell, steer flute / reed registration; harpsichord
+  steer one manual / coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths
+  lean mod wheel, steer glide off / chorus; GAME BOY steer pulse / wave channel.
+- **Batch 3** voices and winds; **4** brass, organ, harpsichord, piano; **5** synths and chips (designs to
+  draft per family in the frame above, the owner to approve each).
+- **Then: a USER'S MANUAL** with playable animations: the game and the music box shown, arrows drawn on or
+  around the notes in sync with the thumbs' vertical and horizontal movements, extending over time as the
+  sound does. Not started; after the mechanics are approved.
+- **Open from Batch 1:** low cello notes
+  swing about ±4 dB on headphones (fine on the phone model); PASSAGE bowing not driven live; BAROQUE BAND and
+  ORCHESTRA & ORGAN strings not bowed (no pp/ff layers).
+
+## Two-thumb test bench (`prototypes/bow-test2/`): sounds button (added 24 November 2026, not started)
+
+The owner: add a sounds button to the touch-area prototype that switches between instruments, and bring in
+some of the main game's good sounds and playing knowledge. Three instruments: one synth, one flute (the
+game's flute), one piano (the game's piano). Use what the main game has learnt about playing, so the
+prototype plays better. The prototype is throwaway (its own folder, not part of the game); the standing rule
+on sound changes (the owner listens first) applies if anything moves into the game.
+
+## Code audit, Phase 2 (quick wins done 24 November 2026; the rest not started)
+
+Report: docs/audits/CODE-AUDIT-PHASE1.md. Done and live (WTC 3.28-3.33; D1050-D1053): deploy of #496/#498; quick/full test tiers
+and hand-written JSON types (tsc needs no memory flag); the retired features deleted (MANUAL, TWO HANDS, unoffered readings,
+FILM, SYNTH_LAYERS_SOUND, five skins); index.html is a redirect and the counterpoint app is no longer published
+(`counterpoint.html`, developer only); lamejs and Glenn's film load when used; x.tmp.ts gone; DECISIONS.md split.
+The play page's first download went from 1.67 to 1.41 MB compressed, the whole site's code from 10.6 to about 5.3 MB.
+Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
+Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
+phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) and `public/sheet` (11 MB) still ship, probably the
+old app's. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
+branch to the dev branch.
 
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
 

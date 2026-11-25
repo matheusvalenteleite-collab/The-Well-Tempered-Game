@@ -12,9 +12,11 @@ import { hz } from "./tuning.ts";
 import { consortNote, consortStop, hasConsortStops } from "./consort-stops.ts";
 import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf, registeredNote, terraceStops, LUTE_LP, type Registered, type Registration } from "./registration.ts";
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
+import { BOW_ATTACK, bowChangeShape, layerMix } from "./bow.ts";
+import { BLOOM, FUZZ_GUITAR, HARD_PICK, LEFT_HAND, PICK, STOMP, bloomOf, fuzzCurve, isGuitarSample, pickLanding, pickTone, type GuitarCmd, type GuitarPlay } from "./guitar.ts";
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, bowGain, bowTone, dutyGain, dutyWaveAt, fingerVib, type Duty, GUITAR_VIB, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
-import { type Plan, type PlanSlim, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
+import { type Plan, type PlanSlim, BOW_LAYER_GAIN, bowSetsOf, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
 import { SmoothClock } from "./headphones.ts";
 import { hasRoom, liveRoom, roomReverb, ROOMS, type RoomId } from "./room.ts";
 import { brushBeat, type BrushSweep, type Fill } from "./jazz-drums.ts";
@@ -892,6 +894,13 @@ export interface Play {
    * as the player's two-thumb join), not D358's soft stroke.
    */
   bowChange?: boolean;
+  /**
+   * D1055 (MECH.bow, THE NEW LAB): the player's held bowed note is bowed (src/touch/bow.ts): its colour (the pp, mf and ff
+   * recordings, SampledInstrument.bowLayers) and its bow changes follow the thumb (Sounding.bow); the number the colour it starts
+   * at (0 today's; a join that carries the bow on, the bow's). Unset: not bowed, every note as before. D1016's contact point is not
+   * applied to a bowed note (the bow replaces it).
+   */
+  bow?: number;
   /** D429: the band's bowed note giving way, at the next note's onset (its end less `tie`), as a bow change or a slur (giveWay). */
   give?: GiveWay;
   /**
@@ -1032,6 +1041,14 @@ export interface Play {
    * (Play.vel: touch-expr.ts brassOf). Only an instrument with two layers (SampledInstrument.blend) hears it.
    */
   brass?: number;
+  /**
+   * D1061-D1065 (MECH.guitar, MECH.tilt; set by the game's touchNote, guitaring.ts): the player's guitar note played by the
+   * guitarist's hands (guitar.ts): the landing the pick's place (Play.pick), the sideways push a bend (Sounding.bend), a hard pick
+   * (Sounding.guitar), a join's hammer-on or pull-off (`lh`), PSYCH's stompbox and the amp's feedback. Unset: as before (D1014).
+   */
+  guitar?: GuitarPlay;
+  /** D1061: the pick's place (0 near the neck, the soft edge .. 1 near the bridge, the strong edge), from the landing (landed). */
+  pick?: number;
 }
 
 /** D252, D322: notes sounding as one (the coupling's octave, the pedal's 16'): the second `shift` semitones from the first. */
@@ -1045,6 +1062,8 @@ function together([main, twin]: [Sounding, Sounding], shift = -12): Sounding {
     dyn: (l) => both.forEach((x) => x.dyn?.(l)),
     shape: (x) => both.forEach((y) => y.shape?.(x)),
     trim: (l, at, until) => both.forEach((x) => x.trim?.(l, at, until)),
+    bow: (c) => both.forEach((x) => x.bow?.(c)),
+    guitar: (c) => both.forEach((x) => x.guitar?.(c)),
   };
 }
 
@@ -1059,6 +1078,8 @@ function togetherAll(list: [Sounding, number][]): Sounding {
     dyn: (l) => all.forEach((x) => x.dyn?.(l)),
     shape: (x) => all[0].shape?.(x),
     trim: (l, at, until) => all.forEach((x) => x.trim?.(l, at, until)),
+    bow: (c) => all[0].bow?.(c),
+    guitar: (c) => all[0].guitar?.(c),
   };
 }
 /** D504: the harpsichord's octave below on a strong beat, against its unison (a left hand's lower note, a little lighter). */
@@ -1115,7 +1136,13 @@ export interface Sounding {
   shape?: (s: number) => void;
   /** D335 (the lab's DYNAMICS, the recorded instruments): the note's level set to `level` (a factor, 1 as struck) by a linear ramp from `at` to `until` (s, the audio clock): a strike read after the onset. */
   trim?: (level: number, at: number, until: number) => void;
+  /** D1055: a bowed note's answer to its bow (Play.bow; src/touch/bow.ts): its colour, a bow change, the bite, the spiccato's end. */
+  bow?: (cmd: BowCmd) => void;
+  /** D1061, D1065: a guitar note's answer to the hands and the amp (Play.guitar): the hard pick, the lean's feedback. */
+  guitar?: (cmd: GuitarCmd) => void;
 }
+/** D1055: what the bow asks of a bowed note (chip.ts sampledNote). */
+export type BowCmd = { kind: "colour"; c: number } | { kind: "change"; aud: number } | { kind: "bite" } | { kind: "spicc" };
 
 /** The part of an AudioParam rampTrim uses (a test's fake has it too). */
 export interface TrimParam {
@@ -1156,7 +1183,7 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
   const off = sl?.oneLayer ? new Set(now.flatMap((id) => layers(SAMPLED[id])).filter((set) => !sl.keep?.includes(set))) : new Set<string>();
   for (const id of Object.keys(SAMPLED) as (keyof typeof SAMPLED)[]) {
     const inst = SAMPLED[id];
-    for (const set of [inst.set, ...layers(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? (sl.strides?.[set] ?? sl.stride) : null);
+    for (const set of [inst.set, ...layers(inst), ...bowSetsOf(inst), inst.above?.set, inst.low, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s)) setZones(set, sl?.stride && now.includes(id) ? (sl.strides?.[set] ?? sl.stride) : null);
   }
   holdOff(off);
   const used = now.map((id) => {
@@ -1173,11 +1200,13 @@ export function soundPlans(pitches: number[], lead: number[], style: string | nu
     ...used,
     // (A layer held off is let go too: the original's soft grand, say, still held from the sound before.)
     ...[...off].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
+    // D1056: the bow's layers of an instrument that plays, let go when bowing is not wanted (or this instrument plays no notes there).
+    ...[...new Set(now.flatMap((id) => bowSetsOf(SAMPLED[id])))].filter((set) => !wanted.has(set)).map((set) => [{ set, notes: [] }]),
     ...(Object.keys(SAMPLED) as (keyof typeof SAMPLED)[])
       .filter((id) => !now.includes(id))
       .map((id) => {
         const inst = SAMPLED[id];
-        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, inst.release, inst.low, inst.above?.set, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
+        return [inst.set, inst.soft?.set, inst.hard?.set, inst.short?.set, inst.blend?.set, ...bowSetsOf(inst), inst.release, inst.low, inst.above?.set, ...(inst.zones ?? []).map((z) => z.set)].filter((s): s is string => !!s && !wanted.has(s)).map((set) => ({ set, notes: [] }));
       }),
   ];
   // D503: JAZZ QUARTET's brush kit (all of it: 19 short files), let go under any other sound.
@@ -1587,6 +1616,7 @@ export class Chip {
       dyn: (l) => ((h.dyn = l), h.sd.dyn?.(l)),
       shape: (s) => ((h.shape = s), h.sd.shape?.(s)),
       trim: (l, a, u) => h.sd.trim?.(l, a, u),
+      bow: (c) => h.sd.bow?.(c),
     };
   }
 
@@ -1782,12 +1812,14 @@ export class Chip {
     if (!kind) return [{ ...p, hold: "none" }, v];
     const pt = v.patch ?? null;
     const pulse = !pt && v.timbre !== "triangle";
-    const l0 = landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb, ...(p.hairpin ? { hairpin: true } : {}) });
+    // D1061 (Play.guitar): a guitar's landing the pick's place (guitar.ts pickLanding), its sideways hold the bend (D1062, Sounding.bend).
+    const gtr = !!p.guitar && isGuitarSample(pt?.sample);
+    const l0 = gtr ? pickLanding(p.touch ?? TOUCH_NEUTRAL, { lineDb: p.lineDb, accentDb: p.accentDb }) : landing(kind, p.touch ?? TOUCH_NEUTRAL, midi, pt, pulse, { lineDb: p.lineDb, accentDb: p.accentDb, ...(p.hairpin ? { hairpin: true } : {}) });
     // D349: the pedal has no echo manual (an organist's feet stay on the one pedalboard); D511: the swell box's brightness it has.
     const l = kind === "organ" && isPedal(pt) ? (l0.tone ? { tone: l0.tone } : {}) : l0;
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
-    const q: Play = { ...p, hold: holdMode(kind, pt, plucked, preset().id) };
+    const q: Play = { ...p, hold: gtr ? "bend" : holdMode(kind, pt, plucked, preset().id) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     // D511: the landing's level on every offered sound (TOUCH_LEVEL_DB), from where the thumb landed (`own`: not moved by the reading's tone).
     const tl = touchLevelDb(preset().id, own ?? TOUCH_NEUTRAL);
@@ -1799,7 +1831,7 @@ export class Chip {
     if (l.bright !== undefined) q.bright = l.bright;
     // D385: the piano's colour by the level struck (the line's and the zone's), when the note has none of its own.
     if (l.vel !== undefined && p.vel === undefined) q.vel = l.vel + 20 * Math.log10(Math.max(1e-3, p.level ?? 1));
-    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo", "soft", "brass"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
+    for (const k of ["layer", "lp", "lute", "pw", "pwContinuous", "fmScale", "strike", "open", "echo", "soft", "brass", "pick"] as const) if (l[k] !== undefined) (q as Record<string, unknown>)[k] = l[k];
     // The classic chip: the pulse of that width (its level by the chip's own table: voiceNote).
     if (pulse && l.pw !== undefined) v = { ...v, timbre: pulseWave(l.pw) };
     return [q, v];
@@ -1856,6 +1888,123 @@ export class Chip {
     return out;
   }
 
+  /** D1065: the feedback's tone: harmonic-rich (partials at 1/n^1.4), built once. */
+  private fbWave: PeriodicWave | null = null;
+  private feedbackWave(): PeriodicWave {
+    if (this.fbWave) return this.fbWave;
+    const n = 14;
+    const real = new Float32Array(n);
+    const imag = new Float32Array(n);
+    for (let k = 1; k < n; k++) imag[k] = 1 / k ** 1.4;
+    return (this.fbWave = this.ctx.createPeriodicWave(real, imag));
+  }
+  /** D1065: the fuzz's and the boost's curves, built once. */
+  private curves = new Map<string, Float32Array<ArrayBuffer>>();
+  private curveOf(drive: number, bias: number): Float32Array<ArrayBuffer> {
+    const k = `${drive}:${bias}`;
+    let c = this.curves.get(k);
+    if (!c) this.curves.set(k, (c = fuzzCurve(drive, bias)));
+    return c;
+  }
+  /**
+   * D1061-D1065, a guitar note's own stage (Play.guitar; guitar.ts): `fbIn` where the amp's feedback joins the string; the pick's
+   * place (a high shelf, the bridge's twang, the neck's warmth: pickTone; the middle no change); the snap (a high shelf at 0 dB,
+   * raised by a hard pick, Sounding.guitar, and a pull-off's own); `acc` the hard pick's little accent; PSYCH's stompbox
+   * (Play.guitar.stomp: the vibe's four swept phase stages, the fuzz's clip, on the fuzz guitar the treble boost), each levelled.
+   */
+  private guitarStage(src: AudioNode, p: Play, pt: Patch, t: number, bag: Bag): { out: AudioNode; fbIn: GainNode; snap: BiquadFilterNode; acc: GainNode; oscs: AudioScheduledSourceNode[] } {
+    const ctx = this.ctx;
+    const oscs: AudioScheduledSourceNode[] = [];
+    const fbIn = bag.add(ctx.createGain());
+    src.connect(fbIn);
+    let out: AudioNode = fbIn;
+    const biq = (type: BiquadFilterType, hz: number, db: number, q = 0.7071) => {
+      const f = bag.add(ctx.createBiquadFilter());
+      f.type = type;
+      f.frequency.value = hz;
+      f.gain.value = db;
+      f.Q.value = q;
+      out = out.connect(f);
+      return f;
+    };
+    if (p.pick !== undefined) {
+      const tn = pickTone(p.pick);
+      if (tn.shelf) biq("highshelf", PICK.shelfHz, tn.shelf);
+      if (tn.twang) biq("peaking", PICK.twangHz, tn.twang, PICK.twangQ);
+      if (tn.warm) biq("peaking", PICK.warmHz, tn.warm, PICK.warmQ);
+    }
+    const snap = biq("highshelf", HARD_PICK.snapHz, 0);
+    if (p.guitar?.lh === "pull") {
+      // D1063: the pull-off's small snap (the finger plucking the string as it leaves it).
+      snap.gain.setValueAtTime(LEFT_HAND.pull.snapDb, t);
+      snap.gain.setTargetAtTime(0, t + 0.004, LEFT_HAND.pull.snapTau);
+    }
+    const acc = bag.add(ctx.createGain());
+    out = out.connect(acc);
+    const st = p.guitar?.stomp;
+    if (st === "fuzz" && pt.sample === FUZZ_GUITAR) {
+      // D1065: on the fuzz guitar the treble boost into its fuzz: more bite and drive, levelled.
+      const b = STOMP.boost;
+      biq("highshelf", b.shelfHz, b.shelfDb);
+      const pre = bag.add(ctx.createGain());
+      pre.gain.value = b.drive;
+      const ws = bag.add(ctx.createWaveShaper());
+      ws.curve = this.curveOf(1.5, 0);
+      ws.oversample = "2x";
+      const post = bag.add(ctx.createGain());
+      post.gain.value = 10 ** (b.trimDb / 20);
+      out = out.connect(pre).connect(ws).connect(post);
+    } else if (st === "fuzz") {
+      // D1065: the Fuzz Face: a germanium clip, asymmetric, its top rolled off, levelled.
+      const z = STOMP.fuzz;
+      const ws = bag.add(ctx.createWaveShaper());
+      ws.curve = this.curveOf(z.drive, z.bias);
+      ws.oversample = "2x";
+      out = out.connect(ws);
+      biq("lowpass", z.lp, 0);
+      const post = bag.add(ctx.createGain());
+      post.gain.value = 10 ** (z.trimDb / 20);
+      out = out.connect(post);
+    } else if (st === "vibe") {
+      // D1065: the Uni-Vibe: four phase stages swept together by one slow LFO (on the clock's phase: one pedal for every note), mixed
+      // with the dry string; the level throbbing a little with it.
+      const vb = STOMP.vibe;
+      const lfo = bag.src(ctx.createOscillator());
+      lfo.frequency.value = vb.rate;
+      oscs.push(lfo);
+      const dry = bag.add(ctx.createGain());
+      dry.gain.value = 1 - vb.wet;
+      const wet = bag.add(ctx.createGain());
+      wet.gain.value = vb.wet;
+      out.connect(dry);
+      let w: AudioNode = out;
+      for (const hz of vb.stages) {
+        const ap = bag.add(ctx.createBiquadFilter());
+        ap.type = "allpass";
+        ap.frequency.value = hz;
+        ap.Q.value = 0.5;
+        const d = bag.add(ctx.createGain());
+        d.gain.value = hz * vb.depth;
+        lfo.connect(d).connect(ap.frequency);
+        w = w.connect(ap);
+      }
+      w.connect(wet);
+      const sum = bag.add(ctx.createGain());
+      dry.connect(sum);
+      wet.connect(sum);
+      const throb = bag.add(ctx.createGain());
+      const th = (1 - 10 ** (-vb.throbDb / 20)) / 2;
+      throb.gain.value = (1 - th) * 10 ** (vb.trimDb / 20);
+      const td = bag.add(ctx.createGain());
+      td.gain.value = th * 10 ** (vb.trimDb / 20);
+      lfo.connect(td).connect(throb.gain);
+      out = sum.connect(throb);
+      const period = 1 / vb.rate;
+      lfo.start(Math.max(ctx.currentTime, t - (t - Math.floor(t / period) * period)));
+    }
+    return { out, fbIn, snap, acc, oscs };
+  }
+
   /** D311: the player's note's expression stage: the landing's lowpass, and for holding a swell (messa di voce) or a wah's peak (at rest, none). */
   private touchStage(src: AudioNode, p: Play, f0: number, bag: Bag): { out: AudioNode; messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; bowed?: boolean } {
     const ctx = this.ctx;
@@ -1886,7 +2035,8 @@ export class Chip {
     // D504: a wind's swell (touch-expr.ts "breath"): the level and, with it, the brightness (a high shelf).
     let breath: { gain: GainNode; shelf: BiquadFilterNode } | undefined;
     // D1016: the bow's contact point (touch-expr.ts "bow") on the breath's two nodes, its own ranges (touchShape).
-    if (p.hold === "breath" || p.hold === "bow") {
+    // D1055: a bowed note (Play.bow) has its bow instead (Sounding.bow): no contact point.
+    if (p.hold === "breath" || (p.hold === "bow" && p.bow === undefined)) {
       const gain = bag.add(ctx.createGain());
       gain.gain.value = 1;
       const shelf = bag.add(ctx.createBiquadFilter());
@@ -1896,7 +2046,7 @@ export class Chip {
       out = out.connect(gain).connect(shelf);
       breath = { gain, shelf };
     }
-    return { out, messa, wah, breath, ...(p.hold === "bow" ? { bowed: true } : {}) };
+    return { out, messa, wah, breath, ...(p.hold === "bow" && breath ? { bowed: true } : {}) };
   }
 
   /** D311: the player's vibrato (in place of the voice's own): `base` cents after `delay`, its depth then the thumb's (vibDepth). */
@@ -2574,7 +2724,10 @@ export class Chip {
     // D510: on a phone a recording's own trim (sampled.ts JAZZ_PHONE_DB: the jazz bass's plucks evened through the phone model).
     // D523: and everywhere a recording's own (sampled.ts ROCK_DB: the guitars' and the bass's plucks evened).
     const trimDb = (noteInfo(set, near)?.db ?? 0) + (this.phone ? (noteInfo(set, near)?.phoneDb ?? 0) : 0);
-    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (trimDb ? 10 ** (trimDb / 20) : 1);
+    // D1063: a guitar's join by the left hand (Play.guitar.lh): no pick; the recording entered past it (`lhSkip`), softer (guitar.ts LEFT_HAND).
+    const lh = plucked && p.guitar?.lh ? p.guitar.lh : undefined;
+    const lhSkip = lh ? Math.max(0, p.guitar?.skip ?? LEFT_HAND.minSkip) : 0;
+    const peak = pt.level * v.gain * (p.level ?? 1) * 0.5 * inst.gain * layer * (plucked ? 1 + (p.accent ?? 0) * 0.19 : 1) * (trimDb ? 10 ** (trimDb / 20) : 1) * (lh ? 10 ** (LEFT_HAND[lh].db / 20) : 1);
     const mix = bag.add(ctx.createGain());
     // D249: ORGANO PLENO's three sources brought back to about one note's level.
     if (p.pleno) mix.gain.value = PLENO_SCALE;
@@ -2606,13 +2759,26 @@ export class Chip {
       } else src.connect(g).connect(mix);
       // Joined on the organ (legato): the pipe already speaking, past its attack. D358: a bowed string's a new stroke (Patch.bow).
       // D357: a new note on a recorded pipe enters its speech near where it sounds (SampledInstrument.speak).
-      const from = r.onset + (p.legato && !plucked ? (entry ? entry.skip : 0.25) : plucked ? 0 : speakFrom(inst, r));
+      const from = r.onset + (p.legato && !plucked ? (entry ? entry.skip : 0.25) : plucked ? lhSkip : speakFrom(inst, r));
       src.start(t + (choir?.delay ?? 0), from);
       srcs.push({ src, set, m, mult });
       if (chain) this.chainOn(src, g, gain, r, chain, t, from, end + 0.5, midi, 440 * 2 ** ((m - 69) / 12), pt.syllable ? scoopShift(p.legato && p.from !== undefined ? (p.from - midi) * 100 : -pt.syllable.scoop, (p.legato && p.from !== undefined ? Math.sign(midi - p.from) || 1 : 1) * pt.syllable.over, p.legato ? 0.08 : 0.07) : 0, mix, bag, (s) => srcs.push({ src: s, set, m, mult }));
       return g;
     };
     const g0 = play(set, near, rec, 1, 1);
+    // D1055/D1056: a bowed note (Play.bow): the same instrument's pp and ff recordings beside its mf, at the same pitch, entered
+    // alike, crossfaded at equal power by the bow (bow.ts layerMix; at colour 0 the mf alone, today's); a layer not yet loaded is
+    // asked for and its side left at today's colour.
+    const bl = p.bow !== undefined && !plucked && inst.bowLayers ? inst.bowLayers : null;
+    let bowL: { mf: GainNode; pp?: GainNode; ff?: GainNode } | null = null;
+    if (bl) {
+      const lay = (ls: string) => {
+        const r = loaded(ls, near);
+        if (!r) return void loadOne(ctx, ls, near);
+        return play(ls, near, r, 1, 0);
+      };
+      bowL = { mf: g0, pp: lay(bl.pp), ff: lay(bl.ff) };
+    }
     // D502, BACH BRASS: the second dynamic layer (SampledInstrument.blend: the piano recording at the same pitch) with
     // the forte, crossfaded by the note's brassiness (the player's landing, else the band's reading's level), at equal
     // power (touch-expr.ts brassMix); the forte alone until the piano layer has loaded.
@@ -2646,6 +2812,9 @@ export class Chip {
       if (this.phone && !plucked) bag.weight = srcs.length;
     }
     let src: AudioNode = mix;
+    // D1058: a bowed note's bow changes (Sounding.bow "change": bow.ts bowChangeShape) on their own gain.
+    const artic = bl ? bag.add(ctx.createGain()) : null;
+    if (artic) src = mix.connect(artic);
     // D346, SOLO VOICES on a phone's speaker (the owner: "too warm and distorted … just a little bit less"):
     // the singers a little lower into the limiter and its soft clip (PHONE_VOICES.trim) and the low mids a
     // little thinner (a gentle dip where the small speaker booms); a computer as before.
@@ -2656,7 +2825,7 @@ export class Chip {
       dip.frequency.value = PHONE_VOICES.dipHz;
       dip.Q.value = PHONE_VOICES.dipQ;
       dip.gain.value = PHONE_VOICES.dipDb;
-      src = mix.connect(dip);
+      src = src.connect(dip);
     }
     // D365: on a phone, an instrument's upper partials lifted where its small speaker hears them (Patch.phoneLift:
     // STRING CONSORT's cello, its bow and overtones carrying the bass line; never its fundamental), whoever plays it.
@@ -2749,6 +2918,9 @@ export class Chip {
     // D311: the player's touch: the lute stop's or the echo manual's or a closed vowel's lowpass; a singer's swell.
     const xs = p.hold ? this.touchStage(src, p, baseHz, bag) : null;
     if (xs) src = xs.out;
+    // D1061-D1065: the guitarist's hands and the amp (Play.guitar): the pick's place, the hard pick's snap, the pull-off's, PSYCH's stompbox; the feedback joins at `sum`.
+    const gs = p.guitar && isGuitarSample(pt.sample) ? this.guitarStage(src, p, pt, t, bag) : null;
+    if (gs) src = gs.out;
     // D322: the organ's tremulant on a recorded pipe (the pedal): the level shaken (Patch.trem), as patchNote does.
     let tremLfo: OscillatorNode | null = null;
     if (pt.trem && !plucked) {
@@ -2790,7 +2962,7 @@ export class Chip {
     // then, held, an exponential fall toward silence (the SNES's sustain that is not one); a joined
     // (legato) note comes in at the sustain. Without `rec`, the recording's own envelope, as before.
     const re = pt.rec;
-    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? 0.002 + (p.soft ?? 0) * 0.01 : p.legato ? (entry ? entry.still + entry.a : 0.015) : 0.01 + (p.soft ?? 0) * 0.08;
+    const atk = re && !(p.legato && !plucked) ? re.a + (p.soft ?? 0) * (plucked ? 0.01 : 0.08) : plucked ? (lh ? LEFT_HAND[lh].attack : 0.002 + (p.soft ?? 0) * 0.01) : p.legato ? (entry ? entry.still + entry.a : 0.015) : 0.01 + (p.soft ?? 0) * 0.08;
     const top = re && p.legato && !plucked ? peak * re.s : peak;
     if (entry?.still) {
       // D427, the bow change: the bow still a moment at the reversal (gripping, `floor`), then the stroke's bite and its accent.
@@ -2835,7 +3007,7 @@ export class Chip {
     // D525: KRAUTROCK's guitar into the band's tape echo (Patch.echo).
     if (pt.echo) this.echoSend(pan ?? dyn, pt.echo, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
-    const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(motor ? [motor.lfo] : [])];
+    const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(motor ? [motor.lfo] : []), ...(gs ? gs.oscs : [])];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
     // joined to the next (tie), back to its level by then (no step into the next).
     const messa = pt.syllable?.messa ?? 0;
@@ -2931,7 +3103,7 @@ export class Chip {
       lfo.start(t);
     }
     // The recording's own end, in the context's time (a plucked note dies away by then).
-    const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset;
+    const life = (noteInfo(set, near)?.len ?? 4) / Math.max(0.25, srcs[0].src.playbackRate.value) - rec.onset - lhSkip;
     let thunk: GainNode | null = null;
     /** The note's own release (time constant, s): the recording's, a damper's (the bass slower), else 30 ms. */
     // D339: a piano's dampers by register (SampledInstrument.damper; 0: an undamped string, left to ring).
@@ -3024,8 +3196,128 @@ export class Chip {
     const retune = (tc: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, ctx.currentTime, tc);
+      // D1065: the feedback at the string's pitch, bent and slid with it.
+      if (fb) (fb.o1.frequency.setTargetAtTime(baseHz * off, ctx.currentTime, tc), fb.o2.frequency.setTargetAtTime(2 * baseHz * off, ctx.currentTime, tc));
+    };
+    // D1065: LEAN's feedback (PSYCH's guitars, Play.guitar.amp): made when first wanted, a harmonic-rich tone at the note's pitch and its octave into `sum`.
+    let fb: { o1: OscillatorNode; o2: OscillatorNode; g1: GainNode; g2: GainNode; on: boolean } | null = null;
+    const guitarCmd = (cmd: GuitarCmd) => {
+      if (stopped || !gs) return;
+      const now = ctx.currentTime;
+      if (cmd.kind === "hard") {
+        // D1061: the hard pick: a brighter front and a little more attack, falling back.
+        gs.snap.gain.cancelScheduledValues(now);
+        gs.snap.gain.setValueAtTime(HARD_PICK.snapDb, now);
+        gs.snap.gain.setTargetAtTime(0, now + 0.005, HARD_PICK.snapTau);
+        gs.acc.gain.cancelScheduledValues(now);
+        gs.acc.gain.setTargetAtTime(10 ** (HARD_PICK.accentDb / 20), now, 0.003);
+        gs.acc.gain.setTargetAtTime(1, now + 0.012, HARD_PICK.accentTau);
+        return;
+      }
+      if (!p.guitar?.amp) return;
+      const b = bloomOf(cmd.v, now - t);
+      if (!fb) {
+        if (b.level <= 0) return;
+        const off = 2 ** ((cents + (p.detune ?? 0)) / 1200);
+        const mk = (f: number) => {
+          const o = bag.src(ctx.createOscillator());
+          o.setPeriodicWave(this.feedbackWave());
+          o.frequency.value = f;
+          const g = bag.add(ctx.createGain());
+          g.gain.value = 0;
+          o.connect(g).connect(gs.fbIn);
+          o.start(now);
+          lfos.push(o);
+          return [o, g] as const;
+        };
+        const [o1, g1] = mk(baseHz * off);
+        const [o2, g2] = mk(2 * baseHz * off);
+        fb = { o1, o2, g1, g2, on: false };
+      }
+      const total = b.level * BLOOM.ref;
+      const up = b.level > 0;
+      const tau = up ? BLOOM.rise / 3 / Math.max(0.35, cmd.v) : BLOOM.fall / 3;
+      fb.g1.gain.setTargetAtTime(total * (1 - b.octave), now, tau);
+      fb.g2.gain.setTargetAtTime(total * b.octave, now, tau * 1.5);
+      fb.on = up;
+    };
+    // D1055-D1058: the bow on this note (bow.ts): the colour (the layers' gains, held under a bite until it settles), a bow change
+    // (artic), the bite (the ff's front), the spiccato's end (the consort's spiccato recording from where the note is, the arco out).
+    let bowC = p.bow ?? 0;
+    let biteEnd = 0;
+    const setMix = (c: number, at: number, tau: number) => {
+      if (!bowL) return;
+      const x = (c < 0 && !bowL.pp) || (c > 0 && !bowL.ff) ? 0 : c;
+      const m = layerMix(x);
+      const one = (gn: GainNode | undefined, val: number) => {
+        if (!gn) return;
+        gn.gain.cancelScheduledValues(at);
+        gn.gain.setTargetAtTime(val, at, tau);
+      };
+      one(bowL.mf, m.mf);
+      one(bowL.pp, m.pp * BOW_LAYER_GAIN);
+      one(bowL.ff, m.ff * BOW_LAYER_GAIN);
+    };
+    if (bowL) {
+      const m = layerMix((bowC < 0 && !bowL.pp) || (bowC > 0 && !bowL.ff) ? 0 : bowC);
+      bowL.mf.gain.value = m.mf;
+      if (bowL.pp) bowL.pp.gain.value = m.pp * BOW_LAYER_GAIN;
+      if (bowL.ff) bowL.ff.gain.value = m.ff * BOW_LAYER_GAIN;
+    }
+    const bowCmd = (cmd: BowCmd) => {
+      if (stopped || !bowL) return;
+      const now = ctx.currentTime;
+      if (cmd.kind === "colour") {
+        bowC = cmd.c;
+        if (now < biteEnd) setMix(bowC, biteEnd, BOW_ATTACK.biteTau);
+        else setMix(bowC, now, 0.02);
+      } else if (cmd.kind === "bite") {
+        if (!bowL.ff) return;
+        setMix(1, now, 0.004);
+        biteEnd = now + BOW_ATTACK.biteS;
+        setMix(bowC, biteEnd, BOW_ATTACK.biteTau);
+      } else if (cmd.kind === "change" && artic) {
+        const sh = bowChangeShape(cmd.aud);
+        const a = artic.gain;
+        a.cancelScheduledValues(now);
+        a.setTargetAtTime(sh.floor, now, 0.003);
+        const up = now + 0.009 + sh.still;
+        a.setTargetAtTime(10 ** (sh.accentDb / 20), up, sh.a / 3);
+        if (sh.accentDb) a.setTargetAtTime(1, up + sh.a, sh.accentS / 3);
+      } else if (cmd.kind === "spicc") {
+        const sp = bl?.spicc ? SAMPLED[bl.spicc] : null;
+        const sset = sp?.set;
+        const sn = sset ? nearestSample(sset, midi) : null;
+        const sr = sset && sn !== null ? loaded(sset, sn) : undefined;
+        if (!sp || !sset || sn === null || !sr) {
+          if (sset && sn !== null) loadOne(ctx, sset, sn);
+          return;
+        }
+        const rate = rateFor(sset, sn, baseHz) * 2 ** ((cents + (p.detune ?? 0)) / 1200);
+        const left = (noteInfo(sset, sn)?.len ?? 1) - sr.onset - (now - t) * rate;
+        if (left < 0.06) return;
+        stopped = true;
+        const s2 = bag.src(ctx.createBufferSource());
+        s2.buffer = sr.buffer;
+        s2.playbackRate.value = rate;
+        const sg = bag.add(ctx.createGain());
+        sg.gain.setValueAtTime(0, now);
+        sg.gain.setTargetAtTime(sp.gain / inst.gain, now, 0.004);
+        s2.connect(sg).connect(mix);
+        s2.start(now, sr.onset + (now - t) * rate);
+        for (const gn of [bowL.mf, bowL.pp, bowL.ff]) if (gn) (gn.gain.cancelScheduledValues(now), gn.gain.setTargetAtTime(0, now, 0.006));
+        for (const x of srcs) halt(x.src, now + 0.06);
+        const ring = left / rate;
+        if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(now);
+        else (g.gain.cancelScheduledValues(now), g.gain.setValueAtTime(levelAt(now), now));
+        g.gain.setTargetAtTime(0, now + ring, 0.02);
+        halt(s2, now + ring + 0.15);
+        for (const l of lfos) halt(l, now + ring + 0.2);
+      }
     };
     return {
+      ...(bowL ? { bow: bowCmd } : {}),
+      ...(gs ? { guitar: guitarCmd } : {}),
       shape,
       stop: (when = ctx.currentTime, how?: GiveWay) => {
         if (stopped || when >= end) return;

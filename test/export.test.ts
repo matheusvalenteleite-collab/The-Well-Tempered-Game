@@ -11,7 +11,7 @@ test("export (D74): 16-bit conversion, a valid WAV header, an MP3 stream", async
   const wav = new Uint8Array(await encodeWav(ch, sr).arrayBuffer());
   assert.equal(String.fromCharCode(...wav.slice(0, 4)), "RIFF");
   assert.equal(wav.length, 44 + sr * 2 * 2);
-  const mp3 = new Uint8Array(await encodeMp3(ch, sr).arrayBuffer());
+  const mp3 = new Uint8Array(await (await encodeMp3(ch, sr)).arrayBuffer());
   // An MPEG frame sync (11 set bits) at the start, and about 192 kbps for one second.
   assert.equal(mp3[0], 0xff);
   assert.equal(mp3[1] & 0xe0, 0xe0);

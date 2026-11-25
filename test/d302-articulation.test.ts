@@ -15,13 +15,14 @@ import { fugueById, inBar, beatOf, type TouchFugue } from "../src/touch/fugue.ts
 import { tempoOf } from "../src/touch/tempi.ts";
 import { ART_HOLD, ART_SPREAD, joins, phrase, phraseContext, SLUR_SHAPE, type Shape, type Style } from "../src/touch/phrasing.ts";
 import { GAP_MAX_SHARE, TABLES } from "../src/touch/practice.ts";
-import { performSubject, readingMarks, readingsOf } from "../src/touch/readings.ts";
+import { performSubject, readingMarks } from "../src/touch/readings.ts";
 import { accompaniment, subjectMarks } from "../src/touch/voice-mode.ts";
+import { allReadingsOf } from "./book-readings.ts";
 
 const ctxOf = installFakeAudio(0, true);
 
 const I2 = fugueById("wtc1f02");
-const KELLER = readingsOf("wtc1f02").find((r) => r.id === "keller")!;
+const KELLER = allReadingsOf("wtc1f02").find((r) => r.id === "keller")!;
 
 function shapesOf(f: TouchFugue, reading: typeof KELLER | null = KELLER, style: Style = "plain") {
   const notes = accompaniment(f, 0, -1);
@@ -156,7 +157,7 @@ test("D304, D309: without a reading, the default playing: nothing detached; step
 
 test("D304: a fugue's reading marks only its subject's entries; elsewhere the default", () => {
   const f = fugueById("wtc2f22");
-  const r = readingsOf(f.id)[0];
+  const r = allReadingsOf(f.id)[0];
   const withR = shapesOf(f, r).shapes;
   const without = shapesOf(f, null).shapes;
   const marks = readingMarks(f.entries, r);
