@@ -304,6 +304,11 @@ export const MECH_DEFAULTS = {
   // THE BOW (D1055-D1058: src/touch/bow.ts, src/bench/bowing.ts). Off: the game as it was, every note and join as before.
   /** STRING CONSORT bowed by the held thumb's sideways motion: its speed the colour, its start the attack, its direction the bow changes and slurs. On only in THE NEW LAB (lab.html?lab=new) and the developer view's NEW MECHANICS (lockMech). */
   bow: false,
+  // THE GUITARIST'S HANDS AND THE AMP (D1061-D1066: src/touch/guitar.ts, src/touch/tilt.ts, src/bench/guitaring.ts). Off: every guitar as before.
+  /** Every fretted, plucked guitar played by the thumb: the landing the pick's place, a flick a hard pick, a sideways push a bend (a quarter tone at most), a join a hammer-on or a pull-off, a slide a glide. play.html's default (D1066: new-mech.ts applyGuitarTilt); off in the Lab. */
+  guitar: false,
+  /** PSYCH's guitars and the phone's tilt: leaning toward the amp a held note's feedback; steering a stompbox (left the vibe, right the fuzz). play.html's default (D1066); off in the Lab. */
+  tilt: false,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -347,7 +352,7 @@ export function asRecorded<T extends Partial<Record<string, unknown>>>(m: T | un
 export const MECH: Mech = { ...MECH_DEFAULTS };
 
 /** D1055: parameters set by the page, not the Lab's MECHANICS panel (no control: THE OLD LAB as it was; THE NEW LAB holds the bow on). */
-export const PAGE_MECH: readonly MechKey[] = ["bow"];
+export const PAGE_MECH: readonly MechKey[] = ["bow", "guitar", "tilt"];
 /** D1055: parameters a page holds whatever a preset, a reset or a stored setting says (THE NEW LAB's bow; the developer view's NEW MECHANICS). */
 const MECH_LOCK: Partial<Mech> = {};
 export function lockMech(values: Partial<Mech>) {

@@ -36,3 +36,32 @@ export function applyNewMech(): boolean {
   }
   return on;
 }
+
+/**
+ * D1066, GUITAR & TILT (Batch 2: the guitars' hands, D1061-D1064; PSYCH's tilt, D1065). The owner ("directly to main game, I
+ * believe you"): on for every player at play.html's load, as the bow (D1060); the developer view's switch (unlocked devices only)
+ * turns it OFF (kept as "off", GUITAR_TILT_KEY). MECH_DEFAULTS keeps both off: THE OLD LAB, the Lab's pages and takes recorded
+ * without them replay as before (a take's notes carry Play.guitar, set by the game as each note starts).
+ */
+export const GUITAR_TILT_KEY = "tg-guitar-tilt-v1";
+export function guitarTiltStored(): boolean {
+  try {
+    return typeof localStorage === "undefined" || localStorage.getItem(GUITAR_TILT_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+export function saveGuitarTilt(on: boolean) {
+  try {
+    if (on) localStorage.removeItem(GUITAR_TILT_KEY);
+    else localStorage.setItem(GUITAR_TILT_KEY, "off");
+  } catch {
+    /* this visit only */
+  }
+}
+/** D1066: at play.html's start: the guitars' hands and PSYCH's tilt on for every player, unless an unlocked device switched them off. */
+export function applyGuitarTilt(): boolean {
+  const on = !unlocked() || guitarTiltStored();
+  if (on) lockMech({ guitar: true, tilt: true });
+  return on;
+}
