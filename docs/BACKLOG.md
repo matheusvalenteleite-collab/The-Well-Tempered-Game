@@ -3,6 +3,15 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Mass in B minor (BWV 232) for MORE BACH: research only, second account, no D-number (28 November 2026; no build)
+
+Report: docs/research/MASS-IN-B-MINOR.md (branch `claude/mass-in-b-minor-research`); files in data/sources/mass-b-minor/.
+A complete CC0 full score of all 27 movements with the Latin words (kuwitt, musescore.com, via PDMX) agrees 97-100% per line
+with CCARH's Bach-Gesellschaft encoding; two more free witnesses (sangerforum CC0, Mutopia CC BY-SA) agree as closely. Before any
+build the MusicXML reader must skip invisible notes (750 placeholders) and apply a part's transposition (trumpets, horn).
+Suggested first slice: Kyrie II (five lines, 59 bars). Open for the owner: first slice, rights (kuwitt may derive from CCARH;
+precedent BWV 228 CC BY-NC), the 10-20-line choruses, words in the music box, the sound (a listening page first).
+
 ## REPEAT button: step 1 DONE behind a developer flag, off for players (D1081, D1082; not deployed)
 
 The proof passed in the real engine: the clock jumps back to a section's start once, with band, click, drums and the music box intact, and the second pass never counts toward the grade. The REPEAT key is built (innermost piston slot, printed repeat sign, appears in the second-last bar, lights, cancels, closes a beat before the end). Developer view: SETTINGS › REPEAT (DEV), test section WTC I no. 2 bars 2-5. Left for the next REPEAT steps (R1-R3 in the design): the repeat sign drawn at the section's end in the box and a smoother swap of the notes beyond it, first and second endings (forward jump), the final slowing for a repeatable last section, da capo written out, real sections for French Suite 5, takes recorder by pass, and the owner trying it on his thumbs. The owner should play it once (flag on) before the tempo-map work.
