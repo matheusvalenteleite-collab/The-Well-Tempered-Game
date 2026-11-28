@@ -62,6 +62,8 @@ export interface LineWord {
   text: string;
   shown: string;
   gloss: Gloss;
+  /** D1080: Busoni's tempo indication (his heading, his changes of pace): not shown in play (the side gloss skips it). */
+  tempo?: boolean;
   /** The word's picture, made once (the painter's cache; null where there is no document). */
   sprite?: unknown;
 }
@@ -493,11 +495,11 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
   };
   const dyn: LineDyn[] = [];
   const words: LineWord[] = [];
-  const word = (on: number, text: string, boxed = true) => {
+  const word = (on: number, text: string, boxed = true, tempo = false) => {
     const gloss = glossOf(text);
     if (!gloss || words.some((w) => w.on === on && wordKey(w.text) === wordKey(text))) return;
     const shown = text.replace(/(\s*-)+\s*$/, "").trim();
-    words.push({ on, step: lowAt(on), text, shown: boxed ? shown.toUpperCase() : "", gloss });
+    words.push({ on, step: lowAt(on), text, shown: boxed ? shown.toUpperCase() : "", gloss, ...(tempo ? { tempo: true } : {}) });
   };
   for (const d of W.dyn) {
     if (!d.voices.includes(v)) continue;
@@ -514,9 +516,9 @@ function lineOf(f: TouchFugue, W: NonNullable<Reading["whole"]>, v: number): Who
   }
   // The heading translated in the side bar from the player's first note (not drawn: a long line over the first
   // entry, the HUD names the piece); the words in the score in this voice; the changes of pace (every voice).
-  if (W.heading && ns.length) word(ns[0][0], W.heading, false);
+  if (W.heading && ns.length) word(ns[0][0], W.heading, false, true);
   for (const t of W.text) if (mine(t.voices) && t.text !== W.heading) word(t.on, t.text);
-  for (const t of W.tempo) word(t.on, t.text);
+  for (const t of W.tempo) word(t.on, t.text, true, true);
   const hairpins: LineHairpin[] = W.hairpins.filter((h) => h.voices.includes(v)).map((h) => ({ from: h.from, to: h.to, dir: h.dir, step: lowAt(h.from, h.to) }));
   const spans: LineSpan[] = [];
   for (const s of W.slurs) {

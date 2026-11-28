@@ -928,7 +928,7 @@ export function BenchApp() {
       if (legendRef.current) legendRef.current.style.opacity = String(Math.max(0, Math.min(1, (from + LEGEND_S * g.tps - g.now) / (2 * g.tps))));
       // D391: the word in force on the player's line, translated in the side bar (changed only when another word is passed).
       if (glossRef.current && marks.whole) {
-        const ws = marks.whole.lines[0]?.words ?? [];
+        const ws = (marks.whole.lines[0]?.words ?? []).filter((w) => !w.tempo); // D1080: no tempo words
         const wi = firstOn(ws, g.now + 1) - 1;
         if (wi !== glossAt.current || (wi >= 0 && !glossRef.current.textContent)) {
           glossAt.current = wi;
