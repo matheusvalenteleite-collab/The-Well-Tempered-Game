@@ -3,6 +3,13 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Keyboard suites in the developer game (owner's rulings 28 November 2026, D1078; research done, no build yet)
+
+Report: docs/research/KEYBOARD-SUITES.md. Owner: tempo changes inside a piece must be possible (no prohibition); first slice French
+Suite 5 (BWV 816); ornament signs from Mutopia by a cheap text route; no repeats in play, but a REPEAT thumb button in the last two
+bars (press = repeat, otherwise none); printed versions preferred; look harder for Partita sources. Open: bass lines, rhythm,
+how many suites, picture-worlds, rights (Partita 1 metadata oddity; CC BY-SA files only as a check).
+
 ## Strings: dragging should glide, not swell: DONE (D1073, WTC 3.40)
 
 The owner approved the glissando timed by the thumb after the listening page (D1072); `MECH.slideGlide` "speed" is the default
