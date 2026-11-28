@@ -11,7 +11,6 @@
  */
 import { ornamentMark } from "../touch/ornament-play.ts";
 import { ARROW_PIXELS, inkOf, type Arrow } from "../touch/MusicBox.tsx";
-import { paperInk } from "./sheet-view.ts";
 import { paintPiano } from "../touch/paint-piano.ts";
 import { barStart, type TouchFugue } from "../touch/fugue.ts";
 import { APPROACH_MS, CROWD_START, OWN_FRESH_S, PHONE_LINE, type ProtoGame } from "./proto-game.ts";
@@ -40,18 +39,8 @@ function tokens() {
   return { shine: tok("--tg-shine"), gold: tok("--tg-gold"), wrong: tok("--tg-wrong"), fg: tok("--tg-fg"), muted: tok("--tg-muted"), grid: tok("--tg-grid"), barline: tok("--tg-barline"), miss: tok("--tg-miss") };
 }
 
-/**
- * D298: the SHEET mode's look for the bars (sheet-view.ts draws the page between them): paper, dark ink,
- * no pitch names; the same marks as the box's (the coming note's light, the way to go, the last touch).
- */
-let paper = false;
-export function setPaperLook(on: boolean) {
-  paper = on;
-}
-export const PAPER_TOK: Tok = { shine: "#8a6a12", gold: "#9a7410", wrong: "#b3261e", fg: "#1d1d1f", muted: "#8a857a", grid: "#e4e0d6", barline: "#d6d1c4", miss: "#b3261e" };
-
 export function paintProto(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, subject: Set<string>) {
-  const t = paper && g.proto.layout === "bars" ? PAPER_TOK : tokens();
+  const t = tokens();
   switch (g.proto.id) {
     case "ladder":
       bars(c, w, h, g, t);
@@ -105,7 +94,7 @@ function scoreboard(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoG
   // D218: the legato chain under way. D445: ORGANO PLENO no longer doubles the points (its light and banner stay).
   if (g.chain >= 2) label(c, `LEGATO ×${g.chain}`, x, bars ? h * 0.12 + 30 + below : desk ? y + 16 + below : y + 32 + below, LEGATO_INK, 6);
   // CON FUOCO: embers rising along the edges while the run lasts.
-  if (g.streak >= 24 && !paper) {
+  if (g.streak >= 24) {
     const now = performance.now() / 1000;
     for (let k = 0; k < 18; k++) {
       const phase = (now * (0.4 + (k % 5) * 0.1) + k * 0.37) % 1;
@@ -947,7 +936,7 @@ export function label(c: CanvasRenderingContext2D, text: string, x: number, y: n
   // D283: the game's words in the language chosen.
   const word = trCanvas(text);
   // D415: over the music now running under the bars, each word ringed in the bars' dark (read over a note).
-  if (!paper) {
+  {
     const a = c.globalAlpha;
     c.globalAlpha = a * 0.85;
     c.strokeStyle = "#140e12";
@@ -978,8 +967,8 @@ function thumbSigns(c: CanvasRenderingContext2D, w: number, h: number, bw: numbe
   if (!first.locked && down.length) Object.assign(first, { side: down[0].side, locked: true, flip: down[0].side !== plan[0].side });
   const flip = !!first.flip;
   const notes = g.tracks[0].notes;
-  const ink = paper ? "#2a2216" : t.fg;
-  const back = paper ? "#f6f5f1" : "#121a34";
+  const ink = t.fg;
+  const back = "#121a34";
   const r = Math.max(2.5, Math.min(4, rows.rowH * 0.35));
   for (const p of plan) {
     const n = notes[p.i];
@@ -1029,13 +1018,9 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
     { x: 0, inner: bw, k: 0 },
     { x: w - bw, inner: w - bw, k: g.tracks.length > 1 ? 1 : 0 },
   ];
-  const inkFor = paper ? paperInk : inkOf;
+  const inkFor = inkOf;
   for (const [n, s] of sides.entries()) {
-    if (paper) {
-      // D298: the sheet's bars: paper (the play area's own background, bench.css: not filled each frame), a hairline by the page.
-      c.fillStyle = t.barline;
-      c.fillRect(n ? s.x : bw - 1, 0, 1, h);
-    } else {
+    {
       // The bar: warm and dark, a little lighter towards its strong side (D314: the phone's edge, or the box's by STRONG_SIDE).
       const grad = c.createLinearGradient(s.inner, 0, n ? w : 0, 0);
       // D415 (the owner: "we don't need the buttons to be opaque at all to know what to do with them"): the bar
@@ -1098,10 +1083,10 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
         c.fillStyle = ink;
         // D415: over the music the bar no longer floods with the note's colour (it hid what runs under it): a
         // faint wash, and a line of light along its inner edge, by the box, brightening as the note comes.
-        c.globalAlpha = paper ? 0.04 + 0.14 * nx.p * nx.p : 0.04 + 0.1 * nx.p * nx.p;
+        c.globalAlpha = 0.04 + 0.1 * nx.p * nx.p;
         // D308: lit to the screen's foot (a dark strip of 24 px was left under it, the owner: "a useless border").
         c.fillRect(s.x, 0, bw, h);
-        if (!paper) {
+        {
           c.fillStyle = t.shine;
           c.globalAlpha = 0.1 + 0.6 * nx.p * nx.p;
           c.fillRect(s.x === 0 ? bw - STRIP_EDGE - 2 : s.x + STRIP_EDGE, 0, 2, h);
@@ -1136,8 +1121,8 @@ function bars(c: CanvasRenderingContext2D, w: number, h: number, g: ProtoGame, t
       // D280: with the guide, the thumbs below take its place.
       // D460: the coaching's drawn thumb (a skin-coloured thumb, against the standing rule) gone: ● ○ under the notes say it.
       if (g.o.coach === "dynamics") dynamicsCoach(c, w, h, bw, n.on < g.f.barTicks, t);
-      // A soft trail from the note in the box out to the bars (D298: not over the sheet).
-      if (!paper) {
+      // A soft trail from the note in the box out to the bars.
+      {
         const xn = Math.max(bw, Math.min(w - bw, rows.xOf(n.on)));
         c.fillStyle = ink;
         c.globalAlpha = 0.12 + 0.3 * nx.p;

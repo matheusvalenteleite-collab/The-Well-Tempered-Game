@@ -25,5 +25,5 @@ Rows are numbered D0, D1, ... Some carry a letter (D325b, D499b-d, D725b, D726b:
 | D700–D799 | [D0700-D0799.md](decisions/D0700-D0799.md) | 79 |
 | D800–D899 | [D0800-D0899.md](decisions/D0800-D0899.md) | 60 |
 | D900–D999 | [D0900-D0999.md](decisions/D0900-D0999.md) | 69 |
-| D1000–D1099 | [D1000-D1099.md](decisions/D1000-D1099.md) | 48 |
+| D1000–D1099 | [D1000-D1099.md](decisions/D1000-D1099.md) | 53 |
 | C1–C37, P1–P26 | [C-and-P.md](decisions/C-and-P.md) | 63 |

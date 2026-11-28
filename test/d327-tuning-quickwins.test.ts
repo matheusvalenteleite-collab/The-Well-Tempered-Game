@@ -11,27 +11,12 @@ import { PRESETS } from "../src/touch/sound.ts";
 const CONSOLES_AND_SYNTHS = ["chip", "gameboy", "super16", "sid64", "analog", "modular", "tomita"]; // D890: MEGA FM, TRACKER withdrawn
 import { hz, setTuning, TEMPERAMENTS } from "../src/touch/tuning.ts";
 import { rateFor, sampleHz } from "../src/touch/sampled.ts";
-import { DISPLAY_BY_PIECE_KEY, DISPLAY_KEY, displayFor, saveDisplay, saveDisplayFor } from "../src/bench/sheet-format.ts";
 import { freeLine, freeTally } from "../src/bench/free-summary.ts";
 import { TUTORIAL_LESSONS } from "../src/bench/lessons.ts";
 import { legendLines } from "../src/bench/side-notes.ts";
 import { useLang } from "../src/i18n/index.ts";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-
-function withStorage<T>(f: (store: Map<string, string>) => T): T {
-  const store = new Map<string, string>();
-  (globalThis as { localStorage?: unknown }).localStorage = {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  };
-  try {
-    return f(store);
-  } finally {
-    delete (globalThis as { localStorage?: unknown }).localStorage;
-  }
-}
 
 test("D327: the instruments' tunings, in one table", () => {
   assert.deepEqual(instrumentTuning("harpsichordSampled"), { id: "werckmeister", a: 415 });
@@ -78,28 +63,6 @@ test("D327: the recorded instruments are retuned (not left at 440): A = 415 play
     setTuning("equal", 440);
   }
 });
-
-test("D327: DISPLAY kept per piece; D354: never chosen, no piece opens on the sheet by itself", () =>
-  withStorage((store) => {
-    // I/1 (four voices), I/2 (three), I/22 (five).
-    assert.equal(displayFor("wtc1f01", 4, false), "default", "tutorial not passed: DEFAULT");
-    assert.equal(displayFor("wtc1f01", 4, true), "default", "D354: not the sheet by itself");
-    assert.equal(displayFor("wtc1f22", 5, true), "default");
-    assert.equal(displayFor("wtc1f02", 3, true), "default", "three voices: as before");
-    assert.equal(displayFor("wtc1p01", 4, true), "default", "a prelude is not engraved");
-    saveDisplayFor("wtc1f01", "default");
-    saveDisplay("default");
-    assert.equal(displayFor("wtc1f01", 4, true), "default", "the player's own choice wins");
-    saveDisplayFor("wtc1f02", "sheet2");
-    saveDisplay("sheet2");
-    assert.equal(displayFor("wtc1f02", 3, true), "sheet2");
-    assert.equal(displayFor("wtc1f03", 3, true), "sheet2", "a piece never chosen for: the last choice");
-    assert.equal(displayFor("wtc1f22", 5, true), "sheet2", "D354: four and five voices too: the last choice");
-    assert.equal(displayFor("wtc1f01", 4, true), "default");
-    assert.equal(store.get(DISPLAY_KEY), "sheet2");
-    store.set(DISPLAY_BY_PIECE_KEY, JSON.stringify({ wtc1f05: "piano-roll" }));
-    assert.equal(displayFor("wtc1f05", 4, false), "sheet2", "an unknown stored mode is ignored");
-  }));
 
 test("D327: the free ornaments on the score sheet, each note once, no points", () => {
   useLang("en");

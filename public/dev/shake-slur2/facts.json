@@ -1,0 +1,134 @@
+{
+ "oboe": {
+  "n": 42,
+  "offset": 0.0,
+  "span": [
+   0.0,
+   6.5
+  ],
+  "oboe-today": {
+   "median_cents": 10.0,
+   "max_cents": 12.0,
+   "trill_db": -34.3
+  },
+  "oboe-slur": {
+   "median_cents": 1.0,
+   "max_cents": 4.5,
+   "trill_db": -34.5
+  }
+ },
+ "flute": {
+  "n": 42,
+  "offset": 0.005,
+  "span": [
+   0.0,
+   6.5
+  ],
+  "flute-today": {
+   "median_cents": 37.0,
+   "max_cents": 203.0,
+   "trill_db": -32.9
+  },
+  "flute-slur": {
+   "median_cents": 13.8,
+   "max_cents": 25.0,
+   "trill_db": -32.4
+  }
+ },
+ "bassoon": {
+  "n": 20,
+  "offset": 0.005,
+  "span": [
+   6.23,
+   9.37
+  ],
+  "bassoon-today": {
+   "median_cents": 17.5,
+   "max_cents": 29.0,
+   "trill_db": -32.6
+  },
+  "bassoon-slur": {
+   "median_cents": 8.5,
+   "max_cents": 12.5,
+   "trill_db": -29.5
+  }
+ },
+ "singers": {
+  "n": 42,
+  "offset": 0.0,
+  "span": [
+   0.0,
+   6.5
+  ],
+  "singers-today": {
+   "median_cents": 8.7,
+   "max_cents": 43.0,
+   "trill_db": -34.0
+  },
+  "singers-slur": {
+   "median_cents": 3.0,
+   "max_cents": 9.0,
+   "trill_db": -33.8
+  }
+ },
+ "vocal": {
+  "n": 42,
+  "offset": 0.0,
+  "span": [
+   0.0,
+   6.5
+  ],
+  "vocal-today": {
+   "median_cents": 2.0,
+   "max_cents": 3.0,
+   "trill_db": -28.9
+  },
+  "vocal-slur": {
+   "median_cents": 7.0,
+   "max_cents": 15.0,
+   "trill_db": -26.7
+  }
+ },
+ "violin": {
+  "n": 42,
+  "offset": 0.015,
+  "span": [
+   0.0,
+   6.5
+  ],
+  "violin-today": {
+   "median_cents": 9.0,
+   "max_cents": 38.0,
+   "trill_db": -32.1
+  },
+  "violin-slur": {
+   "median_cents": 4.0,
+   "max_cents": 10.0,
+   "trill_db": -30.9
+  }
+ },
+ "lip-today": {
+  "vib_peak_cents": 1.5,
+  "frames_pitched": "241/241",
+  "level_span_db": 3.1,
+  "mean_db": -35.2
+ },
+ "lip-sway": {
+  "vib_peak_cents": 10.8,
+  "frames_pitched": "241/241",
+  "level_span_db": 1.6,
+  "mean_db": -37.9
+ },
+ "trem-today": {
+  "vib_peak_cents": 0.1,
+  "frames_pitched": "241/241",
+  "level_span_db": 2.2,
+  "mean_db": -34.4
+ },
+ "trem-sway": {
+  "vib_peak_cents": 2.3,
+  "frames_pitched": "241/241",
+  "level_span_db": 1.4,
+  "mean_db": -36.0
+ }
+}

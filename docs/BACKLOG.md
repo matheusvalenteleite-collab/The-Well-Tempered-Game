@@ -74,8 +74,8 @@ FILM, SYNTH_LAYERS_SOUND, five skins); index.html is a redirect and the counterp
 The play page's first download went from 1.67 to 1.41 MB compressed, the whole site's code from 10.6 to about 5.3 MB.
 Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
 Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
-phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) and `public/sheet` (11 MB) still ship, probably the
-old app's. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
+phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) deleted (D1075; the old app's only);
+`public/sheet` (11 MB) deleted with the SHEET display modes (D1077, WTC 3.41). Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
 branch to the dev branch.
 
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
@@ -87,6 +87,12 @@ All worker sessions were stopped at the owner's request; resume only when the ow
   sound with the print's exact pitches and times: brass lip trill, GAME BOY pitch-command trill, SWITCHED-ON legato
   trill, guitar softer re-strike (hammer-on). Then winds and voices; strings' one-bow trill later; organ tremulant
   and brass lip vibrato onto sway. The owner: "Instrument shakes are good, I like them."
+  **Status (28 Nov):** the four are built behind `SHAKE_PROTO` (off), D1074; listening page `public/dev/shake-slur/` (A today,
+  B slurred, per instrument) waits for the owner's ear. Nothing flips until he has listened.
+  **Status (28 Nov, later):** the rest is built behind the same switch, D1076: winds (oboe, flute, bassoon), sung voices (SOLO VOICES,
+  VOCAL SYNTH), the strings' one-bow trill, and, onto the sway, PIPE ORGAN's tremulant and BACH BRASS's lip vibrato (instead of
+  today's swell). Listening page `public/dev/shake-slur2/` (six trills, two sways; A today, B proposed). Nothing skipped. Waits
+  for the owner's ear; defaults stay off.
 - **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
   `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
   drops, colour in step. The owner: "I like the crab canon suggestion, build A."

@@ -425,7 +425,7 @@ export function landing(kind: TouchKind, x: number, midi: number, pt: Patch | nu
 // ---- Holding sideways: the sustain ----
 
 /** How a held note answers a sideways move: none (a struck string, an organ's steady wind), a swell (messa di voce), the vibrato's depth, a filter sweep (wah), the tremolo's speed. */
-export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "breath" | "swell" | "bow" | "finger" | "duty" | "bend";
+export type HoldMode = "none" | "messa" | "vibrato" | "wah" | "trem" | "breath" | "swell" | "bow" | "finger" | "duty" | "bend" | "lip" | "tremulant";
 
 /**
  * D1014, THE GUITARIST'S FINGER VIBRATO (hold "finger"): a held note on a fretted, plucked string (GUITAR_SAMPLES: PSYCH's
