@@ -17,6 +17,18 @@ import { PRESETS, setPreset } from "../src/touch/sound.ts";
 import { TOUCH_KINDS } from "../src/touch/touch-expr.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
+/** D1073: the strings' slide is now the glissando by default; tests of the earlier slide run under "follow" (still the Lab's choice). */
+function withFollow<T>(fn: () => T): T {
+  const was = MECH.slideGlide;
+  MECH.slideGlide = "follow";
+  try {
+    return fn();
+  } finally {
+    MECH.slideGlide = was;
+  }
+}
+
+
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 const ON = { glenn: true };
 
@@ -177,7 +189,7 @@ test("D424: keyboards and the lute unchanged: a pull-off and a join sound alike 
 
 test("D424: a slide's portamento follows the thumb on strings, voices and synths, landing on the note; keyboards strike", () =>
   // D438: the instruments session's slide sounds, under SLIDE_SOUND "instruments" (the default "d486": d486-slides.test.ts).
-  withSlideSound("instruments", () => {
+  withFollow(() => withSlideSound("instruments", () => {
   for (const sound of ["stringConsort", "vocalSynth", "chip"]) {
     for (const dur of [0.08, 0.3]) {
       const r = run(sound, slide(dur));
@@ -199,4 +211,4 @@ test("D424: a slide's portamento follows the thumb on strings, voices and synths
   const kb = run("harpsichordSampled", slide(0.3));
   assert.equal(kb.heard[0].glides.length, 0);
   assert.ok(kb.heard[1] && kb.heard[1].midi !== kb.heard[0].midi);
-}));
+})));

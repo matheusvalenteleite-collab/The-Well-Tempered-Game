@@ -21,6 +21,18 @@ import { setPreset } from "../src/touch/sound.ts";
 import { withSlideSound } from "../src/bench/slide-sound.ts";
 import { synthEvents, type SynthEvent, type SynthNote } from "../tools/lab/lab-synth.ts";
 
+/** D1073: the strings' slide is now the glissando by default; tests of the earlier slide run under "follow" (still the Lab's choice). */
+function withFollow<T>(fn: () => T): T {
+  const was = MECH.slideGlide;
+  MECH.slideGlide = "follow";
+  try {
+    return fn();
+  } finally {
+    MECH.slideGlide = was;
+  }
+}
+
+
 const II18: LabPassage = { piece: "wtc2f18", voice: 0, fromBar: 1, toBar: 8, bpm: 83, tempoPct: 100, proto: "ladder", wait: false, bt: false, reading: null };
 const ON = { glenn: true };
 /** D378: MECHANICS: CLASSIC (the game before WTC 1.83). */
@@ -306,7 +318,7 @@ test("D376: a real gap is not joined and re-attacks on a sustaining sound; off: 
   assert.deepEqual(gap(ON), { legato: 0, attack: false });
 });
 
-test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, timed by the slide", () => {
+test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, timed by the slide", () => withFollow(() => {
   // Two thumbs: the string's new bow stroke (legato: its bow change), the voice a soft new syllable.
   const strings = run("stringConsort", handover(0.02), ON).heard[1].p;
   assert.equal(strings.legato, true);
@@ -332,7 +344,7 @@ test("D376: strings re-bow and voices re-sing on two thumbs; a slide glides, tim
     assert.ok(followed.length >= 2 && followed.every((g) => g.tau === SLIDE_TRACK_TAU), JSON.stringify(followed));
   });
   assert.equal(run("stringConsort", slidePlan({ slideS: 0.2 }), OFF).heard[0].glides[0]?.tau, undefined);
-});
+}));
 
 test("D376: MECH.glenn restored after a replay (the game's parameters untouched)", () => {
   withMech(OFF, () => assert.equal(MECH.glenn, false));
