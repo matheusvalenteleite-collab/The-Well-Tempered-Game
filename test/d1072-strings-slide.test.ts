@@ -8,8 +8,8 @@ import { MECH_DEFAULTS, MECH_SPEC } from "../src/bench/mechanics.ts";
 import { BOWED_SAMPLES, GLISS, glissMs } from "../src/bench/slide-sound.ts";
 import { PATCHES } from "../src/touch/sound.ts";
 
-test("D1072: the strings' slide stays today's until the owner has listened", () => {
-  assert.equal(MECH_DEFAULTS.slideGlide, "follow");
+test("D1073: the strings' slide is the glissando timed by the thumb (the owner approved after listening)", () => {
+  assert.equal(MECH_DEFAULTS.slideGlide, "speed");
   assert.ok(MECH_SPEC.some((r) => r.key === "slideGlide"));
 });
 

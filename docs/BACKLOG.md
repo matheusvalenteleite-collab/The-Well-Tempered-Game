@@ -3,31 +3,10 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
-## Strings: dragging should glide, not swell (owner, 25 November 2026; for next week)
+## Strings: dragging should glide, not swell: DONE (D1073, WTC 3.40)
 
-**Status (D1072, 28 November 2026): waiting for the owner's ears.** Cause found (the slid note goes on with the sound and level
-of the note slid from: +3 to +4 dB on STRING CONSORT, up to +6 on BAROQUE BAND, +9 on ORCHESTRA & ORGAN). Built behind
-`MECH.slideGlide` (off): B "enter" (the level fix alone) and C/D "speed" (the glissando timed by the thumb). Listening page:
-https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/dev/strings-slide/ . The owner picks B or the glissando;
-then switch it on for the strings (play.html's default) and decide whether the lute's long-leap glissando (D426) follows.
-
-The owner: "the dragging in string instruments is giving a volume boost which is a terrible idea and sounds awful.
-string instrument's dragging, should be glissando, and how fast one drags dictates whether the glissando is super quick
-(as an attack?) or more like gradual." APPROVED in principle; to build when the owner's tokens are back.
-- **Remove the boost.** Prime suspect: the new bow (D1055-D1058, `src/touch/bow.ts`, the main game's default for STRING
-  CONSORT since 3.36): a faster sideways drag crossfades toward the ff recording and a flick gives a "bite"; levelled to
-  the mf within ±0.75 dB on the phone model, but the ff's colour evidently reads as louder. Older suspect: D1016's bow
-  contact point (`bowGain`/`bowTone`, `src/touch/touch-expr.ts`, +4 dB bridge shelf). Measure in LU before and after.
-  Removing a loudness effect on the player's voice is a D508 fix and may ship without a listening page.
-- **Answered (D1068): "dragging" is the vertical slide**, not the sideways sway. So the boost is on a slid note; find
-  what raises it (does the bow read the slide's vertical motion as bow speed, or the slide's arrival as a flick/bite?).
-- **Drag = glissando (portamento), its speed the thumb's.** A fast drag gives a quick slide into the note (string
-  players call a fast audible shift a portamento too; a very quick slide into a note from below is usually called a
-  "scoop" or slide-in); a slow drag a gradual glide. Builds on D424/D486 (strings' shift glide 25/25/45/70 ms, fixed
-  today): the glide's time from the thumb's speed, landing in tune on the written note at its written time. No notes
-  added, no loudness change. Which instruments: STRING CONSORT, BAROQUE BAND's and ORCHESTRA & ORGAN's strings; ask
-  whether the lute's long-leap glissando (D426) should follow.
-- **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
+The owner approved the glissando timed by the thumb after the listening page (D1072); `MECH.slideGlide` "speed" is the default
+on STRING CONSORT, BAROQUE BAND and ORCHESTRA & ORGAN. Left open: whether the lute's long-leap glissando (D426) should follow.
 
 ## PSYCH guitar: plain at the tap, effects by gesture (owner, 28 November 2026; APPROVED to prototype; no work yet)
 
