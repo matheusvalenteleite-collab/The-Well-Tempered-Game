@@ -59,9 +59,32 @@ export function saveGuitarTilt(on: boolean) {
     /* this visit only */
   }
 }
-/** D1066: at play.html's start: the guitars' hands and PSYCH's tilt on for every player, unless an unlocked device switched them off. */
+/**
+ * D1066: at play.html's start: the guitars' hands on for every player, unless an unlocked device switched them off. D1071 (WTC 3.38):
+ * the tilt RETIRED for now (the owner: "Tilting didn't work nor steering … Retire TILTING for now"): MECH.tilt stays off for every
+ * player (no motion prompt: guitaring.ts askTilt asks only under MECH.tilt); an unlocked device may switch it on (TILT_KEY, default
+ * off) to research it.
+ */
 export function applyGuitarTilt(): boolean {
   const on = !unlocked() || guitarTiltStored();
-  if (on) lockMech({ guitar: true, tilt: true });
+  if (on) lockMech({ guitar: true });
+  if (unlocked() && tiltStored()) lockMech({ tilt: true });
   return on;
+}
+/** D1071: the parked tilt, the developer view's switch (default OFF; kept as "on"). */
+export const TILT_KEY = "tg-tilt-research-v1";
+export function tiltStored(): boolean {
+  try {
+    return typeof localStorage !== "undefined" && localStorage.getItem(TILT_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+export function saveTilt(on: boolean) {
+  try {
+    if (on) localStorage.setItem(TILT_KEY, "on");
+    else localStorage.removeItem(TILT_KEY);
+  } catch {
+    /* this visit only */
+  }
 }

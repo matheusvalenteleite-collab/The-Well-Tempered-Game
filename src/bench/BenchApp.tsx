@@ -38,7 +38,9 @@ import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
 import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
 import { DisplayChoice } from "./DisplayChoice.tsx";
-import { guitarTiltStored, newMechStored, saveGuitarTilt, saveNewMech } from "./new-mech.ts";
+import { guitarTiltStored, newMechStored, saveGuitarTilt, saveNewMech, saveTilt, tiltStored } from "./new-mech.ts";
+import { TestScenes } from "./TestScenes.tsx";
+import { keepPendingScene, takePendingScene, type TestScene } from "./test-scenes.ts";
 import { askTilt } from "./guitaring.ts";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
@@ -1196,6 +1198,41 @@ export function BenchApp() {
     void ch.resume().catch(() => {});
     setPhase({ kind: "play" });
   };
+  /**
+   * D1069, TEST SCENES (the developer view): a scene tapped sets its piece, sound and voice, then (once the page has them) starts
+   * TOOLS' practice of its bars, looped. Its mechanics off (the developer view's switch): switched on and kept, the page reloaded,
+   * the scene marked to be tapped again (the sound and the motion sensors need a tap to start).
+   */
+  const [scene, setScene] = useState<TestScene | null>(null);
+  const [sceneReady] = useState(() => (APP.lite && full ? (takePendingScene()?.id ?? null) : null));
+  const runScene = (s: TestScene) => {
+    const off = s.mech === "bow" ? !MECH.bow : !MECH.guitar;
+    if (off) {
+      if (s.mech === "bow") saveNewMech(true);
+      else saveGuitarTilt(true);
+      keepPendingScene(s.id);
+      window.location.reload();
+      return;
+    }
+    stopHearing();
+    askTilt(s.sound);
+    void askMotion();
+    void ensureChip().resume().catch(() => {});
+    setChosen((c) => {
+      const next = { ...c, [s.piece]: s.sound };
+      save(SOUND_KEY, next);
+      return next;
+    });
+    setPick({ piece: s.piece, voice: s.voice });
+    setOpened(s.piece);
+    setScene(s);
+  };
+  useEffect(() => {
+    if (!scene || f.id !== scene.piece || pick.voice !== scene.voice || presetById(soundNow).id !== scene.sound) return;
+    const s = scene;
+    setScene(null);
+    practise({ fromBar: s.fromBar, toBar: s.toBar, loop: true, tempo: s.tempo, wait: false, mute: [], solo: [], balance: readTools(f).balance }, false);
+  }, [scene, f.id, pick.voice, soundNow]);
   const phaseNow = useRef(phase.kind);
   phaseNow.current = phase.kind;
   // D237: ✕ goes back to the cards (HOME, the wheel as it was left, the minimal page's grid).
@@ -1989,6 +2026,8 @@ export function BenchApp() {
                   window.location.reload();
                 }}
               />
+              {/* D1069: TEST SCENES: one tap to a piece, its sound, a voice and a moment worth testing. */}
+              <TestScenes run={runScene} ready={sceneReady} />
               {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
               <DisplayChoice value={display} set={setDisplay} piece={f} />
               {/* D1059/D1060: NEW MECHANICS (the strings' bow, MECH.bow), kept on this device, ON by default (the game's); the page reloads. */}
@@ -2002,14 +2041,25 @@ export function BenchApp() {
                   window.location.reload();
                 }}
               />
-              {/* D1066: GUITAR & TILT (the guitars' hands, PSYCH's tilt: MECH.guitar, MECH.tilt), kept on this device, ON by default (the game's); the page reloads. */}
+              {/* D1066: GUITAR HANDS (MECH.guitar), kept on this device, ON by default (the game's); the page reloads. */}
               <Choice
                 id="guitar-tilt"
-                label="GUITAR & TILT"
-                options={[["off", "OFF"], ["on", "ON · GUITARS, PSYCH TILT"]]}
+                label="GUITAR HANDS"
+                options={[["off", "OFF"], ["on", "ON · EVERY GUITAR"]]}
                 value={guitarTiltStored() ? "on" : "off"}
                 set={(v: "on" | "off") => {
                   saveGuitarTilt(v === "on");
+                  window.location.reload();
+                }}
+              />
+              {/* D1071: the tilt retired for now (PSYCH's lean and steer, MECH.tilt); kept here for research, OFF by default; the page reloads. */}
+              <Choice
+                id="tilt-research"
+                label="TILT (PARKED)"
+                options={[["off", "OFF"], ["on", "ON · PSYCH LEAN & STEER"]]}
+                value={tiltStored() ? "on" : "off"}
+                set={(v: "on" | "off") => {
+                  saveTilt(v === "on");
                   window.location.reload();
                 }}
               />

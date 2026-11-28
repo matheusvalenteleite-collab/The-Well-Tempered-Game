@@ -23,39 +23,46 @@ string instrument's dragging, should be glissando, and how fast one drags dictat
   whether the lute's long-leap glissando (D426) should follow.
 - **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
 
-## Instrument gestures and tilt, by batches (agreed 24 November 2026; the owner is short of tokens)
+## PSYCH guitar: plain at the tap, effects by gesture (owner, 28 November 2026; APPROVED to prototype; no work yet)
+
+The owner: "the psych guitar seems too much at its basic sound. Things like delay and big effects ought to be such that you can
+add them by doing horizontal and vertical things, but not immediately on by simply tapping". Today the fuzz is baked into the
+recording (k2Fuzz, sample rockGuitar2). Sketch shown to the owner: tap = plain, slightly crunchy guitar; a long hold grows a
+delay/echo; sideways sway brings in fuzz in proportion, back-and-forth adds wah (bend/vibrato kept); slide = the glide, smeared by
+the echo if on; lift = effects fade with the note. Vertical on a held note stays the ornaments. Colour and sustain only, never
+level (D508). Sound change: prototype + A/B listening page before it ships.
+
+## Instrument gestures, by batches (agreed 24 November 2026; the owner is short of tokens)
 
 **A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
 the player improvise on sound is something that should be a strong priority of us ... I'm rediscovering the game,
-and it rocks"). Batch 2 (D1061-D1066) is live in WTC 3.37: the next is Batch 3 once the owner has played it.
+and it rocks"). Batch 2's guitar hands (D1061-D1064, D1066) are live since WTC 3.37; the next is Batch 3 once the owner has
+played them.
+
+**Testing (WTC 3.38, D1069-D1070):** the developer view's SETTINGS › TEST SCENES. Measured: the hard pick is slight on every guitar
+(+0.9 to +2.2 dB in 2-5 kHz over the first 100 ms) and the pick's place nearly lost on the fuzz (+1.8 dB edge to edge, +5 on a
+clean guitar): a stronger flick, and a stronger place on the fuzz, would be sound changes (a listening page first) if the owner
+wants them.
+
+**Tilt, PARKED for research (D1071):** on the owner's phone lean and steer did nothing he could hear, and steering rotated the
+screen and stopped the game (the page must not rotate or pause on a steer; investigate the sensor reading on a real
+iPhone/Android before any retry). Off for every player since WTC 3.38; the developer view's TILT (PARKED) switch turns it on
+(the code kept: src/touch/tilt.ts, the bloom and stompboxes in chip.ts). Kept for a retry, the per-family table once approved:
+other guitars lean wah, steer neck/bridge pickup; flute lean rolling in/out, steer flattement; brass lean bell up/down, steer mute;
+strings lean bow contact point, steer no vibrato / mute; organ lean swell, steer flute / reed; harpsichord steer one manual /
+coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths lean mod wheel, steer glide off / chorus;
+GAME BOY steer pulse / wave channel.
 
 Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
 developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
 From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
-Batch 2 (D1061-D1066) is built on the dev branch: every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off,
-glide; PSYCH's tilt (lean = feedback, steer = vibe / fuzz); `src/touch/guitar.ts`, `src/touch/tilt.ts`, `src/bench/guitaring.ts`,
-MECH.guitar and MECH.tilt. The owner said "directly to main game, I believe you": play.html's default for every player, the
-developer view's GUITAR & TILT switch turns it off. **Owner to check on the phone:** the steering (both thumbs playing, never by
-accident? left/right the right way round?) and which way of LEAN feels like "toward the amp" (tilt.ts LEAN_AMP_SIGN,
-STEER_LEFT_SIGN flip them). Left open: a guitar slide over more than a fifth is a fresh pick, not a glide.
+Batch 2 (D1061-D1064, D1066): every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off, glide
+(`src/touch/guitar.ts`, `src/bench/guitaring.ts`, MECH.guitar), play.html's default for every player ("directly to main game, I
+believe you"); the developer view's GUITAR HANDS switch turns it off. Left open: a guitar slide over more than a fifth is a fresh
+pick, not a glide.
 The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
 one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
 stay the ornaments. Horizontal responses continuous wherever possible (no classifier). Never adds notes.
-- **Batch 2, PSYCH guitar (approved):** landing place = pick position (inner/bridge bright, outer/neck warm);
-  landing flick = hard pick; held sideways displacement = bend (at most a quarter tone, returns on release;
-  back-and-forth = vibrato, absorbing D1014); join up = hammer-on, join down / set-and-release = pull-off (no
-  pick); slide = smooth quick glide (no fret steps, as D1018); palm mute, harmonics, tremolo picking left out.
-  Tilt for it: LEAN = turning toward the amp, a held note blooming into feedback sustain (may reach its octave
-  partial, owner's yes); STEER left/right (big, with hysteresis) = stomp boxes: rotary "vibe" / fuzz. Start
-  with a short bench test of steering (prototypes/bow-test2): easy with both thumbs playing, never accidental?
-- **Tilt rules (approved):** never affects judging; neutral = how the phone is held when the piece starts;
-  LEAN continuous with a dead zone; STEER on/off stops needing a big turn and a return past neutral; on
-  struck/plucked sounds a stop applies from the next note; motion access asked by a tap (as D335).
-  The table (approved, replaces octave doubling): other guitars lean wah, steer neck/bridge pickup; flute lean
-  rolling in/out, steer flattement off/on; brass lean bell up/down, steer mute; strings lean bow contact point
-  (bridge-fingerboard), steer no vibrato / mute; organ lean swell, steer flute / reed registration; harpsichord
-  steer one manual / coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths
-  lean mod wheel, steer glide off / chorus; GAME BOY steer pulse / wave channel.
 - **Batch 3** voices and winds; **4** brass, organ, harpsichord, piano; **5** synths and chips (designs to
   draft per family in the frame above, the owner to approve each).
 - **Then: a USER'S MANUAL** with playable animations: the game and the music box shown, arrows drawn on or
