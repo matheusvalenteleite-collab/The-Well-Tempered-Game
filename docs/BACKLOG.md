@@ -24,7 +24,6 @@ string instrument's dragging, should be glissando, and how fast one drags dictat
   whether the lute's long-leap glissando (D426) should follow.
 - **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
 
-## Code audit, Phase 2 (paused 23 November 2026; the owner is out of tokens)
 ## Instrument gestures and tilt, by batches (agreed 24 November 2026; the owner is short of tokens)
 
 **A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
