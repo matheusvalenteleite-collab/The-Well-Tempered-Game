@@ -314,17 +314,21 @@ test("D1061-D1065 (D508): every gesture's loudness on the player's guitar within
     }
 });
 
-test("D1066: GUITAR & TILT: on for every player by default; only an unlocked device that switched it off goes without", async () => {
+test("D1066, D1071: the guitars' hands on for every player by default (only an unlocked device that switched them off goes without); the tilt retired: off unless an unlocked device turns it on", async () => {
   const store = new Map<string, string>();
   (globalThis as unknown as { localStorage: Storage }).localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) } as Storage;
-  const { applyGuitarTilt, guitarTiltStored, saveGuitarTilt } = await import("../src/bench/new-mech.ts");
+  const { applyGuitarTilt, guitarTiltStored, saveGuitarTilt, saveTilt } = await import("../src/bench/new-mech.ts");
   const { setUnlocked } = await import("../src/bench/unlock.ts");
   try {
     assert.equal(guitarTiltStored(), true);
     setUnlocked(false);
     saveGuitarTilt(false);
     assert.equal(applyGuitarTilt(), true);
-    assert.ok(MECH.guitar && MECH.tilt);
+    assert.ok(MECH.guitar && !MECH.tilt, "D1071: no tilt for a player");
+    saveTilt(true);
+    applyGuitarTilt();
+    assert.ok(!MECH.tilt, "a player's device never reads the research switch");
+    saveTilt(false);
     lockMech({ guitar: false, tilt: false });
     resetMech();
     setUnlocked(true);
@@ -332,7 +336,12 @@ test("D1066: GUITAR & TILT: on for every player by default; only an unlocked dev
     assert.ok(!MECH.guitar && !MECH.tilt);
     saveGuitarTilt(true);
     assert.equal(applyGuitarTilt(), true);
+    assert.ok(MECH.guitar && !MECH.tilt);
+    saveTilt(true);
+    applyGuitarTilt();
+    assert.ok(MECH.tilt, "an unlocked device's TILT (PARKED) on");
   } finally {
+    saveTilt(false);
     lockMech({ guitar: false, tilt: false });
     resetMech();
     setUnlocked(false);

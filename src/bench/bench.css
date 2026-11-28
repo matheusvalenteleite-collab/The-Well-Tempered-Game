@@ -972,6 +972,14 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-lang-set .tg-seg button { text-transform: none; }
 .tb-owner-set { display: grid; gap: 14px; padding: 12px; border: 2px dashed var(--tg-barline); }
 .tb-owner-head { margin: 0; font-family: var(--tg-pixel); font-size: 7px; letter-spacing: 0.1em; color: var(--tg-muted); }
+/* D1069: TEST SCENES (the developer view): a fold of one-tap scenes, each its name and one line of what to try. */
+.tb-scenes { display: grid; gap: 8px; }
+.tb-scenes-fold { justify-self: start; min-height: 40px; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: transparent; border: 2px solid var(--tg-muted); cursor: pointer; }
+.tb-scenes-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tb-scene { width: 100%; min-height: 44px; display: grid; gap: 4px; padding: 8px 10px; text-align: left; color: var(--tg-fg); background: transparent; border: 1px solid var(--tg-barline); cursor: pointer; }
+.tb-scene.ready { border-color: var(--tg-fg); }
+.tb-scene-name { font-family: var(--tg-pixel); font-size: 7px; line-height: 1.6; letter-spacing: 0.04em; }
+.tb-scene-line { font: 12px/1.35 system-ui, sans-serif; color: var(--tg-muted); }
 .tb-lock-again { justify-self: start; min-height: 40px; padding: 8px 12px; font-family: var(--tg-pixel); font-size: 8px; color: var(--tg-fg); background: transparent; border: 2px solid var(--tg-muted); cursor: pointer; }
 .tb-set-version { margin: 4px 0 0; text-align: center; }
 .tb-version-tap { display: inline-block; padding: 10px 14px; font-family: var(--tg-pixel); font-size: 7px; color: var(--tg-muted); opacity: 0.7; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }

@@ -3,39 +3,66 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
-## Instrument gestures and tilt, by batches (agreed 24 November 2026; the owner is short of tokens)
+## Strings: dragging should glide, not swell (owner, 25 November 2026; for next week)
+
+The owner: "the dragging in string instruments is giving a volume boost which is a terrible idea and sounds awful.
+string instrument's dragging, should be glissando, and how fast one drags dictates whether the glissando is super quick
+(as an attack?) or more like gradual." APPROVED in principle; to build when the owner's tokens are back.
+- **Remove the boost.** Prime suspect: the new bow (D1055-D1058, `src/touch/bow.ts`, the main game's default for STRING
+  CONSORT since 3.36): a faster sideways drag crossfades toward the ff recording and a flick gives a "bite"; levelled to
+  the mf within ±0.75 dB on the phone model, but the ff's colour evidently reads as louder. Older suspect: D1016's bow
+  contact point (`bowGain`/`bowTone`, `src/touch/touch-expr.ts`, +4 dB bridge shelf). Measure in LU before and after.
+  Removing a loudness effect on the player's voice is a D508 fix and may ship without a listening page.
+- **Answered (D1068): "dragging" is the vertical slide**, not the sideways sway. So the boost is on a slid note; find
+  what raises it (does the bow read the slide's vertical motion as bow speed, or the slide's arrival as a flick/bite?).
+- **Drag = glissando (portamento), its speed the thumb's.** A fast drag gives a quick slide into the note (string
+  players call a fast audible shift a portamento too; a very quick slide into a note from below is usually called a
+  "scoop" or slide-in); a slow drag a gradual glide. Builds on D424/D486 (strings' shift glide 25/25/45/70 ms, fixed
+  today): the glide's time from the thumb's speed, landing in tune on the written note at its written time. No notes
+  added, no loudness change. Which instruments: STRING CONSORT, BAROQUE BAND's and ORCHESTRA & ORGAN's strings; ask
+  whether the lute's long-leap glissando (D426) should follow.
+- **Sound change: listening page with A/B clips** (current vs. quick vs. gradual glide) before it ships.
+
+## PSYCH guitar: plain at the tap, effects by gesture (owner, 28 November 2026; APPROVED to prototype; no work yet)
+
+The owner: "the psych guitar seems too much at its basic sound. Things like delay and big effects ought to be such that you can
+add them by doing horizontal and vertical things, but not immediately on by simply tapping". Today the fuzz is baked into the
+recording (k2Fuzz, sample rockGuitar2). Sketch shown to the owner: tap = plain, slightly crunchy guitar; a long hold grows a
+delay/echo; sideways sway brings in fuzz in proportion, back-and-forth adds wah (bend/vibrato kept); slide = the glide, smeared by
+the echo if on; lift = effects fade with the note. Vertical on a held note stays the ornaments. Colour and sustain only, never
+level (D508). Sound change: prototype + A/B listening page before it ships.
+
+## Instrument gestures, by batches (agreed 24 November 2026; the owner is short of tokens)
 
 **A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
 the player improvise on sound is something that should be a strong priority of us ... I'm rediscovering the game,
-and it rocks"). Batch 2 is built (D1061-D1066, 25 Nov 2026; not yet deployed): the next is Batch 3 once the owner has played it.
+and it rocks"). Batch 2's guitar hands (D1061-D1064, D1066) are live since WTC 3.37; the next is Batch 3 once the owner has
+played them.
+
+**Testing (WTC 3.38, D1069-D1070):** the developer view's SETTINGS › TEST SCENES. Measured: the hard pick is slight on every guitar
+(+0.9 to +2.2 dB in 2-5 kHz over the first 100 ms) and the pick's place nearly lost on the fuzz (+1.8 dB edge to edge, +5 on a
+clean guitar): a stronger flick, and a stronger place on the fuzz, would be sound changes (a listening page first) if the owner
+wants them.
+
+**Tilt, PARKED for research (D1071):** on the owner's phone lean and steer did nothing he could hear, and steering rotated the
+screen and stopped the game (the page must not rotate or pause on a steer; investigate the sensor reading on a real
+iPhone/Android before any retry). Off for every player since WTC 3.38; the developer view's TILT (PARKED) switch turns it on
+(the code kept: src/touch/tilt.ts, the bloom and stompboxes in chip.ts). Kept for a retry, the per-family table once approved:
+other guitars lean wah, steer neck/bridge pickup; flute lean rolling in/out, steer flattement; brass lean bell up/down, steer mute;
+strings lean bow contact point, steer no vibrato / mute; organ lean swell, steer flute / reed; harpsichord steer one manual /
+coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths lean mod wheel, steer glide off / chorus;
+GAME BOY steer pulse / wave channel.
 
 Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
 developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
 From now on new mechanics go in the developer view only (MECH flags), not the New Lab's free play.
-Batch 2 (D1061-D1066) is built on the dev branch: every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off,
-glide; PSYCH's tilt (lean = feedback, steer = vibe / fuzz); `src/touch/guitar.ts`, `src/touch/tilt.ts`, `src/bench/guitaring.ts`,
-MECH.guitar and MECH.tilt. The owner said "directly to main game, I believe you": play.html's default for every player, the
-developer view's GUITAR & TILT switch turns it off. **Owner to check on the phone:** the steering (both thumbs playing, never by
-accident? left/right the right way round?) and which way of LEAN feels like "toward the amp" (tilt.ts LEAN_AMP_SIGN,
-STEER_LEFT_SIGN flip them). Left open: a guitar slide over more than a fifth is a fresh pick, not a glide.
+Batch 2 (D1061-D1064, D1066): every guitar's pick place, hard pick, bend (a quarter tone), hammer-on/pull-off, glide
+(`src/touch/guitar.ts`, `src/bench/guitaring.ts`, MECH.guitar), play.html's default for every player ("directly to main game, I
+believe you"); the developer view's GUITAR HANDS switch turns it off. Left open: a guitar slide over more than a fifth is a fresh
+pick, not a glide.
 The common frame per family: on one note (landing place, landing flick, held back-and-forth sway, held
 one-way push), between notes (tap with a gap, thumb-to-thumb join, set-and-release, slide); vertical shakes
 stay the ornaments. Horizontal responses continuous wherever possible (no classifier). Never adds notes.
-- **Batch 2, PSYCH guitar (approved):** landing place = pick position (inner/bridge bright, outer/neck warm);
-  landing flick = hard pick; held sideways displacement = bend (at most a quarter tone, returns on release;
-  back-and-forth = vibrato, absorbing D1014); join up = hammer-on, join down / set-and-release = pull-off (no
-  pick); slide = smooth quick glide (no fret steps, as D1018); palm mute, harmonics, tremolo picking left out.
-  Tilt for it: LEAN = turning toward the amp, a held note blooming into feedback sustain (may reach its octave
-  partial, owner's yes); STEER left/right (big, with hysteresis) = stomp boxes: rotary "vibe" / fuzz. Start
-  with a short bench test of steering (prototypes/bow-test2): easy with both thumbs playing, never accidental?
-- **Tilt rules (approved):** never affects judging; neutral = how the phone is held when the piece starts;
-  LEAN continuous with a dead zone; STEER on/off stops needing a big turn and a return past neutral; on
-  struck/plucked sounds a stop applies from the next note; motion access asked by a tap (as D335).
-  The table (approved, replaces octave doubling): other guitars lean wah, steer neck/bridge pickup; flute lean
-  rolling in/out, steer flattement off/on; brass lean bell up/down, steer mute; strings lean bow contact point
-  (bridge-fingerboard), steer no vibrato / mute; organ lean swell, steer flute / reed registration; harpsichord
-  steer one manual / coupled; piano steer soft / sustain pedal; voices lean vowel, steer chest / head; synths
-  lean mod wheel, steer glide off / chorus; GAME BOY steer pulse / wave channel.
 - **Batch 3** voices and winds; **4** brass, organ, harpsichord, piano; **5** synths and chips (designs to
   draft per family in the frame above, the owner to approve each).
 - **Then: a USER'S MANUAL** with playable animations: the game and the music box shown, arrows drawn on or
@@ -78,9 +105,7 @@ All worker sessions were stopped at the owner's request; resume only when the ow
 - **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
   `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
   drops, colour in step. The owner: "I like the crab canon suggestion, build A."
-- **Retiring FLUTE & HARP and ZELENKA (D1037), PR #499, open and unmerged.** It conflicts with dev (#496, #498):
-  `data/touch/colour-plans.json` (regenerate with its tool) and `test/d805-berlin-school.test.ts`; explain the test
-  count (1849 against 1864). II/23: BERLIN SCHOOL unless the owner prefers VOCAL SYNTH (clip on the retirement page).
+- **Retiring FLUTE & HARP and ZELENKA: DROPPED (D1067).** Both stay; PR #499 closed. A player loves ZELENKA TRIO and BACH BRASS.
 - **Prelude II/1's plucked bass line on a sustaining instrument:** an A/B the owner wants to hear ("Maybe yes. Try it out."). Not started.
 - **Strings.** Synthesized strings REJECTED ("I hate the synthesized strings, they're pointless"); STRING CONSORT
   stays as it is. BAROQUE BAND keeps its old violin and cello with the new oboe; the sampled strings still need a

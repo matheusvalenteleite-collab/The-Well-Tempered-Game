@@ -31,7 +31,7 @@ APP.dev = false;
 markVersion();
 // D1059/D1060: the new mechanics (the strings' bow) for every player; the developer view's NEW MECHANICS can switch them off.
 applyNewMech();
-// D1066: the guitars' hands and PSYCH's tilt for every player; the developer view's GUITAR & TILT can switch them off.
+// D1066: the guitars' hands for every player; the developer view's GUITAR HANDS can switch them off. D1071: the tilt retired (off unless an unlocked device turns it on).
 applyGuitarTilt();
 // D369: sideways only: a phone or tablet upright is asked to turn (Sideways.tsx, over everything; the run
 // paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.

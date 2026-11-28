@@ -1,5 +1,5 @@
 /**
- * D472 addendum (design studio): THE THUMBS' REACH, live. On the built game (play.html), at 844 x 390 and 667 x 375, for a
+ * D472 addendum (design studio): THE THUMBS' REACH, live. On the built game (play.html), at 932 x 430, 844 x 390 and 667 x 375, for a
  * fugue of each kind of foot (no stops, STRING CONSORT's stops, the harpsichord's pistons): every bar's centre and inner
  * edge is the play area, a touch 2 px above the lowest thing over the roll's foot (the legend, the stops) holds a row
  * for either thumb (no stop takes it: the tappable play area), both thumbs hold at once, and a stop pressed while the
@@ -13,13 +13,13 @@ const FUGUES = { wtc1f01: 'I/1', wtc1f02: 'I/2', wtc1f04: 'I/4 string consort', 
 const URL = process.argv[2] || 'http://localhost:5310/play.html';
 let failed = 0;
 (async () => {
-  for (const [W, H] of [[844, 390], [667, 375]]) for (const [id, name] of Object.entries(FUGUES)) {
+  for (const [W, H] of [[932, 430], [844, 390], [667, 375]]) for (const [id, name] of Object.entries(FUGUES)) {
     const b = await chromium.launch();
     const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
     p.on('pageerror', e => console.log('ERR', e.message));
     await p.goto(URL + '?unlock=all');
-    for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); }
+    for (let i = 0; i < 30 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); } await p.waitForTimeout(500); for (let i = 0; i < 10 && (await p.$('#intro')); i++) { await p.mouse.click(W / 2, H / 2); await p.waitForTimeout(1200); }
     const x = await p.$('#install-hint-x'); if (x) await x.click().catch(() => {});
     if (id.startsWith('wtc2')) { await p.click('#tab-book-II').catch(() => {}); await p.waitForTimeout(400); }
     await p.click('#tile-' + id); await p.waitForTimeout(300); await p.click('#sel-play'); await p.waitForTimeout(3000);
