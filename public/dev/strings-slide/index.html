@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Strings Slide Listening</title>
+<style>
+  :root { --bg: #0b0d18; --card: #141833; --fg: #ece6cf; --muted: #9aa1c8; --line: #2a3160; --pitch: #7eb2ff; --written: #4b5385; --loud: #f4c96b; --ref: #8a8fa8; --gold: #f4e9a8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; color: var(--gold); }
+  h2 { font-size: 17px; margin: 32px 0 8px; color: var(--gold); }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin: 14px 0; }
+  .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tag { font-weight: 700; font-size: 20px; color: var(--gold); width: 28px; }
+  .name { font-weight: 600; }
+  button.play { min-width: 92px; min-height: 40px; border-radius: 8px; border: 1px solid var(--gold); background: transparent; color: var(--fg); font-size: 15px; cursor: pointer; }
+  button.play.on { background: var(--gold); color: #111; }
+  .row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  canvas.trace { width: 100%; height: 230px; display: block; background: #0f1226; border-radius: 6px; cursor: pointer; }
+  video { width: 100%; max-width: 520px; border-radius: 6px; background: #000; display: block; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .sw { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  table { border-collapse: collapse; font-size: 14px; margin-top: 8px; width: 100%; }
+  th, td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  td.up { color: #ff8f7a; font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  details summary { cursor: pointer; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Strings: the slide, without the volume boost</h1>
+  <p>STRING CONSORT, Fugue I/4 (C sharp minor), first violin, bars 41 to 45. The same notes played seven ways by the game itself (the real engine, phone sound). You hear the player's violin alone, so the differences are easy to hear.</p>
+  <p class="muted">In each picture, the top half is pitch (grey blocks = the written notes, blue line = what sounds) and the bottom half is loudness (yellow line; the dashed grey line is the same notes joined thumb to thumb, for comparison). The small marks at the top are the slides. Tap a picture to jump there. Where a hand clip is shown (under the picture), it moves in step with the sound: watch how fast the thumb drags.</p>
+
+  <div id="clips"></div>
+
+  <h2>Loudness of each slid note, compared with the same note joined</h2>
+  <p class="muted">dB, measured on the middle of each note through the phone-speaker model. Positive = louder than joined. Today's slide is up to 4.3 dB louder; the new versions are at or under the joined level.</p>
+  <div class="scroll"><table id="levels"></table></div>
+
+  <h2>What to decide</h2>
+  <p><b>1.</b> The volume fix: B (today's glide, the arriving note at its own level), or the new glissando (C and D), which also fixes it.</p>
+  <p><b>2.</b> The glissando: does C (a quick drag) feel like a quick slide into the note, and D (a slow drag) like a gradual glide? The glide is always at most a quarter of the note, and lands on the written pitch.</p>
+  <p class="muted">Nothing here is in the game yet: all of it is behind a switch in the Lab (DRAG › Strings' slide), off.</p>
+</main>
+<script>
+const CLIPS = [
+  { id: 'J-join', tag: 'J', name: 'Joined thumb to thumb (reference)', note: 'No slide: each note taken by the other thumb. The level every slid note should match.', hand: 'hand-J-join.mp4' },
+  { id: 'A-today', tag: 'A', name: 'Today (the volume boost)', note: 'The slid notes keep the loudness of the note the slide started from: up to 4 dB louder than joined.' },
+  { id: 'B-levelfix', tag: 'B', name: 'Level fix only', note: "Today's glide, but the note slid onto comes in at its own level (as joined)." },
+  { id: 'C-quick', tag: 'C', name: 'Glissando, quick drag', note: 'The thumb drags fast (about 40 ms): the note arrives with a very quick slide, almost an attack.', hand: 'hand-C-quick.mp4' },
+  { id: 'D-gradual', tag: 'D', name: 'Glissando, slow drag', note: 'The thumb drags slowly (about 450 ms): the note glides in gradually (at most a quarter of the note).', hand: 'hand-D-gradual.mp4' },
+  { id: 'A-today-fast', tag: 'A1', name: 'Today, with the quick drag', note: "For comparison with C: today's sound with the same fast thumb.", extra: true },
+  { id: 'A-today-slow', tag: 'A2', name: 'Today, with the slow drag', note: "For comparison with D: today's sound with the same slow thumb.", extra: true },
+];
+const LEAD = 0.05;
+let traces = null, playing = null;
+function draw(c, tr, ref, t) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const T = tr.loud.length * tr.dt, X = (s) => ((s + LEAD) / T) * w;
+  const ph = h * 0.56, lh = h - ph;
+  const midis = tr.notes.map((n) => n[2]); const lo = Math.min(...midis) - 1.5, hi = Math.max(...midis) + 1.5;
+  const Y = (m) => 8 + (ph - 16) * (1 - (m - lo) / (hi - lo));
+  g.strokeStyle = '#1d2347'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, ph); g.lineTo(w, ph); g.stroke();
+  g.fillStyle = '#4b5385'; for (const [at, dur, m] of tr.notes) g.fillRect(X(at), Y(m) - 3, Math.max(2, X(at + dur) - X(at)), 6);
+  g.fillStyle = '#f4e9a8'; for (const s of tr.slid) { g.beginPath(); g.moveTo(X(s), 2); g.lineTo(X(s) - 4, -4 + 10); g.lineTo(X(s) + 4, 6); g.fill(); }
+  g.strokeStyle = '#7eb2ff'; g.lineWidth = 1.6; g.beginPath(); let pen = false;
+  tr.pitch.forEach((m, i) => { const x = ((i * tr.dt) / T) * w; if (m === null) { pen = false; return; } const y = Y(m); if (!pen) g.moveTo(x, y); else g.lineTo(x, y); pen = true; }); g.stroke();
+  const L0 = -48, L1 = -18, LY = (d) => ph + 6 + (lh - 12) * (1 - (Math.max(L0, Math.min(L1, d)) - L0) / (L1 - L0));
+  if (ref) { g.strokeStyle = '#8a8fa8'; g.setLineDash([4, 3]); g.lineWidth = 1.2; g.beginPath(); ref.loud.forEach((d, i) => { const x = ((i * ref.dt) / T) * w; i ? g.lineTo(x, LY(d)) : g.moveTo(x, LY(d)); }); g.stroke(); g.setLineDash([]); }
+  g.strokeStyle = '#f4c96b'; g.lineWidth = 1.6; g.beginPath(); tr.loud.forEach((d, i) => { const x = ((i * tr.dt) / T) * w; i ? g.lineTo(x, LY(d)) : g.moveTo(x, LY(d)); }); g.stroke();
+  g.fillStyle = '#9aa1c8'; g.font = '11px system-ui'; g.fillText('pitch', 6, 14); g.fillText('loudness', 6, ph + 14);
+  if (t !== undefined) { g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; const x = (t / T) * w; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+}
+function build() {
+  const root = document.getElementById('clips');
+  let extraHead = false;
+  for (const cl of CLIPS) {
+    if (cl.extra && !extraHead) { const h = document.createElement('h2'); h.textContent = "Today's slide with the same quick and slow thumbs"; root.appendChild(h); extraHead = true; }
+    const card = document.createElement('section'); card.className = 'card';
+    card.innerHTML = `<div class="head"><span class="tag">${cl.tag}</span><button class="play" type="button">Play</button><span class="name">${cl.name}</span></div><p class="muted">${cl.note}</p>
+      <div class="row ${cl.hand ? 'with-hand' : ''}"><div><canvas class="trace"></canvas><div class="legend"><span><span class="sw" style="background:#4b5385;height:6px"></span>written notes</span><span><span class="sw" style="background:#7eb2ff"></span>pitch heard</span><span><span class="sw" style="background:#f4c96b"></span>loudness</span><span><span class="sw" style="background:repeating-linear-gradient(90deg,#8a8fa8 0 4px,transparent 4px 7px)"></span>joined (J)</span><span>▼ slide</span></div></div>${cl.hand ? `<video muted playsinline preload="auto" src="${cl.hand}"></video>` : ''}</div>`;
+    root.appendChild(card);
+    const audio = new Audio(cl.id + '.mp3'); audio.preload = 'auto';
+    const btn = card.querySelector('button'), cv = card.querySelector('canvas'), vid = card.querySelector('video');
+    const tr = traces[cl.id], ref = cl.id === 'J-join' ? null : traces['J-join'];
+    const tick = () => { draw(cv, tr, ref, audio.currentTime); if (vid) { const want = Math.max(0, audio.currentTime - LEAD); if (Math.abs(vid.currentTime - want) > 0.08) vid.currentTime = want; } if (!audio.paused) requestAnimationFrame(tick); };
+    const stop = () => { audio.pause(); vid?.pause(); btn.classList.remove('on'); btn.textContent = 'Play'; };
+    const go = () => { if (playing && playing.stop !== stop) playing.stop(); playing = { stop }; audio.play(); if (vid) { vid.currentTime = Math.max(0, audio.currentTime - LEAD); vid.play().catch(() => {}); } btn.classList.add('on'); btn.textContent = 'Stop'; requestAnimationFrame(tick); };
+    btn.onclick = () => (audio.paused ? go() : stop());
+    audio.onended = () => { stop(); audio.currentTime = 0; draw(cv, tr, ref); if (vid) vid.currentTime = 0; };
+    cv.onclick = (e) => { const r = cv.getBoundingClientRect(); audio.currentTime = ((e.clientX - r.left) / r.width) * tr.loud.length * tr.dt; if (vid) vid.currentTime = Math.max(0, audio.currentTime - LEAD); draw(cv, tr, ref, audio.currentTime); if (audio.paused) go(); };
+    draw(cv, tr, ref);
+    new ResizeObserver(() => draw(cv, tr, ref, audio.paused ? undefined : audio.currentTime)).observe(cv);
+  }
+}
+function table() {
+  const LV = window.LEVELS, t = document.getElementById('levels');
+  const notes = traces['J-join'].notes, slid = traces['A-today'].slid;
+  const idx = notes.map((n, i) => (slid.some((s) => Math.abs(s - n[0]) < 0.02) ? i : -1)).filter((i) => i >= 0);
+  const nm = (m) => ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'][m % 12] + (Math.floor(m / 12) - 1);
+  let html = '<tr><th>clip</th>' + idx.map((i) => `<th>${nm(notes[i][2])} at ${notes[i][0].toFixed(1)} s</th>`).join('') + '</tr>';
+  for (const [id, label] of [['A-today', 'A today'], ['B-levelfix', 'B level fix'], ['C-quick', 'C quick'], ['D-gradual', 'D gradual']]) html += `<tr><td>${label}</td>` + idx.map((i) => { const d = LV[id][i]; return `<td class="${d > 0.75 ? 'up' : ''}">${d > 0 ? '+' : ''}${d.toFixed(1)}</td>`; }).join('') + '</tr>';
+  t.innerHTML = html;
+}
+fetch('traces.json').then((r) => r.json()).then((j) => { traces = j; build(); fetch('levels.json').then((r) => r.json()).then((l) => { window.LEVELS = l; table(); }); });
+</script>
+</body>
+</html>

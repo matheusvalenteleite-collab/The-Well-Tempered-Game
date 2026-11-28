@@ -6,7 +6,8 @@
 //   out   out to `amp` within 0.25 s and held there to the end
 //   tri2  out to +amp, across to -amp, back to the landing (both ways)
 // Before and after are the same job on two servers (PORT: a checkout of the code before, and this one). `slides: true`: the
-// held thumb slides on to the next note (along the bar, from 60% of the time between them, arriving on time, ten moves) while
+// held thumb slides on to the next note (along the bar, from 60% of the time between them, or `slideMs` before it (D1072: a fast
+// or slow drag), arriving on time, ten moves) while
 // the line keeps one way, else it lifts and the other thumb strikes; no sway. `solo: "player"` mutes the band
 // (ProtoGame's own mute), else the whole mix. Writes <out>/<name>.wav (mono, (L+R)/2) and <name>.json (the notes swayed).
 // usage: PORT=<port> node tools/touch/gesture/render.cjs <out dir> <jobs.json>
@@ -64,6 +65,9 @@ fs.mkdirSync(outDir, { recursive: true });
       const proto = protoById('ladder');
       const g = new ProtoGame(f, [pv], from, proto, { bpm, legato: false, easy: easyOf(proto.id), fail: false, bt: false, reading, ornHint: false, scale: false, mute }, ch);
       g.wall = () => 0;
+      // D1072: every touch as the game took it (time from the passage's start, screen px), for the hand clips (tools/touch/hand-clip).
+      const touches = [];
+      for (const k of ['down', 'move', 'up']) { const f0 = g[k].bind(g); g[k] = (id, c, ts) => (touches.push({ k, id, t: ac.currentTime, ...(c && typeof c === 'object' ? { side: c.side, x: c.x, y: c.y } : {}) }), f0(id, c, ts)); }
       ch.mine.gain.value = g.lift ?? 1;
       const W = 844, H = 390, y0 = 330, rowH = job.slides ? 12 : 9, bw = W * BAR;
       g.rows = { yOf: (st) => y0 - st * rowH, stepAt: (y) => Math.round((y0 - y) / rowH), rowH, xOf: () => 0 };
@@ -82,7 +86,7 @@ fs.mkdirSync(outDir, { recursive: true });
         if (job.slides && held && ni < notes.length) {
           const n = notes[ni], prev = notes[ni - 1];
           const dir = Math.sign(n.step - prev.step);
-          const a = g.timeAt(prev.on), on = g.timeAt(n.on), from = a + 0.6 * (on - a);
+          const a = g.timeAt(prev.on), on = g.timeAt(n.on), from = Math.max(a + 0.05, on - (job.slideMs !== undefined ? job.slideMs / 1000 : 0.4 * (on - a)));
           if (dir && prev.on + prev.dur >= n.on && (!held.dir || held.dir === dir) && on < tEnd && now >= from) {
             held.e = Math.max(held.e, on + 0.01);
             const k = Math.min(1, Math.ceil(((now - from) / Math.max(1e-3, on - from)) * 10) / 10);
@@ -126,7 +130,7 @@ fs.mkdirSync(outDir, { recursive: true });
       for (let i = 0; i < n; i++) pcm[i] = Math.max(-1, Math.min(1, (L[i0 + i] + R[i0 + i]) / 2)) * 32767;
       window.__pcm = pcm;
       if (job.slides) for (const n of notes) { const a = g.timeAt(n.on) - t0, e = g.timeAt(n.on + n.dur) - t0 - 0.02; if (a < job.secs && e - a >= (sw?.minDur ?? 0.2)) swayed.push({ midi: n.midi ?? null, at: +a.toFixed(3), dur: +(e - a).toFixed(3) }); }
-      return { slid, piece: f.id, sound, player: pv, sr: SR, n: pcm.length, t0, swayed, failed: ch.failed, stolen: ch.stolen, slides: g.slides ?? null };
+      return { touches: touches.map((x) => ({ ...x, t: +(x.t - t0).toFixed(4) })), W, H, slid, piece: f.id, sound, player: pv, sr: SR, n: pcm.length, t0, swayed, failed: ch.failed, stolen: ch.stolen, slides: g.slides ?? null };
     }, job);
     const size = 1 << 20, bytes = r.n * 2, parts = [];
     for (let i = 0; i * size < bytes; i++) parts.push(Buffer.from(await p.evaluate(([i, s]) => { const a = new Uint8Array(window.__pcm.buffer, i * s, Math.min(s, window.__pcm.byteLength - i * s)); let x = ''; for (let j = 0; j < a.length; j += 0x8000) x += String.fromCharCode(...a.subarray(j, j + 0x8000)); return btoa(x); }, [i, size]), 'base64'));

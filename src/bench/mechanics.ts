@@ -256,6 +256,17 @@ export const MECH_DEFAULTS = {
   upThird: "schleifer" as "coule" | "schleifer",
   /** "connect", a keyboard's fill notes: at the trill's speed, or the drag's time shared out. */
   fillTiming: "trill" as "trill" | "drag",
+  /**
+   * D1072, THE BOWED STRINGS' SLIDE (the owner: "the dragging in string instruments is giving a volume boost ... should be
+   * glissando, and how fast one drags dictates whether the glissando is super quick (as an attack) or more like gradual").
+   * "follow" (today's, D424): the note slid from follows the thumb and goes on as the note slid on to, at its own level (up to
+   * 4 dB over the same notes joined). "enter": the same portamento, then the arriving note enters under it as a slur with its
+   * own sound and level (as joined). "speed": the note slid from stays in tune while the thumb travels; the arriving note
+   * enters as a slur at its written time from the pitch slid from and glides in over a time set by the thumb's speed (a fast
+   * drag a quick slide, almost an attack; a slow one gradual), never over a quarter of the note (slide-sound.ts glissMs).
+   * Bowed strings only (Patch.bow STRING_BOW: STRING CONSORT, BAROQUE BAND, ORCHESTRA & ORGAN). Not yet heard by the owner: off.
+   */
+  slideGlide: "follow" as "follow" | "enter" | "speed",
   // INTENTION (D325: the musicians' panel; intention.ts).
   /** A hold within this share of the player's recent median (same kind of note) is a consistent touch. */
   touchTolerance: 0.15,
@@ -524,6 +535,7 @@ export const MECH_SPEC: readonly MechSpec[] = [
   { key: "pressMovePx", group: "PREPARED", label: "Press: moves by", help: "The resting thumb moved down or inward by more than this from where it settled.", kind: "number", min: 1, max: 15, step: 0.5, unit: "px" },
   { key: "pressSettleMs", group: "PREPARED", label: "Press: settles over", help: "Where the thumb is this long after landing is where a press is measured from.", kind: "number", min: 0, max: 200, step: 10, unit: "ms" },
   { key: "dragMeaning", group: "DRAG", label: "A drag means", help: "A held thumb slid on to the next note (free play: another row). Connect: a glide on a sound that bends; on a keyboard a coulé across a third, a Schleifer into a note from below (D321). Counts as joined for the legato chain, earns nothing more.", kind: "choice", options: [["join", "Joined, earns nothing, breaks the chain (D218)"], ["connect", "Connect: glide, coulé, Schleifer (D321)"]] },
+  { key: "slideGlide", group: "DRAG", label: "Strings' slide", help: "D1072 (a listening page first): follow, today's (the slid note keeps the level of the note slid from); enter, the same glide, the arriving note entering with its own level; speed, the glide into the arriving note timed by the thumb's speed (fast: quick; slow: gradual; at most a quarter of the note).", kind: "choice", options: [["follow", "Follow (today's)"], ["enter", "Enter at its own level"], ["speed", "Glide timed by the thumb"]] },
   { key: "glideMaxShare", group: "DRAG", label: "Glide at most", help: "In a passage the glide lasts the drag's time, at most this share of the note it arrives on.", kind: "number", min: 0.1, max: 1, step: 0.05 },
   { key: "upThird", group: "DRAG", label: "Keyboard, up a third", help: "Dragged up a third on a keyboard: the Schleifer (the held note struck again, the step, the note) or the passing note (coulé).", kind: "choice", options: [["schleifer", "Schleifer"], ["coule", "Coulé (passing note)"]] },
   { key: "fillTiming", group: "DRAG", label: "Fill notes' speed", help: "A keyboard's coulé or Schleifer: at the trill's speed, or the drag's own time shared out.", kind: "choice", options: [["trill", "The trill's speed"], ["drag", "The drag's time"]] },

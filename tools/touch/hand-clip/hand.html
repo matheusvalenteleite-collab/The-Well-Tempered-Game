@@ -1,0 +1,148 @@
+<!doctype html>
+<!--
+  D1072, THE HAND CLIP RENDERER (reusable: the listening pages, later the intermediate and advanced tutorials). D690's hands: the
+  WebXR Input Profiles generic-hand (MIT, (c) 2019 Amazon) holding a phone sideways, each thumb solved to reach a point of the
+  screen (the pad on the glass when down, about 12 mm above it at rest). Driven by render.cjs: window.setup(opts), then
+  window.frame(t) for each frame (the thumbs' paths given in screen px of a W x H game screen).
+-->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0b0d18}canvas{display:block}</style></head><body>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const P = './node_modules/@webxr-input-profiles/assets/dist/profiles/generic-hand/';
+const MM = 0.001;
+// The phone (landscape): its screen 150 x 69 mm, the glass at z = 0.
+const SCR = { w: 150 * MM, h: 69 * MM };
+let renderer, scene, camera, hands = {}, screenTex, screenCtx, opts;
+
+function screenCanvas() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = Math.round(1024 * SCR.h / SCR.w);
+  return c;
+}
+/** The game screen drawn flat (the bars, the rows the drag goes between, the trail): opts.paint(ctx, w, h, t) may replace it. */
+function paintScreen(t) {
+  const c = screenCtx, w = c.canvas.width, h = c.canvas.height;
+  c.fillStyle = '#10142a'; c.fillRect(0, 0, w, h);
+  const bw = w * 0.22;
+  c.fillStyle = '#1b2244'; c.fillRect(0, 0, bw, h); c.fillRect(w - bw, 0, bw, h);
+  c.strokeStyle = 'rgba(244,233,168,0.12)'; c.lineWidth = 1;
+  for (let y = 0; y < h; y += h / 24) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  // The rows the thumbs touch (opts.marks: [{t0, t1, x, y}] in screen px, lit while due) and each thumb's place.
+  for (const m of opts.marks ?? []) if (t >= m.t0 - 0.15 && t <= m.t1) { c.fillStyle = 'rgba(126,178,255,0.85)'; c.fillRect((m.x / opts.W) * w - bw * 0.4, (m.y / opts.H) * h - 5, bw * 0.8, 10); }
+  for (const side of ['left', 'right']) { const th = thumbAt(side, t); if (th) { c.fillStyle = 'rgba(244,233,168,0.9)'; c.beginPath(); c.arc((th.x / opts.W) * w, (th.y / opts.H) * h, 9, 0, 7); c.fill(); } }
+  screenTex.needsUpdate = true;
+}
+const sx = (x) => (x / opts.W - 0.5) * SCR.w, sy = (y) => (0.5 - y / opts.H) * SCR.h;
+
+async function loadHand(side) {
+  const g = await new GLTFLoader().loadAsync(P + side + '.glb');
+  const root = g.scene;
+  const mesh = root.getObjectByProperty('type', 'SkinnedMesh');
+  mesh.material = new THREE.MeshStandardMaterial({ color: 0xd9a487, roughness: 0.65, metalness: 0 });
+  mesh.frustumCulled = false;
+  const bones = {}; root.traverse((o) => { if (o.isBone) bones[o.name] = o; });
+  const bind = {}; for (const [k, b] of Object.entries(bones)) bind[k] = { p: b.position.clone(), q: b.quaternion.clone() };
+  const holder = new THREE.Group(); holder.add(root); scene.add(holder);
+  return { side, root, holder, bones, bind, ang: [0, 0, 0, 0, 0], mirror: side === 'left' ? -1 : 1 };
+}
+// Rotations about a joint (pivot p, quaternion r) applied to a bone's bind pose.
+function rotAbout(p, r, pos, q) { const v = pos.clone().sub(p).applyQuaternion(r).add(p); return [v, r.clone().multiply(q)]; }
+const FINGERS = ['index-finger', 'middle-finger', 'ring-finger', 'pinky-finger'];
+const PH = ['metacarpal', 'phalanx-proximal', 'phalanx-intermediate', 'phalanx-distal', 'tip'];
+function curlFingers(H, amt) {
+  // Each finger curled at its three joints about the axis across it (bind space), wrapping behind the phone.
+  for (const f of FINGERS) {
+    const names = PH.map((x) => `${f}-${x}`);
+    const pts = names.map((n) => H.bind[n].p.clone());
+    const across = new THREE.Vector3(0, 0, 1).cross(pts[2].clone().sub(pts[1])).normalize();
+    let cum = new THREE.Quaternion(); let pivots = [];
+    const out = pts.map((p, i) => ({ p: p.clone(), q: H.bind[names[i]].q.clone() }));
+    for (let j = 1; j <= 3; j++) {
+      const r = new THREE.Quaternion().setFromAxisAngle(across, amt[j - 1] * (opts.hand?.curlSign ?? -1));
+      const pivot = out[j].p.clone();
+      for (let k = j; k < names.length; k++) { const [np, nq] = rotAbout(pivot, r, out[k].p, out[k].q); out[k].p = np; out[k].q = nq; }
+    }
+    names.forEach((n, i) => { H.bones[n].position.copy(out[i].p); H.bones[n].quaternion.copy(out[i].q); });
+  }
+}
+const TH = ['thumb-metacarpal', 'thumb-phalanx-proximal', 'thumb-phalanx-distal', 'thumb-tip'];
+function thumbPose(H, a) {
+  const out = TH.map((n) => ({ p: H.bind[n].p.clone(), q: H.bind[n].q.clone() }));
+  const seg = (i) => out[i + 1].p.clone().sub(out[i].p).normalize();
+  // Joint 0 (the base, two ways), 1 and 2 (bend), about axes across each segment.
+  const axes = (i) => { const s = seg(i); const a1 = s.clone().cross(new THREE.Vector3(H.mirror, 0, 0)).normalize(); const a2 = s.clone().cross(a1).normalize(); return [a1, a2]; };
+  const apply = (j, axis, ang) => { const r = new THREE.Quaternion().setFromAxisAngle(axis, ang); const pivot = out[j].p.clone(); for (let k = j; k < out.length; k++) { const [np, nq] = rotAbout(pivot, r, out[k].p, out[k].q); out[k].p = np; out[k].q = nq; } };
+  let [x0, y0] = axes(0); apply(0, x0, a[0]); apply(0, y0, a[1]);
+  let [x1, y1] = axes(1); apply(1, x1, a[2]); apply(1, y1, a[3] * 0.3);
+  let [x2] = axes(2); apply(2, x2, a[4]);
+  TH.forEach((n, i) => { H.bones[n].position.copy(out[i].p); H.bones[n].quaternion.copy(out[i].q); });
+}
+function tipWorld(H) { H.holder.updateMatrixWorld(true); const v = new THREE.Vector3(); H.bones['thumb-tip'].getWorldPosition(v); return v; }
+function solve(H, target) {
+  // Nelder-Mead-free: coordinate descent from the last pose (deterministic, smooth frame to frame).
+  const lim = [[-1.4, 1.4], [-1.4, 1.4], [-1.6, 1.6], [-1.2, 1.2], [-1.6, 1.6]];
+  const cost = (a) => { thumbPose(H, a); const p = tipWorld(H); let c = p.distanceToSquared(target) * 1e6; for (let i = 0; i < a.length; i++) c += 0.02 * (a[i] - H.rest[i]) ** 2; return c; };
+  let a = H.ang.slice(), best = cost(a);
+  for (let step = 0.2; step > 0.002; step *= 0.6) for (let it = 0; it < 3; it++) for (let i = 0; i < a.length; i++) for (const d of [step, -step]) {
+    const b = a.slice(); b[i] = Math.max(lim[i][0], Math.min(lim[i][1], b[i] + d)); const c = cost(b); if (c < best) { best = c; a = b; }
+  }
+  H.ang = a; thumbPose(H, a); return Math.sqrt(best / 1e6);
+}
+window.setup = async (o) => {
+  opts = o;
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(o.width, o.height); renderer.setPixelRatio(1);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.body.appendChild(renderer.domElement);
+  scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0d18);
+  camera = new THREE.PerspectiveCamera(o.fov ?? 32, o.width / o.height, 0.01, 5);
+  const cam = o.camera ?? [0.0, -0.17, 0.30]; camera.position.set(...cam); camera.lookAt(...(o.look ?? [0, 0, 0]));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1.6)); const dl = new THREE.DirectionalLight(0xffffff, 1.6); dl.position.set(0.1, -0.2, 0.5); scene.add(dl);
+  // The phone: a dark body and the screen.
+  const body = new THREE.Mesh(new THREE.BoxGeometry(SCR.w + 12 * MM, SCR.h + 8 * MM, 8 * MM), new THREE.MeshStandardMaterial({ color: 0x15161c, roughness: 0.4 }));
+  body.position.z = -4.2 * MM; scene.add(body);
+  const sc = screenCanvas(); screenCtx = sc.getContext('2d'); screenTex = new THREE.CanvasTexture(sc); screenTex.colorSpace = THREE.SRGBColorSpace;
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(SCR.w, SCR.h), new THREE.MeshBasicMaterial({ map: screenTex })); screen.position.z = 0.05 * MM; scene.add(screen);
+  for (const side of o.sides ?? ['left', 'right']) {
+    const H = await loadHand(side);
+    // Palm toward the phone's end, fingers up and curled behind it, the thumb in front over the glass.
+    const m = H.mirror;
+    H.holder.rotation.set(0, 0, 0);
+    const basis = new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1));
+    H.holder.quaternion.setFromRotationMatrix(basis);
+    const hp = { x: 18, y: -12, z: -22, tilt: 0.35, yaw: 0, ...(o.hand ?? {}) };
+    H.holder.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), m * hp.tilt);
+    H.holder.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), m * hp.yaw);
+    H.holder.position.set(m * (SCR.w / 2 + hp.x * MM), -SCR.h / 2 + hp.y * MM, hp.z * MM);
+    curlFingers(H, hp.curl ?? [1.25, 1.35, 0.9]);
+    H.rest = [0, 0, 0, 0, 0];
+    hands[side] = H;
+  }
+  return true;
+};
+/** A thumb's place at t from its path ([{t, x, y, down}], held between samples; up: null, at rest). */
+function thumbAt(side, t) {
+  const path = opts.path?.[side] ?? [];
+  let k = -1; for (let i = 0; i < path.length && path[i].t <= t; i++) k = i;
+  if (k < 0 || !path[k].down) return null;
+  const a = path[k], b = path[k + 1];
+  if (b && b.down && b.t > a.t) { const u = (t - a.t) / (b.t - a.t); return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, down: true }; }
+  return a;
+}
+/** One frame at time t (s): each thumb at opts.thumbAt(side, t) = {x, y, down} in screen px (null: at rest). */
+window.frame = (t) => {
+  paintScreen(t);
+  const err = {};
+  for (const [side, H] of Object.entries(hands)) {
+    const th = thumbAt(side, t);
+    const rest = { x: side === 'right' ? opts.W * 0.86 : opts.W * 0.14, y: opts.H * 0.62 };
+    const at = th ?? rest;
+    const lift = th && th.down ? 7 * MM : 19 * MM;
+    err[side] = solve(H, new THREE.Vector3(sx(at.x), sy(at.y), lift));
+  }
+  renderer.render(scene, camera);
+  return err;
+};
+window.shot = () => renderer.domElement.toDataURL('image/png');
+</script></body></html>
