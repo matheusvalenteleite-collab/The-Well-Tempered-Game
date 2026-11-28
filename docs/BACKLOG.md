@@ -29,7 +29,7 @@ string instrument's dragging, should be glissando, and how fast one drags dictat
 
 **A strong priority** (the owner, after playing 3.35: "having horizontal and vertical dynamics that can really let
 the player improvise on sound is something that should be a strong priority of us ... I'm rediscovering the game,
-and it rocks"). Batch 2 is built (D1061-D1066, 25 Nov 2026; not yet deployed): the next is Batch 3 once the owner has played it.
+and it rocks"). Batch 2 (D1061-D1066) is live in WTC 3.37: the next is Batch 3 once the owner has played it.
 
 Batch 1 is done and live in WTC 3.35 (D1055-D1059: STRING CONSORT bowed by the held thumb, the Lab's OLD/NEW chooser, the
 developer view's NEW MECHANICS switch, MECH.bow); since WTC 3.36 the main game's default for STRING CONSORT (D1060, the owner approved after playing it).
