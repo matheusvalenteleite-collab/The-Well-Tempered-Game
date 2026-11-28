@@ -264,9 +264,9 @@ export const MECH_DEFAULTS = {
    * own sound and level (as joined). "speed": the note slid from stays in tune while the thumb travels; the arriving note
    * enters as a slur at its written time from the pitch slid from and glides in over a time set by the thumb's speed (a fast
    * drag a quick slide, almost an attack; a slow one gradual), never over a quarter of the note (slide-sound.ts glissMs).
-   * Bowed strings only (Patch.bow STRING_BOW: STRING CONSORT, BAROQUE BAND, ORCHESTRA & ORGAN). Not yet heard by the owner: off.
+   * Bowed strings only (Patch.bow STRING_BOW: STRING CONSORT, BAROQUE BAND, ORCHESTRA & ORGAN). D1073: "speed" the default (the owner heard it and approved).
    */
-  slideGlide: "follow" as "follow" | "enter" | "speed",
+  slideGlide: "speed" as "follow" | "enter" | "speed",
   // INTENTION (D325: the musicians' panel; intention.ts).
   /** A hold within this share of the player's recent median (same kind of note) is a consistent touch. */
   touchTolerance: 0.15,
