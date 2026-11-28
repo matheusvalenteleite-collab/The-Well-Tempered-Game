@@ -320,6 +320,9 @@ export const MECH_DEFAULTS = {
   guitar: false,
   /** PSYCH's guitars and the phone's tilt: leaning toward the amp a held note's feedback; steering a stompbox (left the vibe, right the fuzz). play.html's default (D1066); off in the Lab. */
   tilt: false,
+  // REPEAT (D1081: src/bench/repeat.ts): developer-only, off for every player; the developer view's REPEAT (DEV) switch turns it on.
+  /** A section of a piece may be repeated once by a REPEAT button in its second-last bar (the clock jumps back to its start). Off: nothing changes, nothing is drawn. */
+  repeat: false,
 };
 
 export type Mech = { -readonly [K in keyof typeof MECH_DEFAULTS]: (typeof MECH_DEFAULTS)[K] };
@@ -363,7 +366,7 @@ export function asRecorded<T extends Partial<Record<string, unknown>>>(m: T | un
 export const MECH: Mech = { ...MECH_DEFAULTS };
 
 /** D1055: parameters set by the page, not the Lab's MECHANICS panel (no control: THE OLD LAB as it was; THE NEW LAB holds the bow on). */
-export const PAGE_MECH: readonly MechKey[] = ["bow", "guitar", "tilt"];
+export const PAGE_MECH: readonly MechKey[] = ["bow", "guitar", "tilt", "repeat"];
 /** D1055: parameters a page holds whatever a preset, a reset or a stored setting says (THE NEW LAB's bow; the developer view's NEW MECHANICS). */
 const MECH_LOCK: Partial<Mech> = {};
 export function lockMech(values: Partial<Mech>) {

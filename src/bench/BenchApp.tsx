@@ -36,6 +36,8 @@ import { builds } from "./journey.ts";
 import { floorOf, ladderGeometry, MusicBox, rollFoot, rollRect, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
 import { guitarTiltStored, newMechStored, saveGuitarTilt, saveNewMech, saveTilt, tiltStored } from "./new-mech.ts";
+import { repeatSectionOf, repeatStored, saveRepeat } from "./repeat.ts";
+import { RepeatKey } from "./RepeatKey.tsx";
 import { TestScenes } from "./TestScenes.tsx";
 import { keepPendingScene, takePendingScene, type TestScene } from "./test-scenes.ts";
 import { askTilt } from "./guitaring.ts";
@@ -765,7 +767,7 @@ export function BenchApp() {
     if (APP.lite && !run && !prac && !lt) saveLastVoice(f.id, voice);
     // D720: MY FUGUE's takes behind (theirs the voices muted in the band).
     const backs = lt ? listenBacking.current : (overTakes.current ?? []);
-    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile", ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(bStage ? { dress: BASICS_DRESS } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}) }, ch);
+    const g = new ProtoGame(f, played, lt ? lt.from : prac ? prac.from : from, proto, { bpm: lt ? (listenBpm.current ?? lt.bpm) : bpm, legato: pick.legato, easy: run?.easy ?? easyOf(proto.id), fail: run ? run.fail : true, her: kimiko, bt: APP.lite ? btLite(ch.ctx) : hp.btFor(lag), scale: false, ...(run ? { until: run.until, wait: run.wait, solo: run.solo, coach: run.coach, demo: watching, guide: !watching && run.proto === "ladder" && lesson?.pl === "mobile", ...(run.click ? { click: run.click } : {}), ...(run.demoStyle ? { demoStyle: run.demoStyle } : {}), ...(run.quiet ? { quiet: run.quiet } : {}), ...(run.tut ?? {}), ...(bStage ? { dress: BASICS_DRESS } : {}) } : {}), reading, ornHint: run ? !!run.ornHint : !hintSeen.includes("ornament"), ...(clock ? { clock } : {}), ...(prac ? practiceOptions(prac) : {}), ...(lt ? { fail: false, until: lt.until, ornHint: false } : {}), ...(backs.length ? { mute: backs.map((t) => t.voice) } : {}), ...(lt && backs.length ? { until: f.length } : {}), ...(!run && !prac && !lt && !watching && !kimiko && !bStage && !backs.length && repeatSectionOf(f) ? { repeat: repeatSectionOf(f) } : {}) }, ch);
     // D457: LISTEN: the take as the player's voice.
     if (lt) g.listen = new TakePlayer(lt);
     // D720: MY FUGUE: the other voices' takes, and the mixer (the takes', the band's, the live voice's levels).
@@ -1687,6 +1689,8 @@ export function BenchApp() {
     <div className={`tg-app${wide ? " tg-wide" : ""}${own}${onBars ? "" : " tg-away"}${(stopsOn && layout === "bars" && playing) || consortOn ? " tb-has-side-stops" : ""}`}>
       {consortOn && <ConsortStops presetId={presetById(soundNow).id} piece={f.id} />}
       {stopsOn && layout === "bars" && playing && <RegistrationStops sides presetId={presetById(soundNow).id} patch={voicePatch(soundNow, played[0] ?? 0, f.voices.length)} piece={f.id} voice={played[0] ?? 0} barNow={() => (phaseRef.current === "play" ? barAt(f, frame.current.now) : null)} />}
+      {/* D1081: REPEAT (developer-only, MECH.repeat; nothing at all while it is off). */}
+      {MECH.repeat && layout === "bars" && playing && !lesson && <RepeatKey game={game} />}
       <MusicBox
         frame={frame}
         hud={
@@ -2019,6 +2023,17 @@ export function BenchApp() {
                 value={tiltStored() ? "on" : "off"}
                 set={(v: "on" | "off") => {
                   saveTilt(v === "on");
+                  window.location.reload();
+                }}
+              />
+              {/* D1081: REPEAT (the developer view only, OFF by default; the made-up section of the test fugue, WTC I no. 2): the page reloads. */}
+              <Choice
+                id="repeat-dev"
+                label="REPEAT (DEV)"
+                options={[["off", "OFF"], ["on", "ON · TEST FUGUE BARS 2-5"]]}
+                value={repeatStored() ? "on" : "off"}
+                set={(v: "on" | "off") => {
+                  saveRepeat(v === "on");
                   window.location.reload();
                 }}
               />

@@ -3,6 +3,10 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## REPEAT button: step 1 DONE behind a developer flag, off for players (D1081, D1082; not deployed)
+
+The proof passed in the real engine: the clock jumps back to a section's start once, with band, click, drums and the music box intact, and the second pass never counts toward the grade. The REPEAT key is built (innermost piston slot, printed repeat sign, appears in the second-last bar, lights, cancels, closes a beat before the end). Developer view: SETTINGS › REPEAT (DEV), test section WTC I no. 2 bars 2-5. Left for the next REPEAT steps (R1-R3 in the design): the repeat sign drawn at the section's end in the box and a smoother swap of the notes beyond it, first and second endings (forward jump), the final slowing for a repeatable last section, da capo written out, real sections for French Suite 5, takes recorder by pass, and the owner trying it on his thumbs. The owner should play it once (flag on) before the tempo-map work.
+
 ## Keyboard suites in the developer game (owner's rulings 28 November 2026, D1078; research done, no build yet)
 
 Report: docs/research/KEYBOARD-SUITES.md. Owner: tempo changes inside a piece must be possible (no prohibition); first slice French

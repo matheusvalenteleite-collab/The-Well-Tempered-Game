@@ -16,6 +16,7 @@ import { MobileOnly } from "./MobileOnly.tsx";
 import { Sideways, lockOnFirstTap } from "./Sideways.tsx";
 import { isInstalled, watchInstall } from "./install.ts";
 import { applyGuitarTilt, applyNewMech } from "./new-mech.ts";
+import { applyRepeat } from "./repeat.ts";
 import "./fonts/press-start-2p.css";
 import "../touch/touch.css";
 import "./bench.css";
@@ -33,6 +34,8 @@ markVersion();
 applyNewMech();
 // D1066: the guitars' hands for every player; the developer view's GUITAR HANDS can switch them off. D1071: the tilt retired (off unless an unlocked device turns it on).
 applyGuitarTilt();
+// D1081: REPEAT (developer-only): on only on an unlocked device whose REPEAT (DEV) switch is on; off for every player.
+applyRepeat();
 // D369: sideways only: a phone or tablet upright is asked to turn (Sideways.tsx, over everything; the run
 // paused by BenchApp); the first tap asks for full screen and the landscape lock where the browser allows.
 document.documentElement.classList.add("tb-play-page");

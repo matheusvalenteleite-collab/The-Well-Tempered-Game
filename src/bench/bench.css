@@ -1037,6 +1037,15 @@
 .tb-stops-side .tg-piston-n { font-size: 8px; }
 .tb-stops-side.tb-consort { row-gap: 2px; }
 .tb-consort .tg-piston { height: 13px; padding: 0 1px; border-width: 1px; border-radius: 3px; box-shadow: none; }
+/* D1081, REPEAT (developer-only): the button in the pistons' innermost slot at each bar's foot (the slot nearest the middle), the
+   strip's own width and height (a third of the bar less its gaps, 28 px), over a piston if there is one. Steady: it fades in, never flashes. */
+.tb-repeat { --tb-rep-s: calc((100% - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar) - 12px); position: absolute; z-index: 13; bottom: calc(env(safe-area-inset-bottom, 0px) + 2px); box-sizing: border-box; width: calc((var(--tb-rep-s) - 8px) / 3); height: 28px; margin: 0; padding: 1px; display: flex; align-items: center; justify-content: center; font: inherit; color: var(--tg-fg); background: color-mix(in srgb, var(--tg-bg) 85%, transparent); border: 2px solid var(--tg-fg); border-radius: 5px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35); cursor: pointer; touch-action: none; animation: tb-repeat-in 150ms ease-out; }
+.tb-repeat-left { left: calc(var(--tg-sal) + 6px + var(--tb-rep-s) - (var(--tb-rep-s) - 8px) / 3); }
+.tb-repeat-right { right: calc(var(--tg-sar) + 6px + var(--tb-rep-s) - (var(--tb-rep-s) - 8px) / 3); }
+.tb-repeat svg { display: block; width: 70%; max-width: 28px; height: auto; max-height: 20px; }
+.tb-repeat.on { color: var(--tg-bg); background: var(--tg-shine); border-color: var(--tg-shine); }
+@keyframes tb-repeat-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tb-repeat { animation: none; } }
 /* D420: what each piston holds, in the piece's pop-up (folded). */
 .tb-pop-pistons { margin: 6px 0; text-align: left; }
 .tb-pop-pistons summary { cursor: pointer; font-family: var(--tg-pixel); font-size: 8px; line-height: 1.6; color: var(--tg-fg); }

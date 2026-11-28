@@ -49,6 +49,8 @@ export interface Options {
   easy?: EasyLevel;
   /** The lessons (D185, D188): the passage ends here (a tick); the music waits for each note; the voice alone. */
   until?: number;
+  /** D1081, REPEAT (developer-only; MECH.repeat): a section the player may repeat once, ticks [from, to) (repeat.ts). */
+  repeat?: { from: number; to: number };
   wait?: boolean;
   /** D686 (BASICS v2): the music waits only at the first note (the start of each new idea), then flows. */
   waitFirst?: boolean;

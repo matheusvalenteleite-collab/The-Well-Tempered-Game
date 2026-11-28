@@ -35,6 +35,7 @@ import { barAt, barStart, beatOf, cadenceName, countInStart, inBar, keyAt, type 
 import { echoHalves, repeatHalves } from "./echo.ts";
 // D317, THE LAB: the judging parameters (defaults the constants below) and the event tap.
 import { MECH, ownFreshSeconds, relMs } from "./mechanics.ts";
+import { repeatOpensAt, type RepeatView } from "./repeat.ts";
 import { BowHand, bowedNow } from "./bowing.ts";
 import { GuitarHand, guitarNow, guitarPlay, guitarSlide } from "./guitaring.ts";
 import { LEFT_HAND, lhOf, lhSkip } from "../touch/guitar.ts";
@@ -170,6 +171,21 @@ export interface Performed {
  */
 export const BT_EARLY_MS = 20;
 export const BT_LATE_MS = 25;
+/** D1081, REPEAT: the run of a repeat (ProtoGame.rep): pass 1 first, 2 repeated, 3 over; the seam between the scheduler's jump and the clock's. */
+interface RepeatRun {
+  from: number;
+  to: number;
+  opens: number;
+  latched: boolean;
+  pass: 1 | 2 | 3;
+  seam: { te: number; at: number; tick: number } | null;
+  /** The grade's counters as the first pass left them. */
+  s1: Map<string, number> | null;
+  /** The section's notes as the first pass left them (and the objects). */
+  notes: { n: LaneNote; was: LaneNote }[];
+  perf: Map<string, Performed> | null;
+  levels: number;
+}
 /** D299: the player's own note in BLUETOOTH MODE, scheduled ahead ("track:onset"). */
 interface Armed {
   k: number;
@@ -908,6 +924,10 @@ export class ProtoGame {
       };
       this.bandT = new BandTime(bandMode, host, waits, { t: this.anchorAt, tick: this.start, tps: this.tps });
     }
+    // D1081: REPEAT (developer-only, MECH.repeat): one section that may be repeated once; not where the band waits, KIMIKO plays, the lessons wait, or a demonstration plays.
+    const rp = o.repeat;
+    if (MECH.repeat && rp && !this.bandT && !o.her && !o.wait && !o.waitFirst && !o.demo && rp.from >= from && rp.to > rp.from && rp.to + this.beat < this.end && (o.until === undefined || rp.to < o.until))
+      this.rep = { from: rp.from, to: rp.to, opens: repeatOpensAt(f, rp), latched: false, pass: 1, seam: null, s1: null, notes: [], perf: null, levels: 0 };
     // D250: THE PEDAL (the right hand's game only): its own lane, the figure around it, free at both ends.
     // D252: several, one after another; with both hands each in its own lane of the left thumb's.
     if (spans.length && this.tracks[0]?.voice === 0 && !line && (handsOn || this.tracks.length === 1)) {
@@ -999,6 +1019,9 @@ export class ProtoGame {
   /** D491: the clock running behind the still box during the count after a pause (a touch is judged by it: the first note's early window whole). */
   private runningTickAt(t: number) {
     if (this.bandT) return this.rit.unwarp(this.bandT.wAt(t));
+    // D1081: before a repeat's jump is reached, the clock as it was (the scheduler has already run on into the repeated section).
+    const sm = this.rep?.seam;
+    if (sm && t < sm.te) return this.rit.unwarp(this.rit.warp(sm.tick) + (t - sm.at) * this.tps);
     return this.rit.unwarp(this.rit.warp(this.anchorTick) + (t - this.anchorAt) * this.tps);
   }
   /** The tick sounding at a time on the audio clock (D216: KIMIKO paints its road by time). */
@@ -1164,7 +1187,12 @@ export class ProtoGame {
     this.bandT?.frame(ch.heard());
     // D491: the count after a pause over: the clock runs on from the pause point.
     if (this.goAt !== null && ch.heard() >= this.goAt) (this.holdTick = null), (this.goAt = null);
+    // D1081, REPEAT: the clock reached the jump (the section's end, heard): the first pass is judged and set aside.
+    if (this.rep?.seam && ch.heard() >= this.rep.seam.te) this.repeatLand();
     this.now = this.tickAt(ch.heard());
+    // D1081: the second pass over: its notes judged, its points set aside (first pass only, D1079). An unpressed button is gone with the section's end.
+    if (this.rep?.pass === 2 && this.now >= this.rep.to) this.repeatSettle(false);
+    else if (this.rep?.pass === 1 && !this.rep.latched && this.now >= this.rep.to) this.rep.pass = 3;
     // D332: runs whose last note was struck: their trend told (RUN ✗ re-judges the run rule's notes).
     if (this.runDue.length) this.runsDue();
     this.slurWaits();
@@ -1194,7 +1222,12 @@ export class ProtoGame {
     // D223: what is drawn runs the screen's own delay ahead of the clock as heard (none: the same).
     this.viewNow = ch.visual && !this.o.wait ? this.tickAt(ch.heard() + ch.visual) : this.now;
     // D211: a phone schedules further ahead (a frame held up by the screen or the collector must not leave the others late).
-    let horizon = Math.min(this.tickAt(ch.ctx.currentTime + (isPhone() ? 0.5 : 0.25)), this.end);
+    let horizon = Math.min(this.tickAt(ch.ctx.currentTime + this.lookS()), this.end);
+    // D1081, REPEAT pressed: the scheduler reaches the section's end: the clock goes back to its start, so the notes ahead are the repeated bars'.
+    if (this.rep && this.rep.pass === 1 && !this.rep.seam && this.rep.latched && horizon >= this.rep.to) {
+      this.repeatSeam();
+      horizon = Math.min(this.tickAt(ch.ctx.currentTime + this.lookS()), this.end);
+    }
     // D328: nothing scheduled past a point where the band may wait for the player (and FOLLOWS: each beat's tempo set as it is reached).
     if (this.bandT) horizon = this.bandT.plan(horizon, [...this.held.values()].some((h) => !h.wait));
     while (this.nextBeat <= horizon) {
@@ -1246,7 +1279,7 @@ export class ProtoGame {
     }
     while (this.nextOther < this.others.length && this.others[this.nextOther].on <= horizon) {
       const n = this.others[this.nextOther++];
-      if (n.on < this.now - this.beat) continue;
+      if (!this.rep?.seam && n.on < this.now - this.beat) continue;
       // D326: a voice muted (TOOLS) is not sounded.
       if (this.o.mute?.includes(n.voice)) continue;
       // D250: the bass's pedal sounds only while the player holds it.
@@ -1322,11 +1355,11 @@ export class ProtoGame {
         const tdb = ptr?.db[q] ?? 0;
         const tr = ptr ? { vel: (jn.vel ?? 0) + tdb, dampMul: Math.max(PIANO_TRILL.dampMul, jn.dampMul ?? 1), altSample: ptr.partner[q] } : {};
         const sd = ch.note(pmidi, pat, plen + (last ? ext : 0) + (ptr?.over[q] ?? 0), vv, { ...sv.play, ...art, ...(q === 0 ? bowIn : {}), ...(last && !ext ? bowOut : {}), ...tr, level: follow(sh, this.feel) * (sv.play.level ?? 1) * 10 ** (tdb / 20) * bal * fdb, ...(cl ? { colour: cl } : {}), ...(ct ? { continuo: ct } : {}), ...(gw && gw.roomMul !== 1 ? { roomMul: (art.roomMul ?? 1) * gw.roomMul } : {}), ...(orn ? {} : uni), ...(sg ? { stage: sg } : {}) });
-        if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6 });
+        if (sd) this.band.push({ sd, until: pat + plen + (last ? ext : 0) + 0.6, end: pat + plen + (last ? ext : 0) });
         if (sd && last && ext) this.bandT!.hold(hx, sd, orn ? pon + pdur : n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
       for (const sd of this.subj.layers(ch, sv.sn, n.midi, at, len + ext, vv, follow(sh, this.feel) * (this.labGain?.[n.voice] ?? 1))) {
-        this.band.push({ sd, until: at + len + ext + 0.8 });
+        this.band.push({ sd, until: at + len + ext + 0.8, end: at + len + ext });
         if (ext) this.bandT!.hold(hx, sd, n.on + n.dur * sh.hold, sh.over + sh.nudge);
       }
     }
@@ -1340,42 +1373,10 @@ export class ProtoGame {
     this.shakeFrames();
     // D364: a prepared note whose note before is still held past its PERFECT window: the hold-over armed.
     this.holdOvers();
-    // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
-    // handled after the frame, was refused); each one missed (a chord once) a slip.
-    const grace = SWEEP_GRACE_S * this.tps;
-    let missed = 0;
     // D457: a take played back: shown as it was judged, nothing judged now.
     if (this.listen) this.listenStep(horizon);
     for (const b of this.backing) this.playTake(b, horizon);
-    // D334: MECH.prepLate "lift": a note a thumb is still prepared on waits for the other thumb's lift.
-    const kept = new Set<LaneNote>();
-    if (MECH.prepare && MECH.prepLate === "lift") for (const h of this.held.values()) if (h.wait?.prep) for (const j of chordOf(this.tracks[h.k].notes, h.wait.i)) kept.add(this.tracks[h.k].notes[j]);
-    // D364: an armed hold-over waits for the lift until its share of the note (then missed, as without it).
-    for (const h of this.held.values()) {
-      const ho = h.wait?.prep?.hold;
-      if (ho && ho.at >= 0 && this.now <= ho.until) kept.add(this.tracks[h.k].notes[h.wait!.i]);
-    }
-    // D491: a note already due when the game was paused keeps a whole late window from the pause point.
-    const od = this.overdue;
-    if (od && this.now > od.until) this.overdue = null;
-    else if (od) for (const t of this.tracks) for (const n of t.notes) if (n.state === "pending" && n.on < od.at) kept.add(n);
-    for (const t of this.listen ? [] : this.tracks) {
-      const ons = new Set<number>();
-      for (const n of t.notes) if (n.state === "pending" && !n.ride && !kept.has(n) && this.now - grace > n.on + this.opt.late) ons.add(n.on);
-      if (!ons.size) continue;
-      for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
-      for (const on of ons) this.runMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
-      for (const on of ons) this.slideMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
-      if (this.tap) for (const on of ons) this.tap({ kind: "miss", tick: on, track: this.tracks.indexOf(t), i: t.notes.findIndex((n) => n.on === on), midi: t.notes.find((n) => n.on === on)?.midi ?? 0 });
-      // D262's traced line, its first note missed: D494, no longer played by itself (only touches sound the player's voice).
-      sweep(kept.size ? t.notes.filter((n) => !kept.has(n)) : t.notes, this.now - grace, this.opt);
-      missed += ons.size;
-    }
-    if (missed) {
-      for (let s = 0; s < missed; s++) this.slip(0);
-      // D419 (the audit): MISS on the bar whose turn it was (it showed on the right bar always).
-      this.grade = { text: "MISS", at: performance.now(), side: this.thumbNext() ?? undefined };
-    }
+    this.sweepMisses(this.now);
     this.judgeEntries();
     this.judgeStrettos();
     this.judgeCadences();
@@ -1384,7 +1385,8 @@ export class ProtoGame {
     for (const h of this.held.values()) if (h.open && this.overstays(h)) this.judgeEnd(h, this.now);
     // D198: the crowd lost: the run ends here (not in the lessons, nor with NO FAIL).
     if (this.o.fail && this.crowd <= 0 && this.failedAt === null) {
-      this.failedAt = this.now;
+      // D1081: lost in a repeat's second pass: the grade is the first pass's, the rest of the piece unplayed.
+      this.failedAt = this.rep?.pass === 2 ? this.repeatSettle(true) : this.now;
       this.stopAll();
       return true;
     }
@@ -1399,6 +1401,46 @@ export class ProtoGame {
       return true;
     }
     return false;
+  }
+
+  /**
+   * The notes gone by unplayed, missed (the step's sweep). D1081: `now` and `before` let REPEAT's jump finish the section's
+   * notes at its end (the clock is then at the section's start): only notes starting before `before` are judged.
+   */
+  private sweepMisses(now: number, before = Infinity) {
+    // Notes gone by unplayed: missed, a frame's grace late (D191: a tap at the window's very end,
+    // handled after the frame, was refused); each one missed (a chord once) a slip.
+    const grace = SWEEP_GRACE_S * this.tps;
+    let missed = 0;
+    // D334: MECH.prepLate "lift": a note a thumb is still prepared on waits for the other thumb's lift.
+    const kept = new Set<LaneNote>();
+    if (MECH.prepare && MECH.prepLate === "lift") for (const h of this.held.values()) if (h.wait?.prep) for (const j of chordOf(this.tracks[h.k].notes, h.wait.i)) kept.add(this.tracks[h.k].notes[j]);
+    // D364: an armed hold-over waits for the lift until its share of the note (then missed, as without it).
+    for (const h of this.held.values()) {
+      const ho = h.wait?.prep?.hold;
+      if (ho && ho.at >= 0 && this.now <= ho.until) kept.add(this.tracks[h.k].notes[h.wait!.i]);
+    }
+    // D491: a note already due when the game was paused keeps a whole late window from the pause point.
+    const od = this.overdue;
+    if (od && this.now > od.until) this.overdue = null;
+    else if (od) for (const t of this.tracks) for (const n of t.notes) if (n.state === "pending" && n.on < od.at) kept.add(n);
+    for (const t of this.listen ? [] : this.tracks) {
+      const ons = new Set<number>();
+      for (const n of t.notes) if (n.state === "pending" && !n.ride && !kept.has(n) && now - grace > n.on + this.opt.late && n.on < before) ons.add(n.on);
+      if (!ons.size) continue;
+      for (const on of ons) this.diagNote("MISS", this.tracks.indexOf(t), on, undefined, t.notes.findIndex((n) => n.on === on));
+      for (const on of ons) this.runMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
+      for (const on of ons) this.slideMissed(this.tracks.indexOf(t), t.notes.findIndex((n) => n.on === on));
+      if (this.tap) for (const on of ons) this.tap({ kind: "miss", tick: on, track: this.tracks.indexOf(t), i: t.notes.findIndex((n) => n.on === on), midi: t.notes.find((n) => n.on === on)?.midi ?? 0 });
+      // D262's traced line, its first note missed: D494, no longer played by itself (only touches sound the player's voice).
+      sweep(t.notes.filter((n) => !kept.has(n) && n.on < before), now - grace, this.opt);
+      missed += ons.size;
+    }
+    if (missed) {
+      for (let s = 0; s < missed; s++) this.slip(0);
+      // D419 (the audit): MISS on the bar whose turn it was (it showed on the right bar always).
+      this.grade = { text: "MISS", at: performance.now(), side: this.thumbNext() ?? undefined };
+    }
   }
 
   /** D413: the silent moment before his demonstration begins (at most a beat, about half a second), in ticks. */
@@ -5277,7 +5319,10 @@ export class ProtoGame {
    */
   pause() {
     if (this.pausedAt !== null || this.failedAt !== null || this.now > this.end) return;
-    this.now = this.tickAt(this.chip.heard());
+    // D1081: paused between the scheduler's jump and the clock's: the jump is made now (the pause point is the section's start).
+    const landed = this.rep?.seam ? this.rep.from : null;
+    if (landed !== null) this.repeatLand();
+    this.now = landed ?? this.tickAt(this.chip.heard());
     this.pausedAt = Math.max(this.now, this.start);
     // D491: a count under way (paused again during it) starts afresh on the next resume.
     this.goAt = null;
@@ -5321,6 +5366,137 @@ export class ProtoGame {
     this.nextOther = firstAt(this.others);
   }
 
+  // ---- D1081, REPEAT (developer-only; the design: docs/research/TEMPO-AND-REPEAT-DESIGN.md) -----------------------------------
+  /** The repeat in hand, or null (the flag off, or no section: the game is exactly as it was). */
+  private rep: RepeatRun | null = null;
+  /** The scheduler's look-ahead (s). */
+  private lookS(): number {
+    return isPhone() ? 0.5 : 0.25;
+  }
+  /** The tick after which REPEAT can no longer be pressed or cancelled: a beat before the section's end, or the look-ahead (plus a frame) before it if that is sooner. */
+  repeatClosesAt(): number {
+    const r = this.rep;
+    if (!r) return -Infinity;
+    return Math.min(r.to - this.beat, this.tickAt(this.timeAt(r.to) - this.lookS() - 0.05));
+  }
+  /** Which pass the repeat is in: 1 the first (or no repeat taken), 2 the repeated, 3 over (taken or not). 0: no repeat in this game. */
+  get repeatPass(): number {
+    return this.rep?.pass ?? 0;
+  }
+  /** The section as ticks, or null. */
+  get repeatSection(): { from: number; to: number } | null {
+    return this.rep ? { from: this.rep.from, to: this.rep.to } : null;
+  }
+  /** What the button shows: offered from the second-last bar to the closing beat, lit once pressed, else nothing. */
+  repeatView(): RepeatView {
+    const r = this.rep;
+    if (!r || r.pass !== 1 || r.seam || this.pausedAt !== null) return "none";
+    const t = this.tickAt(this.chip.heard());
+    if (t < r.opens || t >= this.repeatClosesAt()) return "none";
+    return r.latched ? "latched" : "offered";
+  }
+  /** The button pressed: lights; pressed again before the closing beat it cancels. Returns whether it counted. */
+  pressRepeat(): boolean {
+    const r = this.rep;
+    if (!r || this.repeatView() === "none") return false;
+    r.latched = !r.latched;
+    return true;
+  }
+  /**
+   * Stage one of the jump, when the scheduler's horizon reaches the section's end: from there the clock runs from the section's start (the
+   * seam keeps the clock as it was until the end is heard), the band's notes still sounding past the end are cut at it, the beat, the band's
+   * notes and the ornaments drawn go on from the start. Nothing past the end was scheduled; nothing of the first pass is scheduled twice.
+   */
+  private repeatSeam() {
+    const r = this.rep!;
+    const te = this.timeAt(r.to);
+    r.seam = { te, at: this.anchorAt, tick: this.anchorTick };
+    this.anchorAt = te;
+    this.anchorTick = r.from;
+    for (const b of this.band) if (b.end !== undefined && b.end > te + 1e-3) b.sd.stop(te);
+    const i = this.others.findIndex((n) => n.on >= r.from);
+    this.nextOther = i < 0 ? this.others.length : i;
+    this.nextBeat = this.start + Math.ceil((r.from - this.start) / this.beat - 1e-6) * this.beat;
+    // The line each voice came from at the section's start, as the first time.
+    this.lastOther.clear();
+    for (const n of this.others) if (n.on < r.from && !n.band) this.lastOther.set(n.voice, n.midi);
+    this.bandPerformed = this.bandPerformed.filter((p) => p.on < r.from);
+  }
+  /**
+   * Stage two, when the section's end is heard: the thumbs let go (at the end), the first pass finished and judged (its entries, its
+   * strettos, the notes not yet struck missed), its score kept, and the section's notes made ready to be played again.
+   */
+  private repeatLand() {
+    const r = this.rep!;
+    const sm = r.seam!;
+    this.now = r.to;
+    const ts = this.wall() - (this.chip.heard() - sm.te) * 1000 - 1;
+    for (const id of [...this.held.keys()]) this.up(id, ts);
+    this.sweepMisses(Infinity, r.to);
+    this.judgeEntries();
+    this.judgeStrettos();
+    this.judgeCadences();
+    r.s1 = this.gradeCounters();
+    r.perf = new Map(this.performed);
+    r.levels = this.levels.length;
+    r.notes = [];
+    for (const t of this.tracks)
+      for (const n of t.notes)
+        if (n.on >= r.from && n.on < r.to) {
+          r.notes.push({ n, was: { ...n } });
+          for (const k of ["at", "via", "off", "up", "joinedIn", "slideFrom", "held", "wrong"] as const) delete n[k];
+          n.state = "pending";
+        }
+    for (const [k, p] of [...this.performed]) if (p.on >= r.from && p.on < r.to) this.performed.delete(k);
+    this.slLifted = [];
+    this.runDue = [];
+    r.seam = null;
+    r.pass = 2;
+    this.now = this.tickAt(this.chip.heard());
+  }
+  /**
+   * Stage three, when the second pass reaches the section's end (or the run is lost in it): its notes judged, then everything it earned
+   * taken back (score, points, timing, touch, thumbs, ornaments) and the section's notes given back as the first pass left them, so
+   * that the grade is the first pass's alone (D1079). Returns the tick a lost run counts as failed at: the section's end.
+   */
+  private repeatSettle(failed: boolean): number {
+    const r = this.rep!;
+    if (!failed) {
+      this.sweepMisses(Infinity, r.to);
+      this.judgeEntries();
+      this.judgeStrettos();
+    }
+    const first = r.s1 ?? new Map<string, number>();
+    const groups = this.counterGroups();
+    for (const path of new Set([...first.keys(), ...this.gradeCounters().keys()])) {
+      const [g, k] = path.split("|");
+      (groups[g] as Record<string, number>)[k] = first.get(path) ?? 0;
+    }
+    for (const { n, was: w } of r.notes) {
+      for (const k of Object.keys(n) as (keyof LaneNote)[]) if (!(k in w)) delete (n as Partial<LaneNote>)[k];
+      Object.assign(n, w);
+    }
+    for (const [k, p] of [...this.performed]) if (p.on >= r.from && p.on < r.to) this.performed.delete(k);
+    for (const [k, p] of r.perf ?? []) if (p.on >= r.from && p.on < r.to) this.performed.set(k, p);
+    const keep = this.levels.filter((e, i) => i < r.levels || e.on < r.from || e.on >= r.to);
+    this.levels.length = 0;
+    this.levels.push(...keep);
+    r.pass = 3;
+    return r.to;
+  }
+  /** The counters the grade is made of, by name ("group|key"). */
+  private counterGroups(): Record<string, Record<string, unknown>> {
+    const self = this as unknown as Record<string, unknown>;
+    return { self, earned: this.earned, style: this.style, graces: this.graces, art: this.art as unknown as Record<string, unknown>, laneTally: this.laneTally, thumbs: this.thumbs, shakes: this.shakes, joined: this.styleBy.joined, apart: this.styleBy.apart, short: this.styleBy.short, accent: this.styleBy.accent };
+  }
+  private gradeCounters(): Map<string, number> {
+    const m = new Map<string, number>();
+    const groups = this.counterGroups();
+    for (const k of ["score", "perfects", "goods", "stray", "slides"]) m.set(`self|${k}`, Number(groups.self[k]) || 0);
+    for (const [g, box] of Object.entries(groups)) if (g !== "self") for (const [k, v] of Object.entries(box)) if (typeof v === "number") m.set(`${g}|${k}`, v);
+    return m;
+  }
+
   releaseAll(ts: number) {
     for (const id of [...this.held.keys()]) this.up(id, ts);
     this.pedal(false);
@@ -5328,7 +5504,7 @@ export class ProtoGame {
   }
 
   /** The others' notes sounding or to sound (stopped on quitting; D184). */
-  private band: { sd: Sounding; until: number }[] = [];
+  private band: { sd: Sounding; until: number; end?: number }[] = [];
 
   stopAll() {
     // D457: a take played back stopped with the rest.
