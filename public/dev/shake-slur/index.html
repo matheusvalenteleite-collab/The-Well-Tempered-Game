@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ornament Slurs Listening</title>
+<style>
+  :root { --bg: #0b0d18; --card: #141833; --fg: #ece6cf; --muted: #9aa1c8; --line: #2a3160; --gold: #f4e9a8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; color: var(--gold); }
+  h2 { font-size: 18px; margin: 34px 0 4px; color: var(--gold); }
+  p { margin: 6px 0; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  @media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tag { font-weight: 700; font-size: 20px; color: var(--gold); width: 24px; }
+  .name { font-weight: 600; }
+  button.play { min-width: 84px; min-height: 40px; border-radius: 8px; border: 1px solid var(--gold); background: transparent; color: var(--fg); font-size: 15px; cursor: pointer; }
+  button.play.on { background: var(--gold); color: #111; }
+  canvas.trace { width: 100%; height: 210px; display: block; background: #0f1226; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .sw { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 5px; }
+  table { border-collapse: collapse; font-size: 14px; margin-top: 8px; width: 100%; }
+  th, td { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ornament slurs: a trill as one sound</h1>
+  <p>Four instruments, each on a real trill from a real piece, played by the game itself (the real engine, phone sound, your line alone). In each pair, <b>A is the game today</b> and <b>B is the slurred ornament</b>. The notes and their times are the print's, exactly the same in A and B; only how the instrument speaks them changes: one sound that moves from note to note, instead of a new attack on each.</p>
+  <p class="muted">In each picture, the top half is pitch (grey blocks = the printed notes of the trill, blue line = what you hear) and the bottom half is loudness (yellow; in B the dashed grey line is A, for comparison). Tap a picture to jump there. Nothing here is in the game: it is all behind a switch that is off.</p>
+
+  <div id="sections"></div>
+
+  <h2>What to decide</h2>
+  <p>For each of the four: is B (the slur) what that instrument's trill should sound like? Yes, no, or change it.</p>
+  <p class="muted">A note on loudness: in A the trilled notes sit a few dB below the held note after the trill (each re-struck note starts from silence). In B the trill sits at the held note's level, as a slurred note would. The score never sets the loudness; this is only the instrument's own envelope.</p>
+  <h2>Measured</h2>
+  <div class="scroll"><table id="facts"></table></div>
+</main>
+<script>
+const SECTIONS = [
+  { inst: 'brass', title: 'BACH BRASS: the lip trill', piece: 'Prelude I/16 (G minor), bars 1 to 2, the top line',
+    note: 'A brass player trills with the lips, never re-tonguing: one breath, the pitch moving between the two notes. In B the horn keeps sounding and the pitch moves; in A each note is spoken again.', b: 'brass-slur', a: 'brass-today' },
+  { inst: 'gameboy', title: 'GAME BOY: the pitch-command trill', piece: 'Prelude I/16 (G minor), bars 1 to 2, the top line',
+    note: 'The console does not re-trigger a note to trill: it changes the pulse channel’s pitch on the next tick. In B the pulse keeps its envelope and its pitch steps between the notes.', b: 'gameboy-slur', a: 'gameboy-today' },
+  { inst: 'analog', title: 'SWITCHED-ON: the legato trill', piece: 'Prelude I/16 (G minor), bars 1 to 2, the top line',
+    note: 'A monophonic synthesizer played legato trills on one voice: the filter and envelope go on and only the pitch changes. In A each note re-opens from silence; in B it does not.', b: 'analog-slur', a: 'analog-today' },
+  { inst: 'guitar', title: 'Guitar (BOSSA NOVA): the hammer-on', piece: 'Fugue I/23 (B major), bar 2, the tenor line',
+    note: 'A guitarist plucks the first note and sounds the others with the left hand: softer and duller than a pluck, and the string rings on. In B the first note is plucked and the rest are hammered on and pulled off (4 dB softer, darker).', b: 'guitar-hammer', a: 'guitar-today' },
+];
+const LEAD = 0.05;
+let traces = null, playing = null;
+function draw(c, tr, ref, t) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const T = tr.loud.length * tr.dt, X = (s) => (s / T) * w;
+  const ph = h * 0.58, lh = h - ph;
+  const midis = tr.notes.map((n) => n[2]); const lo = Math.min(...midis) - 1.5, hi = Math.max(...midis) + 1.5;
+  const Y = (m) => 8 + (ph - 16) * (1 - (m - lo) / (hi - lo));
+  g.strokeStyle = '#1d2347'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, ph); g.lineTo(w, ph); g.stroke();
+  g.fillStyle = '#4b5385'; for (const [at, dur, m] of tr.notes) g.fillRect(X(at), Y(m) - 3, Math.max(2, X(at + dur) - X(at)), 6);
+  g.strokeStyle = '#7eb2ff'; g.lineWidth = 1.6; g.beginPath(); let pen = false;
+  tr.pitch.forEach((m, i) => { const x = ((i * tr.dt) / T) * w; if (m === null) { pen = false; return; } const y = Y(m); if (!pen) g.moveTo(x, y); else g.lineTo(x, y); pen = true; }); g.stroke();
+  const L0 = -52, L1 = -26, LY = (d) => ph + 6 + (lh - 12) * (1 - (Math.max(L0, Math.min(L1, d)) - L0) / (L1 - L0));
+  const line = (arr, col, dash) => { g.strokeStyle = col; g.setLineDash(dash || []); g.lineWidth = dash ? 1.2 : 1.6; g.beginPath(); arr.forEach((d, i) => { const x = ((i * tr.dt) / T) * w; i ? g.lineTo(x, LY(d)) : g.moveTo(x, LY(d)); }); g.stroke(); g.setLineDash([]); };
+  if (ref) line(ref.loud, '#8a8fa8', [4, 3]);
+  line(tr.loud, '#f4c96b');
+  g.fillStyle = '#9aa1c8'; g.font = '11px system-ui'; g.fillText('pitch', 6, 14); g.fillText('loudness', 6, ph + 14);
+  if (t !== undefined) { g.strokeStyle = '#fff'; g.lineWidth = 1.5; const x = (t / T) * w; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+}
+function card(root, id, tag, name, ref) {
+  const el = document.createElement('section'); el.className = 'card';
+  el.innerHTML = `<div class="head"><span class="tag">${tag}</span><button class="play" type="button">Play</button><span class="name">${name}</span></div><canvas class="trace"></canvas><div class="legend"><span><span class="sw" style="background:#4b5385;height:6px"></span>printed notes</span><span><span class="sw" style="background:#7eb2ff"></span>pitch heard</span><span><span class="sw" style="background:#f4c96b"></span>loudness</span>${ref ? '<span><span class="sw" style="background:repeating-linear-gradient(90deg,#8a8fa8 0 4px,transparent 4px 7px)"></span>A, for comparison</span>' : ''}</div>`;
+  root.appendChild(el);
+  const audio = new Audio(id + '.mp3'); audio.preload = 'auto';
+  const btn = el.querySelector('button'), cv = el.querySelector('canvas'), tr = traces[id];
+  const tick = () => { draw(cv, tr, ref, audio.currentTime); if (!audio.paused) requestAnimationFrame(tick); };
+  const stop = () => { audio.pause(); btn.classList.remove('on'); btn.textContent = 'Play'; };
+  const go = () => { if (playing && playing.stop !== stop) playing.stop(); playing = { stop }; audio.play(); btn.classList.add('on'); btn.textContent = 'Stop'; requestAnimationFrame(tick); };
+  btn.onclick = () => (audio.paused ? go() : stop());
+  audio.onended = () => { stop(); audio.currentTime = 0; draw(cv, tr, ref); };
+  cv.onclick = (e) => { const r = cv.getBoundingClientRect(); audio.currentTime = ((e.clientX - r.left) / r.width) * tr.loud.length * tr.dt; draw(cv, tr, ref, audio.currentTime); if (audio.paused) go(); };
+  draw(cv, tr, ref);
+  new ResizeObserver(() => draw(cv, tr, ref, audio.paused ? undefined : audio.currentTime)).observe(cv);
+}
+function build() {
+  const root = document.getElementById('sections');
+  for (const s of SECTIONS) {
+    const sec = document.createElement('div');
+    sec.innerHTML = `<h2>${s.title}</h2><p class="muted">${s.piece}</p><p>${s.note}</p><div class="pair"></div>`;
+    root.appendChild(sec);
+    const pair = sec.querySelector('.pair');
+    card(pair, s.a, 'A', 'Today', null);
+    card(pair, s.b, 'B', s.inst === 'guitar' ? 'Hammer-on' : 'Slurred', traces[s.a]);
+  }
+}
+function facts() {
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  let html = '<tr><th>instrument</th><th>trill notes</th><th>mean level of the trill, A</th><th>B</th></tr>';
+  for (const s of SECTIONS) {
+    const n = traces[s.a].notes, t0 = n[0][0], t1 = n[n.length - 1][0] - 0.05, dt = traces[s.a].dt;
+    const lv = (id) => mean(traces[id].loud.slice(Math.floor(t0 / dt), Math.floor(t1 / dt)).map((d) => 10 ** (d / 10)));
+    const db = (id) => (10 * Math.log10(lv(id))).toFixed(1);
+    html += `<tr><td>${s.title.split(':')[0]}</td><td>${n.length}</td><td>${db(s.a)} dB</td><td>${db(s.b)} dB</td></tr>`;
+  }
+  document.getElementById('facts').innerHTML = html;
+}
+fetch('traces.json').then((r) => r.json()).then((j) => { traces = j; build(); facts(); });
+</script>
+</body>
+</html>

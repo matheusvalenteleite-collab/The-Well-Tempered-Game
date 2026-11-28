@@ -11,6 +11,7 @@
 // the line keeps one way, else it lifts and the other thumb strikes; no sway. `solo: "player"` mutes the band
 // (ProtoGame's own mute), else the whole mix. Writes <out>/<name>.wav (mono, (L+R)/2) and <name>.json (the notes swayed).
 // usage: PORT=<port> node tools/touch/gesture/render.cjs <out dir> <jobs.json>
+//   `sway.ons` (D1070): only the notes beginning at these ticks are shaken (the ornaments' own); `shake3` turns the shake's own voices on.
 //   jobs: [{name, piece, sound, player, fromBar, secs, solo?: "player", land?, slides?, mech?, sway: {shape, amp, delay?, minDur}}]
 const { chromium } = require(process.env.PLAYWRIGHT || '/opt/node-tools/node_modules/playwright');
 const fs = require('fs');
@@ -104,7 +105,7 @@ fs.mkdirSync(outDir, { recursive: true });
           g.down(id2, { side, x: xOf(side, job.land ?? 0.5), y, w: W, h: H }, 0);
           if (held) g.up(held.id, 0);
           const a = g.timeAt(n.on), e = g.timeAt(n.on + n.dur) - 0.02;
-          held = { id: id2, side, y, a, e, sway: !job.slides && e - a >= sw.minDur };
+          held = { id: id2, side, y, a, e, sway: !job.slides && e - a >= sw.minDur && (!sw.ons || sw.ons.includes(n.on)) };
           if (held.sway) swayed.push({ midi: n.midi ?? null, at: +(a - t0).toFixed(3), dur: +(e - a).toFixed(3) });
         }
         if (held && now >= held.e) { g.up(held.id, 0); held = null; }

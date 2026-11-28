@@ -87,6 +87,8 @@ All worker sessions were stopped at the owner's request; resume only when the ow
   sound with the print's exact pitches and times: brass lip trill, GAME BOY pitch-command trill, SWITCHED-ON legato
   trill, guitar softer re-strike (hammer-on). Then winds and voices; strings' one-bow trill later; organ tremulant
   and brass lip vibrato onto sway. The owner: "Instrument shakes are good, I like them."
+  **Status (28 Nov):** the four are built behind `SHAKE_PROTO` (off), D1074; listening page `public/dev/shake-slur/` (A today,
+  B slurred, per instrument) waits for the owner's ear. Nothing flips until he has listened.
 - **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
   `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
   drops, colour in step. The owner: "I like the crab canon suggestion, build A."
