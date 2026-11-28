@@ -5,6 +5,12 @@ DECISIONS.md (or delete it) when it is done or dropped.
 
 ## Strings: dragging should glide, not swell (owner, 25 November 2026; for next week)
 
+**Status (D1072, 28 November 2026): waiting for the owner's ears.** Cause found (the slid note goes on with the sound and level
+of the note slid from: +3 to +4 dB on STRING CONSORT, up to +6 on BAROQUE BAND, +9 on ORCHESTRA & ORGAN). Built behind
+`MECH.slideGlide` (off): B "enter" (the level fix alone) and C/D "speed" (the glissando timed by the thumb). Listening page:
+https://matheusvalenteleite-collab.github.io/The-Well-Tempered-Game/dev/strings-slide/ . The owner picks B or the glissando;
+then switch it on for the strings (play.html's default) and decide whether the lute's long-leap glissando (D426) follows.
+
 The owner: "the dragging in string instruments is giving a volume boost which is a terrible idea and sounds awful.
 string instrument's dragging, should be glissando, and how fast one drags dictates whether the glissando is super quick
 (as an attack?) or more like gradual." APPROVED in principle; to build when the owner's tokens are back.

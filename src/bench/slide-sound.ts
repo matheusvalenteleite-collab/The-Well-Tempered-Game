@@ -292,3 +292,21 @@ function fit(name: string, notes: number[], noteMs: number, speed = 1): Gesture 
   if (each < GESTURE.minEachMs * Math.min(1, speed)) return { kind: "plain", name: "legato" };
   return { kind: "notes", name, notes, eachS: each / 1000 };
 }
+
+/**
+ * D1072, "speed" (MECH.slideGlide): the bowed strings' slide into the note, timed by the thumb. The thumb's speed over its drag
+ * (rows a second: the rows travelled over the drag's time) sets how long the arriving note takes to reach its pitch from the
+ * pitch slid from: at FAST rows a second or more FAST_MS (a quick slide, almost an attack: a string player's fast shift), at SLOW
+ * or less the longest (SLOW_MS), between them by the logarithm of the speed. Never over a quarter of the note (SHARE), never
+ * under FLOOR_MS. The note enters at its written time; the glide is its first part (an exponential approach: TAU_PER of the time
+ * to land within a few cents is its time constant).
+ */
+/** D1072: the bowed strings' recordings (the consort's violin, viola and cello, every band that uses them). */
+export const BOWED_SAMPLES: ReadonlySet<string> = new Set(["consortViolin", "consortViolinSolo", "consortViola", "consortCello", "consortCelloSolo"]);
+export const GLISS = { fast: 30, slow: 4, fastMs: 25, slowMs: 320, share: 0.25, floorMs: 15, tauPer: 1 / 3.5 } as const;
+export function glissMs(rowsPerS: number, noteMs: number): number {
+  const v = Number.isFinite(rowsPerS) && rowsPerS > 0 ? rowsPerS : GLISS.slow;
+  const u = Math.max(0, Math.min(1, Math.log(v / GLISS.slow) / Math.log(GLISS.fast / GLISS.slow)));
+  const ms = GLISS.slowMs * (GLISS.fastMs / GLISS.slowMs) ** u;
+  return Math.max(GLISS.floorMs, Math.min(ms, GLISS.share * Math.max(0, noteMs)));
+}

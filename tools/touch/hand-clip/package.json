@@ -1,0 +1,9 @@
+{
+  "name": "hand-clip",
+  "private": true,
+  "description": "D1072: the 3D hand clips' renderer (its own dependencies, apart from the game's): npm install --prefix tools/touch/hand-clip",
+  "dependencies": {
+    "three": "0.160.0",
+    "@webxr-input-profiles/assets": "1.0.19"
+  }
+}

@@ -92,7 +92,7 @@ import { wholeAsks, type BoxMark } from "../touch/whole-marks.ts";
 import { dbToLevel } from "../touch/practice.ts";
 import { ladderMove, slideWay } from "./ladder-rule.ts";
 import { SLIDE, SLIDE_CUE, SLIDE_IN, slideReach, type SlideMiss } from "./slide-rule.ts";
-import { slideGesture, slideSoundFor } from "./slide-sound.ts";
+import { BOWED_SAMPLES, GLISS, glissMs, slideGesture, slideSoundFor } from "./slide-sound.ts";
 import { fillsFor } from "../touch/jazz-drums.ts";
 import { LATIN_SOUNDS, latinPlan } from "../touch/latin-drums.ts";
 import { reveal } from "./reveal.ts";
@@ -333,6 +333,9 @@ interface Held {
   /** D321: the last time (ms) the thumb was still where it last played (a drag's start), and the drag's length at its slide (ms). */
   still?: number;
   dragMs?: number;
+  /** D1072: the last slide's travel (rows) and time (ms), for the strings' glide timed by the thumb (MECH.slideGlide "speed"). */
+  slidRows?: number;
+  slidMs?: number;
   /** D376 (MECH.glenn): when the thumb was last still where it last played (ms on the audio clock: a replay's own). */
   gStillMs?: number;
   /** D376: a slide near its note (within half a row), for the stop rule: where and when. */
@@ -3187,6 +3190,11 @@ export class ProtoGame {
    * the slide arrives (play). Only the sound: the slide's judging (D376/D378) is unchanged. `y` null (a
    * shake took the thumb, no slide to make): back to the note held. Keyboards, the lute: never (touchFamily null).
    */
+  /** D1072: the track's voice a bowed string (the consort's recorded violin, viola, cello: STRING CONSORT, BAROQUE BAND, ORCHESTRA & ORGAN). */
+  private bowedString(k: number): boolean {
+    const pt = voicing(this.tracks[k].voice, this.f.voices.length, true).patch;
+    return !!pt?.bow && BOWED_SAMPLES.has(pt.sample ?? "");
+  }
   private slideTrack(h: Held, y: number | null | undefined) {
     const sd = h.sounds.length === 1 ? h.sounds[0] : undefined;
     // D438, D501: only where the slide sound is "instruments" (the strings', the voices', the lute's under "auto"; "d486" sounds the gesture at arrival: slideColour).
@@ -3194,6 +3202,8 @@ export class ProtoGame {
     // D426: the lute's slide over a fourth or more a glissando along the string (glenn.ts luteSlur), followed the same way.
     const lute = keyboardSlide(preset().id) === "slur";
     if (!sd?.glide || !(touchFamily(preset().id) || lute) || h.note < 0) return void (h.bent = undefined);
+    // D1072 (MECH.slideGlide "speed"): a bowed string's note slid from stays in tune while the thumb travels (the glide is the arriving note's).
+    if (MECH.slideGlide === "speed" && this.bowedString(h.k)) return void (h.bent = undefined);
     let m = h.midi;
     const notes = this.tracks[h.k].notes;
     const gl = typeof y === "number" && MECH.slides && !h.orn && !h.wait && h.chord.length === 1 ? this.glennLead(h, this.evMs()) : null;
@@ -3467,6 +3477,9 @@ export class ProtoGame {
     const trail = this.trailBySide[h.side]?.length ?? 0;
     const chain = this.chain;
     this.tap?.({ kind: "slide", tick: t, track: h.k, i, side: h.side, movedPx: h.ay - c.y });
+    h.slidRows = Math.abs(h.ay - c.y) / Math.max(1, this.ladderRow);
+    // (On the audio clock, D376's still moment: a replay's and a render's own.)
+    h.slidMs = h.gStillMs !== undefined ? this.evMs() - h.gStillMs : h.dragMs;
     h.ay = c.y;
     notes[i].via = "slide";
     // D426, THE PIANO'S HAIRPIN: the slid note's loudness from where the thumb is across the strip now (play: Play.hairpin).
@@ -3938,6 +3951,8 @@ export class ProtoGame {
       if (db) expr = { ...expr, level: (expr.level ?? 1) * dbToLevel(db), ...(hardFam === "bowed" || hardFam === "sung" ? { accent: Math.max(expr.accent ?? 0, 0.3) } : {}) };
     } else if (byTap) hardLate = true;
     const pitches = v.ok || v.wrong === undefined ? chord.map((j) => notes[j].midi) : [v.wrong];
+    // D1072: a bowed string's slide under MECH.slideGlide "enter" or "speed": the arriving note's own (below), not the sound going on.
+    const strSlide = slide && MECH.glenn && MECH.slideGlide !== "follow" && !piano && h.sounds.length === 1 && pitches.length === 1 && this.bowedString(h.k);
     // D213: the subject's effect under the note (the note's own sound below, its last made).
     for (const sd of h.fx ?? []) sd.stop();
     const n1 = notes[i];
@@ -3963,7 +3978,7 @@ export class ProtoGame {
       h.bent = undefined;
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: true } };
       this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: pitches[0], how: ls.gliss ? "gliss" : "slur", ms: LUTE_SLUR.hammerS * 1000, dragMs: h.dragMs ?? 0 });
-    } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1) {
+    } else if (slide && !piano && !kbSlide && h.sounds.length === 1 && pitches.length === 1 && !strSlide) {
       // D376 (MECH.glenn): the glide timed by the slide (a quarter of its time, 10–90 ms). D424: on strings,
       // voices and synths the portamento has followed the thumb (slideTrack): it lands on the note now (a
       // slide begun before its phase, not followed, glides over its own travel as before).
@@ -4087,7 +4102,18 @@ export class ProtoGame {
         // D1063: the guitar's left hand on a join (the note before held by the other thumb, or let go within the legato gap).
         const gLh = gJoin && legato ? lhOf(gFrom ?? (pv >= 0 && notes[pv].state === "hit" ? notes[pv].midi : undefined), pitches[0], setRelease) : null;
         const now = this.chip.ctx.currentTime;
-        const gPlay: Play = gLh ? { ...play, legato: true, guitar: { lh: gLh, skip: lhSkip(this.gtrPickAt >= 0 ? now - this.gtrPickAt : 0) } } : play;
+        let gPlay: Play = gLh ? { ...play, legato: true, guitar: { lh: gLh, skip: lhSkip(this.gtrPickAt >= 0 ? now - this.gtrPickAt : 0) } } : play;
+        // D1072 (MECH.slideGlide): a bowed string's slide: the arriving note entered as a slur with its own sound and level, from
+        // the pitch the sound has reached ("enter": the portamento that followed the thumb) or from the note slid from ("speed": the
+        // glide into the note timed by the thumb's speed, slide-sound.ts glissMs).
+        if (strSlide) {
+          const n = notes[i];
+          const fromM = MECH.slideGlide === "speed" ? h.midi : (h.bent ?? h.midi);
+          const ms = MECH.slideGlide === "speed" ? glissMs((h.slidRows ?? 1) / Math.max(0.01, (h.slidMs ?? 100) / 1000), this.msOf(n.on, n.on + n.dur)) : SLIDE_TRACK_TAU * 1000 * 3.5;
+          gPlay = { ...gPlay, legato: true, slur: true, ...(fromM !== pitches[0] ? { glideIn: { cents: (fromM - pitches[0]) * 100, tau: (ms * GLISS.tauPer) / 1000 } } : {}) };
+          this.tap?.({ kind: "drag", tick: this.now, track: h.k, i, side: h.side, from: h.midi, to: pitches[0], how: "glide", ms, dragMs: h.slidMs ?? 0 });
+          h.bent = undefined;
+        }
         h.sounds = pitches.map((m) => this.touchNote(m, now, HOLD_MAX, sv?.v ?? voiceV, gPlay));
       }
       h.tone = { v: sv?.v ?? voiceV, play: { ...expr, legato: !piano } };

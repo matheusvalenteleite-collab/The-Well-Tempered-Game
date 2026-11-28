@@ -917,6 +917,8 @@ export interface Play {
   tie?: number;
   /** D302: joined from this pitch (MIDI): a singing voice glides from it (VOCAL SYNTH; the rest ignore it). */
   from?: number;
+  /** D1072: a recorded note entering `cents` off its pitch and gliding to it (an exponential approach, time constant `tau` s): a bowed string's slide into the note. */
+  glideIn?: { cents: number; tau: number };
   /** D302: the last note before a rest (a phrase's end): a singing voice falls off it (VOCAL SYNTH). */
   final?: boolean;
   /**
@@ -2740,6 +2742,12 @@ export class Chip {
       const src = bag.src(ctx.createBufferSource());
       src.buffer = r.buffer;
       src.playbackRate.value = rateFor(set, m, baseHz * mult) * 2 ** ((p.detune ?? 0) / 1200);
+      // D1072: a slide into the note: from the pitch slid from to its own.
+      if (p.glideIn && p.glideIn.cents && p.glideIn.tau > 0) {
+        const r0 = src.playbackRate.value;
+        src.playbackRate.setValueAtTime(r0 * 2 ** (p.glideIn.cents / 1200), t);
+        src.playbackRate.setTargetAtTime(r0, t, p.glideIn.tau);
+      }
       const loop = noteInfo(set, m)?.loop;
       const chain = plucked ? undefined : chainOf(set);
       if (loop && !plucked && !chain) {
