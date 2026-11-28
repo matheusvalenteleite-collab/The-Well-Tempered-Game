@@ -787,33 +787,6 @@
 .tb-manual .tb-step-n { white-space: nowrap; }
 .tb-step-name small { display: block; margin-top: 4px; font-size: 6px; line-height: 1.5; color: var(--tg-muted); }
 
-/* D298: the SHEET mode: the box a white page (sheet-view.ts), its words in a book face, the count-in in ink. */
-html.tb-paper .tg-box { background: #fff; border-color: #d6d1c4; box-shadow: none; }
-html.tb-paper .tg-roll { background: #fff; box-shadow: none; }
-html.tb-paper .tg-roll::after { display: none; }
-html.tb-paper .tg-roll canvas { image-rendering: auto; }
-html.tb-paper .tg-hud, html.tb-paper .tg-legend { background: #fff; box-shadow: none; font-family: Georgia, "Times New Roman", serif; font-size: 12px; letter-spacing: 0.05em; }
-html.tb-paper .tg-hud-title { color: #1d1d1f; }
-html.tb-paper .tg-hud-bar { color: #6b665c; font-style: italic; }
-html.tb-paper .tg-x { color: #1d1d1f; background: #f6f5f1; border-color: #d6d1c4; box-shadow: none; }
-html.tb-paper .tg-count { color: #1d1d1f; text-shadow: none; font-family: Georgia, "Times New Roman", serif; font-size: 64px; }
-html.tb-paper .tb-you { color: #1d1d1f; }
-html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bars .tg-play { background: #f6f5f1; }
-/* The page over the box's canvas: a strip of tiles and marks moved by a transform only; the playhead and the clefs' column fixed. */
-.tb-sheet-page { position: absolute; inset: 0; overflow: hidden; background: #fff; pointer-events: none; }
-.tb-sheet-strip { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
-.tg-roll .tb-sheet-strip canvas, .tg-roll .tb-sheet-strip img { position: absolute; top: 0; image-rendering: auto; }
-.tb-sheet-marks { position: absolute; left: 0; top: 0; overflow: visible; }
-.tb-sheet-word { font-family: Georgia, "Times New Roman", serif; font-style: italic; stroke: #fff; stroke-width: 3px; paint-order: stroke; stroke-linejoin: round; }
-.tb-sheet-miss { fill: none; stroke: #b3261e; stroke-width: 1.4px; stroke-linecap: round; }
-.tb-sheet-headpaper { position: absolute; left: 0; top: 0; height: 100%; background: #fff; }
-.tb-sheet-headpaper::after { content: ""; position: absolute; top: 0; bottom: 0; left: 100%; width: 6px; background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0)); }
-/* D300: the music played stays in sight, a shade lighter; the open score's mark of the player's staff. */
-.tb-sheet-past { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255, 255, 255, 0.2); }
-.tb-sheet-mine { position: absolute; left: 0; width: 3px; display: none; }
-.tg-roll .tb-sheet-headpaper canvas { display: block; image-rendering: auto; }
-.tb-sheet-playhead { position: absolute; width: 1.2px; margin-left: -0.6px; opacity: 0.55; }
-.tb-display .tg-seg { flex-wrap: wrap; }
 /*
  * D308: the result over the whole screen, not in the music box (it sat in the box's upper part, the play
  * area under it empty, the sheet clipped): centred in the safe area, scrolling only if it must.
@@ -878,8 +851,6 @@ html.tb-paper, html.tb-paper body, html.tb-paper .tb-bars, html.tb-paper .tb-bar
 .tb-has-side-stops .tb-side-legend-whole p { margin-bottom: 1px; }
 .tb-has-side-stops .tb-side-gloss { bottom: calc(var(--tb-stop-rows-right, var(--tb-stop-rows, 1)) * 47px + env(safe-area-inset-bottom, 0px) + 6px); }
 .tb-side-gloss:empty { display: none; }
-html.tb-paper .tb-side-gloss { color: #2a2216; background: rgba(246, 245, 241, 0.92); }
-html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 0.92); box-shadow: 0 0 0 1px #c9c2b4; }
 .tb-sheet-free { margin: 2px 0 0; font-family: var(--tg-pixel); font-size: 6px; letter-spacing: 0.04em; color: #d8c27a; }
 .tb-tuning-select { max-width: 560px; }
 
@@ -1074,7 +1045,7 @@ html.tb-paper .tb-side-legend { color: #2a2216; background: rgba(246, 245, 241, 
 .tb-pop-piston .tg-stop { height: 30px; }
 .tb-pop-piston-more { padding-left: 38px; }
 /* D415: translucent with the bars (the stage shows through); a lit piston stays solid. */
-html:not(.tb-paper) .tb-stops-side .tg-piston:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
+.tb-stops-side .tg-piston:not(.on) { background: color-mix(in srgb, var(--tg-bg) 55%, transparent); }
 
 /* D369: the voice legend: the player's voice a chip of its own (its colour block and VOCÊ: …), the others after it, dimmer. */
 .tg-legend:has(.tb-you-chip) { align-items: center; overflow: visible; }
@@ -1083,7 +1054,6 @@ html:not(.tb-paper) .tb-stops-side .tg-piston:not(.on) { background: color-mix(i
 .tb-legend-other { line-height: 1.6; padding-top: 2px; }
 /* D371 (the report's 8 A): the chip filled with the voice's colour (inline), its words in dark ink; on paper too. */
 .tb-you-chip { color: #14101a; border-color: rgba(0, 0, 0, 0.35) !important; box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45); }
-html.tb-paper .tb-you-chip { color: #14101a; }
 
 /* D373, THE TUTORIAL's selection screen (Mario's tut-select): the play screen's three columns, nothing scrolls. */
 .tb-tut { --tb-tut-side: calc((100vw - var(--tg-sal) - var(--tg-sar)) * var(--tb-bar)); position: fixed; inset: 0; z-index: 60; display: grid; grid-template-columns: calc(var(--tg-sal) + var(--tb-tut-side)) 1fr calc(var(--tg-sar) + var(--tb-tut-side)); height: 100dvh; overflow: hidden; background: #141a33; color: var(--tg-fg); font-family: var(--tg-pixel); }

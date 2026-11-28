@@ -16,11 +16,8 @@ export interface ThumbEvents {
 
 export type Painter = (g: CanvasRenderingContext2D, w: number, h: number) => void;
 
-/** The targets' canvas's most device pixels to a CSS pixel (D184: 2). D298: the SHEET mode's bars (plain paper, a few marks) take 1 (a phone's frame rate kept with the page beside them). */
-let targetsDpr = 2;
-export function setTargetsDpr(n: number) {
-  targetsDpr = n;
-}
+/** The targets' canvas's most device pixels to a CSS pixel (D184). */
+const targetsDpr = 2;
 
 export function PlayArea(p: {
   events: ThumbEvents;

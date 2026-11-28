@@ -23,7 +23,7 @@ import { keyWordsIn, lang, LANGS, partKey, pieceName, setLang, tr, voiceName, ty
 import { ornamentMark, ornamentsOf } from "../touch/ornament-play.ts";
 import { BachTalk } from "./Bach.tsx";
 import { accuracy, passed, TRACKS, type Line, type Run } from "./lessons.ts";
-import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt, tutorialDone } from "./tutorial.ts";
+import { answer, askFirst, nextLesson, recordLesson, skipLesson, triesAt } from "./tutorial.ts";
 import { LessonMap, PlayedBefore } from "./LessonMap.tsx";
 import { PRELUDE_TEMPO, tempoOf } from "../touch/tempi.ts";
 import { fugueOfPrelude, preludeReady, slowOnly } from "../touch/prelude-plan.ts";
@@ -33,11 +33,8 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState }
 import { LegendMap } from "./LegendMap.tsx";
 import { resetLive } from "../touch/music-events.ts";
 import { builds } from "./journey.ts";
-import { floorOf, ladderGeometry, MusicBox, rollFoot, rollRect, inkOf, setBoxPainter, type Frame } from "../touch/MusicBox.tsx";
+import { floorOf, ladderGeometry, MusicBox, rollFoot, rollRect, inkOf, type Frame } from "../touch/MusicBox.tsx";
 import { chromaLiftPx, signatureOf } from "../touch/chroma.ts";
-import { displayFor, engraved, layoutOf, saveDisplay, saveDisplayFor, type DisplayMode } from "./sheet-format.ts";
-import { blankPage, loadSheet, paperInk, sheetView, unmountSheets } from "./sheet-view.ts";
-import { DisplayChoice } from "./DisplayChoice.tsx";
 import { guitarTiltStored, newMechStored, saveGuitarTilt, saveNewMech, saveTilt, tiltStored } from "./new-mech.ts";
 import { TestScenes } from "./TestScenes.tsx";
 import { keepPendingScene, takePendingScene, type TestScene } from "./test-scenes.ts";
@@ -45,7 +42,7 @@ import { askTilt } from "./guitaring.ts";
 import { AUTO, BOXV, variantRows } from "../touch/box-variants.ts";
 import { BOX_PLAYHEAD, BOX_PX, BoxZoom, aheadBars, chooseBars, initialRange, planZoom, ZOOM, type ZoomView } from "../touch/box-zoom.ts";
 import { MECH } from "./mechanics.ts";
-import { PlayArea, setTargetsDpr, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
+import { PlayArea, type Painter, type ThumbEvents } from "../touch/PlayArea.tsx";
 import { Choice, loadDrums, Panel, Tapper } from "../touch/Panels.tsx";
 import { saveStageMode, stageMode as stageBgMode } from "../touch/stage-bg.ts";
 import { canonsMode, saveCanonsMode } from "../touch/canon-ribbon.ts";
@@ -64,7 +61,7 @@ import { arcOf } from "./arc.ts";
 import { laneNotes } from "../touch/lanes.ts";
 import { setTuning } from "../touch/tuning.ts";
 import { accompaniment, startTick, stepRange, subjectMarks, entrySpans, voicesFrom } from "../touch/voice-mode.ts";
-import { paintProto, setPaperLook } from "./paint-proto.ts";
+import { paintProto } from "./paint-proto.ts";
 import { laneLine, ProtoGame, type KeyPress } from "./proto-game.ts";
 import { lineKey, subjectLine } from "./subject-line.ts";
 import { FuguePicker } from "./FuguePicker.tsx";
@@ -445,43 +442,7 @@ export function BenchApp() {
   // D237: the minimal page: a phone's prelude on HIGHWAY, its fugue on LADDER; a computer's both on HIGHWAY (keys).
   const proto = protoById(run ? run.proto : stageMode(f, platform, APP.lite ? (platform === "computer" ? "keys" : "ladder") : offered(pick.proto, platform, midi.length > 0)));
   const prelude = !run && f.kind === "prelude";
-  // D298: ⚙ DISPLAY: the box (DEFAULT), CANTUS (to come: the box meanwhile), or the fugue's sheet
-  // (SHEET · TWO STAVES, SHEET · ONE STAFF PER VOICE) where it is engraved (the 48 fugues); kept on the device.
-  // D327: kept per piece; never chosen for a piece: one staff per voice for four and five voices once the tutorial is passed, else the last choice.
-  const [, displayChanged] = useState(0);
-  const display = displayFor(f.id, f.voices.length, tutorialDone(platform));
-  const setDisplay = (m: DisplayMode) => (saveDisplayFor(f.id, m), saveDisplay(m), displayChanged((n) => n + 1));
-  const sheetLayout = layoutOf(display);
   // D342: THE MANUAL's lessons on the box (their aids are drawn over it).
-  const sheetOn = !!sheetLayout && engraved(f.id) && proto.layout === "bars";
-  useEffect(() => {
-    if (!sheetOn || !sheetLayout) {
-      setBoxPainter(null);
-      unmountSheets();
-      setPaperLook(false);
-      setTargetsDpr(2);
-      document.documentElement.classList.remove("tb-paper");
-      return;
-    }
-    void loadSheet(f.id, sheetLayout);
-    setPaperLook(true);
-    setTargetsDpr(1);
-    document.documentElement.classList.add("tb-paper");
-    // While the engraving loads: the white page alone.
-    setBoxPainter((c, w, h, fr) => {
-      const v = sheetView(f.id, sheetLayout);
-      if (v) v.paint(c, w, h, fr);
-      else blankPage(c, w, h);
-      return true;
-    });
-    return () => {
-      setBoxPainter(null);
-      unmountSheets();
-      setPaperLook(false);
-      setTargetsDpr(2);
-      document.documentElement.classList.remove("tb-paper");
-    };
-  }, [sheetOn, sheetLayout, f.id]);
   const from = run ? run.from : startTick(f, pick.share);
   const voice = run ? run.voice : pick.voice;
   // D351: a MORE BACH or CHORALES piece at the tempo chosen on its pop-up (SLOW · DEFAULT · FAST, kept per piece), once unlocked.
@@ -615,14 +576,14 @@ export function BenchApp() {
   // their own geometry): the bars shown once per round (a lesson's as D375, at least 3 s ahead), the rows
   // narrowed rarely and eased (not in a lesson: its range is its passage's already).
   const zoomBox = (start: number, tps: number) => {
-    const on = MECH.boxZoom === "auto" && !BOXV && !sheetOn;
+    const on = MECH.boxZoom === "auto" && !BOXV;
     const own = played.flatMap((v) => f.voices[v] ?? []).filter((n) => n[0] >= start && (!run || n[0] < run.until));
     const bars = !on ? (zoom?.bars ?? 3) : zoom ? Math.max(zoom.bars, Math.min(ZOOM.maxBars, aheadBars(f.barTicks, tps))) : chooseBars(own, f.barTicks, tps);
     const shown = run?.solo || kimiko ? own : everyNote(f);
     const plan = planZoom(shown, own, range, f.barTicks, start, run ? run.until : Infinity);
     return { bars, plan, on: on && !run };
   };
-  const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, sheetOn, kimiko, proto.id]);
+  const boxPlan = useMemo(() => zoomBox(from, (f.tpq * bpm) / 60), [f, voice, from, run, bpm, range, kimiko, proto.id]);
   const barsShown = boxPlan.bars;
   const range0 = boxPlan.on ? initialRange(boxPlan.plan, from, (f.tpq * bpm) / 60, (1 - BOX_PLAYHEAD) * barsShown * f.barTicks) : range;
   // The design study (box-variants.ts, `?boxv=N`): each voice's range, for the staves.
@@ -1766,7 +1727,7 @@ export function BenchApp() {
             )}
           </>
         }
-        legend={<>{playing && builds(f) && f.entries.length > 0 && <LegendMap game={game} />}<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => (sheetOn ? (sheetLayout === "open" && !played.includes(i) ? "#4a4540" : paperInk(i, f.voices.length)) : inkOf(i, f.voices.length))} paper={sheetOn} /></>}
+        legend={<>{playing && builds(f) && f.entries.length > 0 && <LegendMap game={game} />}<VoiceLegend names={f.voiceNames.map((n) => partKey(f.kind, n))} played={played} ink={(i) => inkOf(i, f.voices.length)} /></>}
       >
         <div className="tg-count" ref={count} aria-live="polite" />
         {phase.kind === "talk" && lesson && (
@@ -2028,8 +1989,6 @@ export function BenchApp() {
               />
               {/* D1069: TEST SCENES: one tap to a piece, its sound, a voice and a moment worth testing. */}
               <TestScenes run={runScene} ready={sceneReady} />
-              {/* D298: the picture in the round: the box, CANTUS (to come), the fugue's sheet. */}
-              <DisplayChoice value={display} set={setDisplay} piece={f} />
               {/* D1059/D1060: NEW MECHANICS (the strings' bow, MECH.bow), kept on this device, ON by default (the game's); the page reloads. */}
               <Choice
                 id="new-mechanics"
@@ -2098,7 +2057,6 @@ export function BenchApp() {
           <From f={f} pick={pick} setPick={setPick} from={from} />
           <SoundFold key={kimiko ? "her" : "all"} value={soundNow} set={setSound} own={kimiko ? undefined : PIECE_SOUND[f.id]} />
           {kimiko && <p className="tg-panel-note tb-note">WITH KIMIKO: this sets your voice only; equal temperament at her A.</p>}
-          <DisplayChoice value={display} set={setDisplay} piece={f} />
           <TuningSelect value={tuningPref} set={changeTuning} own={resolveTuning("instrument", soundNow)} />
           <HeadphonesFold hp={hp} lag={lag} setLag={setLag} chip={ensureChip} />
           {/* D425: the hard tap's calibration (a phone with a motion sensor). */}
@@ -2312,7 +2270,7 @@ export function BenchApp() {
  * ink ("VOCÊ · SOPRANO"; two voices played: the chip split between their colours). `names` as shown
  * (partKey: an Invention's Upper and Lower).
  */
-export function VoiceLegend({ names, played, ink, paper = false, alone = false }: { names: string[]; played: number[]; ink: (i: number) => string; paper?: boolean; alone?: boolean }) {
+export function VoiceLegend({ names, played, ink, alone = false }: { names: string[]; played: number[]; ink: (i: number) => string; alone?: boolean }) {
   const mine = played.filter((i) => i < names.length);
   // D402: the tutorial before 1.5: your voice's label alone (the others named once another voice plays).
   const others = alone ? [] : names.map((_, i) => i).filter((i) => !mine.includes(i));
@@ -2324,7 +2282,7 @@ export function VoiceLegend({ names, played, ink, paper = false, alone = false }
         <span>{mine.some((i) => names[i]) ? tr("YOU · {voice}", { voice: mine.filter((i) => names[i]).map((i) => voiceName(names[i])).join(" + ") }) : tr("YOU")}</span>
       </span>
       {others.map((i) => (
-        <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: paper ? 0.75 : 0.6 }}>
+        <span key={names[i]} className="tb-legend-other" style={{ color: ink(i), opacity: 0.6 }}>
           ■ {voiceName(names[i])}
         </span>
       ))}

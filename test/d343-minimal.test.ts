@@ -104,7 +104,7 @@ test("D343: the pop-up for the friends: the piece's name, the voice, PLAY; no BW
 test("D343: settings: the language first, named in its own tongue; the owner's items and LOCK AGAIN only unlocked; the version last, tappable", () => {
   const app = src("src/bench/BenchApp.tsx");
   const lite = app.slice(app.indexOf('<Panel title="SETTINGS" close={back} className="tb-lite-settings">'), app.indexOf('{phase.kind === "settings" && !APP.lite && ('));
-  const order = ['id={`lang-${l}`}', 'id="volume"', "<LagSetting", "{full && (", 'id="lite-platform"', "<DisplayChoice", "<TuningSelect", 'id="lock-again"', "<VersionTap"].map((s) => lite.indexOf(s));
+  const order = ['id={`lang-${l}`}', 'id="volume"', "<LagSetting", "{full && (", 'id="lite-platform"', "<TuningSelect", 'id="lock-again"', "<VersionTap"].map((s) => lite.indexOf(s));
   assert.ok(order.every((i) => i >= 0), String(order));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "in that order");
   assert.match(lite, /\{name\}/, "each language by its own name (LANGS), not translated");

@@ -75,7 +75,7 @@ The play page's first download went from 1.67 to 1.41 MB compressed, the whole s
 Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
 Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
 phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) deleted (D1075; the old app's only);
-`public/sheet` (11 MB) stays: the game's SHEET display reads it. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
+`public/sheet` (11 MB) deleted with the SHEET display modes (D1077, WTC 3.41). Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
 branch to the dev branch.
 
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
