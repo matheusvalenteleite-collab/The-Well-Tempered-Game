@@ -3,6 +3,12 @@
 Things the owner wants kept in view but not implemented now. Newest first. Move an item to
 DECISIONS.md (or delete it) when it is done or dropped.
 
+## Organ trio sonatas, BWV 525-530 (research only, 28 November 2026, second account; nothing built, no D-number)
+
+Report: docs/research/ORGAN-TRIO-SONATAS.md. Three lines each (two manuals, pedal): the game's shape. Free scores found for BWV 528
+and 529 only (Mutopia, public domain, the game's reader takes both); the other four to look for in PDMX (Zenodo was out of this
+session's reach). Suggested first slice BWV 529. Owner to decide: organ or chamber-trio sound (D437), first slice, pedal as a part.
+
 ## Keyboard suites in the developer game (owner's rulings 28 November 2026, D1078; research done, no build yet)
 
 Report: docs/research/KEYBOARD-SUITES.md. Owner: tempo changes inside a piece must be possible (no prohibition); first slice French
