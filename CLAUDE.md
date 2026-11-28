@@ -19,6 +19,7 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 - Legato = passing a note from thumb to thumb; never teach hold-and-lift. Don't offer dull lines as the player's part.
 - Live hit-tests at 932×430 and 667×375. Invented names only for the WTC pieces. MORE BACH stays behind the ricercar.
 - **No sound change ships without the owner listening** (a listening page with A/B clips); pure level refits that fix a rule violation may ship without that.
+- ZELENKA TRIO, FLUTE & HARP and BACH BRASS stay (D1067; a player's favourites). "Drag"/"slide" = vertical, "sway" = sideways (D1068).
 - Plan and show prototypes before a big build. When the owner says "choose the best", choose, and say what you chose.
 
 ## Working style (to save the owner's tokens)
@@ -32,6 +33,5 @@ Bach played on a sideways phone with two thumbs (Vite + React + TypeScript, Web 
 - **Owner's top priority (24 Nov):** horizontal and vertical gestures that let the player improvise on the sound ("I'm rediscovering the game, and it rocks"). Batch 2 (the guitars and PSYCH's tilt, D1061-D1066) is built on the dev branch, play.html's default ("directly to main game"), not yet deployed; the developer view's GUITAR & TILT turns it off. Next: Batch 3, after the owner has played Batch 2; the plan is in BACKLOG ("Instrument gestures and tilt, by batches").
 - **Owner to do:** run `sh tools/delete-merged-branches.sh` from a computer with push rights (211 merged branches, see `docs/audits/MERGED-BRANCHES.md`); set GitHub's default branch to the dev branch.
 - **Open, unmerged:**
-  - #499, retiring FLUTE & HARP and ZELENKA: conflicts with dev, and II/23 needs the owner's pick;
   - #474, prelude ABOUT notes: the owner hasn't read them;
   - older studio PRs #182, #374, #380: stale, to triage.

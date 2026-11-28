@@ -13,9 +13,8 @@ string instrument's dragging, should be glissando, and how fast one drags dictat
   the mf within ±0.75 dB on the phone model, but the ff's colour evidently reads as louder. Older suspect: D1016's bow
   contact point (`bowGain`/`bowTone`, `src/touch/touch-expr.ts`, +4 dB bridge shelf). Measure in LU before and after.
   Removing a loudness effect on the player's voice is a D508 fix and may ship without a listening page.
-- **Ask the owner first, one question:** which drag is meant, the sideways one (the bow, D1055) or the vertical one
-  toward the next note (the slide, D486)? A glissando goes from note to note, so it naturally belongs to the vertical
-  slide; if the sideways drag is meant, what should sideways do once the ff colour is gone (nothing; vibrato; colour only)?
+- **Answered (D1068): "dragging" is the vertical slide**, not the sideways sway. So the boost is on a slid note; find
+  what raises it (does the bow read the slide's vertical motion as bow speed, or the slide's arrival as a flick/bite?).
 - **Drag = glissando (portamento), its speed the thumb's.** A fast drag gives a quick slide into the note (string
   players call a fast audible shift a portamento too; a very quick slide into a note from below is usually called a
   "scoop" or slide-in); a slow drag a gradual glide. Builds on D424/D486 (strings' shift glide 25/25/45/70 ms, fixed
@@ -99,9 +98,7 @@ All worker sessions were stopped at the owner's request; resume only when the ow
 - **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
   `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
   drops, colour in step. The owner: "I like the crab canon suggestion, build A."
-- **Retiring FLUTE & HARP and ZELENKA (D1037), PR #499, open and unmerged.** It conflicts with dev (#496, #498):
-  `data/touch/colour-plans.json` (regenerate with its tool) and `test/d805-berlin-school.test.ts`; explain the test
-  count (1849 against 1864). II/23: BERLIN SCHOOL unless the owner prefers VOCAL SYNTH (clip on the retirement page).
+- **Retiring FLUTE & HARP and ZELENKA: DROPPED (D1067).** Both stay; PR #499 closed. A player loves ZELENKA TRIO and BACH BRASS.
 - **Prelude II/1's plucked bass line on a sustaining instrument:** an A/B the owner wants to hear ("Maybe yes. Try it out."). Not started.
 - **Strings.** Synthesized strings REJECTED ("I hate the synthesized strings, they're pointless"); STRING CONSORT
   stays as it is. BAROQUE BAND keeps its old violin and cello with the new oboe; the sampled strings still need a
