@@ -14,6 +14,9 @@ import { heldChange, isPedal, liveRegistration, onLiveRegistration, organPatchOf
 import { bandRegistration, coloured, type Colour } from "./colour.ts";
 import { BOW_ATTACK, bowChangeShape, layerMix } from "./bow.ts";
 import { BLOOM, FUZZ_GUITAR, HARD_PICK, LEFT_HAND, PICK, STOMP, bloomOf, fuzzCurve, isGuitarSample, pickLanding, pickTone, type GuitarCmd, type GuitarPlay } from "./guitar.ts";
+import { LIP_VIB, TREMULANT_SWAY, lipVib, swayHold, tremulantAt } from "./shake-voice.ts";
+/** D1076: the tremulant stage Chip.touchTremulant makes: the chain's end, its LFO, the two depth gains. */
+type TremulantParts = { out: AudioNode; lfo: OscillatorNode; amp: GainNode; pitch: GainNode };
 import { BRIGHT_SPAN, breathGain, breathTone, breathVib, bowGain, bowTone, dutyGain, dutyWaveAt, fingerVib, type Duty, GUITAR_VIB, brassEdgeDb, brassMix, brassOf, BRASS_EDGE, BRASS_NEUTRAL, swellBrass, swellGain, formantAt, holdMode, landing, touchLevelDb, messaGain, pulseRms, pulseWave, touchKind, tremRate, vibDepth, wahAt, widthOf, BLOOM_CENTS, BLOOM_DEFAULT, BLOOM_MOVE, BLOOM_STILL, LUTE_TAU, TOUCH_NEUTRAL, TOUCH_TAU, VOWEL_CLOSED, WAH_Q, type HoldMode } from "./touch-expr.ts";
 import { deskSeatFor, BACKING_HIGHPASS_HZ, chipMeter, BACKING_LEVEL, backingOn, bowEntry, chipVolume, dutyStep, DUTY_UP_DB, expressiveAll, registerAll, STEPPED_SOUNDS, swellToneDb, toneAll, toneLevelDb, TONE_DB_SPAN, VIB_F_CENTS, VIB_F_MIN_S, VOLUME_MID, giveWayFall, type GiveWay, CONSONANTS, PATCHES, grooveHits, grooveNow, harmonicsOf, type FxKind, isShaped, preset, patchFor, placeFor, sampledNow, pieceLayoutNow, pieceLevel, pieceLineUp, setPieceLayout, SHAPES, VOWELS, type Drum, type Kit, type Patch, type ShapedWave, type Wave } from "./sound.ts";
 import { type Plan, type PlanSlim, BOW_LAYER_GAIN, bowSetsOf, holdOff, setZones, BOSSA_KIT_FILES, BOSSA_KIT_MIDIS, BOSSA_KIT_SET, BRUSH_FILES, BRUSH_MIDIS, BRUSH_SET, LATIN_FILES, LATIN_SET, latinMidis, ROCK_KIT_MIDIS, ROCK_KIT_RMS, ROCK_KIT_SET, rockKitMidi, KIT_VOICES, kitMidi, TIMP_MIDIS, TIMP_SET, fileOf, type KitSet, chainOf, folderOf, loaded, loadedMidis, loadOne, nearestSample, noteInfo, planFor, rateFor, SAMPLED, setFor, setUnreachable, speakFrom, MAX_SHIFT_ANY, type Loaded, type SampledInstrument, loadPlanStaged } from "./sampled.ts";
@@ -1821,7 +1824,7 @@ export class Chip {
     const l = kind === "organ" && isPedal(pt) ? (l0.tone ? { tone: l0.tone } : {}) : l0;
     const inst = pt?.sample ? SAMPLED[pt.sample] : null;
     const plucked = inst ? inst.plucked : pt ? pt.amp.s === 0 : false;
-    const q: Play = { ...p, hold: gtr ? "bend" : holdMode(kind, pt, plucked, preset().id) };
+    const q: Play = { ...p, hold: gtr ? "bend" : swayHold(kind, holdMode(kind, pt, plucked, preset().id)) };
     if (l.level !== undefined) q.level = (p.level ?? 1) * l.level;
     // D511: the landing's level on every offered sound (TOUCH_LEVEL_DB), from where the thumb landed (`own`: not moved by the reading's tone).
     const tl = touchLevelDb(preset().id, own ?? TOUCH_NEUTRAL);
@@ -2069,8 +2072,28 @@ export class Chip {
     return depth;
   }
 
+  /**
+   * D1076: the organ's tremulant under the thumb's sway (shake-voice.ts "tremulant"): an LFO at the tremulant's rate shaking the
+   * level about its own (the gain's mean stays 1) and the pitch a little, both at depth 0 until the thumb sways (touchShape).
+   * Returns the chain's new end and the two depth gains; the LFO is for `lfos` (stopped with the note).
+   */
+  private touchTremulant(src: AudioNode, t: number, bag: Bag): TremulantParts {
+    const lfo = bag.src(this.ctx.createOscillator());
+    lfo.frequency.value = TREMULANT_SWAY.rate;
+    const amp = bag.add(this.ctx.createGain());
+    const tg = bag.add(this.ctx.createGain());
+    const pitch = bag.add(this.ctx.createGain());
+    amp.gain.value = 0;
+    tg.gain.value = 1;
+    pitch.gain.value = 0;
+    lfo.connect(amp).connect(tg.gain);
+    lfo.connect(pitch);
+    lfo.start(t);
+    return { out: src.connect(tg), lfo, amp, pitch };
+  }
+
   /** D311: a held note's answer to the thumb's sideways move (Sounding.shape), from the parts it has. */
-  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number; finger?: boolean }; trem?: { lfo: OscillatorNode; rate: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; bowed?: boolean; breathVib?: GainNode; swell?: boolean; blend?: { forte: GainNode; piano: GainNode; b0: number } }, live: () => boolean): (s: number) => void {
+  private touchShape(parts: { messa?: GainNode; wah?: { node: BiquadFilterNode; f0: number }; vib?: { depth: GainNode; base: number; finger?: boolean; lip?: boolean }; tremulant?: { amp: GainNode; pitch: GainNode }; trem?: { lfo: OscillatorNode; rate: number }; breath?: { gain: GainNode; shelf: BiquadFilterNode }; bowed?: boolean; breathVib?: GainNode; swell?: boolean; blend?: { forte: GainNode; piano: GainNode; b0: number } }, live: () => boolean): (s: number) => void {
     const ctx = this.ctx;
     return (s: number) => {
       if (!live()) return;
@@ -2092,7 +2115,13 @@ export class Chip {
         parts.wah.node.frequency.setTargetAtTime(w.hz, now, TOUCH_TAU);
         parts.wah.node.gain.setTargetAtTime(w.db, now, TOUCH_TAU);
       }
-      if (parts.vib) retarget(parts.vib.depth.gain, parts.vib.finger ? fingerVib(s) : vibDepth(parts.vib.base, s), now);
+      if (parts.vib) retarget(parts.vib.depth.gain, parts.vib.lip ? lipVib(s) : parts.vib.finger ? fingerVib(s) : vibDepth(parts.vib.base, s), now);
+      // D1076: the organ's tremulant brought in by the sway (the level shaken about its own, a slight pitch wobble with it).
+      if (parts.tremulant) {
+        const k = tremulantAt(s);
+        parts.tremulant.amp.gain.setTargetAtTime(TREMULANT_SWAY.depth * 0.5 * k, now, TOUCH_TAU);
+        parts.tremulant.pitch.gain.setTargetAtTime(TREMULANT_SWAY.cents * k, now, TOUCH_TAU);
+      }
       if (parts.trem) parts.trem.lfo.frequency.setTargetAtTime(tremRate(parts.trem.rate, s), now, TOUCH_TAU);
     };
   }
@@ -2942,6 +2971,12 @@ export class Chip {
       src = src.connect(tg);
       tremLfo.start(t);
     }
+    // D1076: a recorded pipe's tremulant brought in by the player's sway (shake-voice.ts "tremulant", behind SHAKE_PROTO).
+    let trX: TremulantParts | null = null;
+    if (p.hold === "tremulant" && !plucked) {
+      trX = this.touchTremulant(src, t, bag);
+      src = trX.out;
+    }
     // D503: the vibraphone's motor (Patch.motor; the recordings are motor off): the level beaten at its rate, struck
     // notes too, the beating coming in over `rise` after the strike; the LFO started on the clock's phase (one motor for
     // every bar: a cosine from its peak at whole periods of the audio clock); the player's held note's SWAY its speed.
@@ -3015,7 +3050,7 @@ export class Chip {
     // D525: KRAUTROCK's guitar into the band's tape echo (Patch.echo).
     if (pt.echo) this.echoSend(pan ?? dyn, pt.echo, bag);
     // D182, a trill: the step above and back, about eight times a second (the rate's square wave).
-    const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(motor ? [motor.lfo] : []), ...(gs ? gs.oscs : [])];
+    const lfos: AudioScheduledSourceNode[] = [...(tremLfo ? [tremLfo] : []), ...(trX ? [trX.lfo] : []), ...(motor ? [motor.lfo] : []), ...(gs ? gs.oscs : [])];
     // D305, SOLO VOICES: a long note's messa di voce (Patch.syllable.messa, dB; from its length alone);
     // joined to the next (tie), back to its level by then (no step into the next).
     const messa = pt.syllable?.messa ?? 0;
@@ -3065,6 +3100,7 @@ export class Chip {
     }
     // D213: the subject's vibrato (a plucked string's only a shimmer); where a recording's detune exists.
     const det = srcs.map((x) => x.src.detune).filter((d): d is AudioParam => !!d);
+    if (trX) for (const d of det) trX.pitch.connect(d);
     this.vibrato(det, t, end, plucked ? Math.min(3, p.vib ?? 0) : (p.vib ?? 0), bag, lfos);
     // D302: TRACKER's tone portamento into a joined note (Patch.slide).
     if (pt.slide && !pt.syllable && p.legato && p.from !== undefined && p.from !== midi)
@@ -3094,7 +3130,8 @@ export class Chip {
     // D311: the player's held recording: its vibrato's depth the thumb's (the patch's own the base).
     // D1014: a held guitar's finger vibrato (touch-expr.ts "finger", plucked as it is): none until the thumb sways.
     const finger = p.hold === "finger";
-    const xvib = finger ? this.touchVibrato(det, t, 0, 0, GUITAR_VIB.rate, bag, lfos) : p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
+    const lip = p.hold === "lip";
+    const xvib = finger ? this.touchVibrato(det, t, 0, 0, GUITAR_VIB.rate, bag, lfos) : lip ? this.touchVibrato(det, t, 0, 0, LIP_VIB.rate, bag, lfos) : p.hold === "vibrato" && !plucked ? this.touchVibrato(det, t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
     // D504: a wind's swell held (touch-expr.ts "breath"): on a patch with a vibrato (oboe II), more of it as it swells (none at rest).
     const bvib = p.hold === "breath" && pt.vib && !plucked ? this.touchVibrato(det, t, 0, pt.vib.delay, pt.vib.rate, bag, lfos) : null;
     // D297: the patch's own vibrato on a held recording (its rate, depth and delay: each voice's its own, R4).
@@ -3200,7 +3237,7 @@ export class Chip {
     let stopped = false;
     let cents = 0;
     let muffled = false;
-    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: finger ? 0 : (pt.vib?.depth ?? 0), finger } : undefined, ...(bvib ? { breathVib: bvib } : {}), swell: p.hold === "swell", blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
+    const shape = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: finger || lip ? 0 : (pt.vib?.depth ?? 0), finger, lip } : undefined, ...(bvib ? { breathVib: bvib } : {}), ...(trX ? { tremulant: { amp: trX.amp, pitch: trX.pitch } } : {}), swell: p.hold === "swell", blend: lip ? undefined : blend, trem: p.hold === "trem" ? motor : undefined }, () => !stopped) : undefined;
     const retune = (tc: number, at?: number) => {
       const off = 2 ** ((cents + (p.detune ?? 0) + (muffled ? -35 : 0)) / 1200);
       for (const x of srcs) x.src.playbackRate.setTargetAtTime(rateFor(x.set, x.m, baseHz * x.mult) * off, Math.max(ctx.currentTime, at ?? 0), tc);
@@ -3715,6 +3752,14 @@ export class Chip {
       src = src.connect(tg);
       lfo.start(t);
     }
+    // D1076: the organ's tremulant brought in by the player's sway (shake-voice.ts "tremulant", behind SHAKE_PROTO).
+    let trX: TremulantParts | undefined;
+    if (p.hold === "tremulant" && !pluck) {
+      trX = this.touchTremulant(src, t, bag);
+      src = trX.out;
+      lfos.push(trX.lfo);
+      for (const o of tuned) trX.pitch.connect(o.detune);
+    }
     // D311: the player's vibrato, its depth the thumb's (the patch's own the base).
     // D1015: a duty-stepped pulse keeps the player's vibrato as it was, its depth no longer the thumb's (touch-expr.ts "duty").
     const xvib = p.hold === "vibrato" || p.hold === "duty" ? this.touchVibrato(tuned.map((o) => o.detune), t, pt.vib?.depth ?? 0, pt.vib?.delay ?? 0.3, pt.vib?.rate ?? 5.5, bag, lfos) : null;
@@ -3787,7 +3832,7 @@ export class Chip {
     for (const o of tuned) (o.start(t), halt(o, last));
     if (breath) (breath.start(t), halt(breath, last));
     let stopped = false;
-    const shape0 = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: xtrem }, () => !stopped) : undefined;
+    const shape0 = p.hold ? this.touchShape({ ...xs, vib: xvib ? { depth: xvib, base: pt.vib?.depth ?? 0 } : undefined, trem: xtrem, ...(trX ? { tremulant: { amp: trX.amp, pitch: trX.pitch } } : {}) }, () => !stopped) : undefined;
     // D1015: the duty step (the wave swapped as the console's duty register is written; the patch's own vibrato as it was).
     const shape = duties.length
       ? (s: number) => {

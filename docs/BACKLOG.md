@@ -89,6 +89,10 @@ All worker sessions were stopped at the owner's request; resume only when the ow
   and brass lip vibrato onto sway. The owner: "Instrument shakes are good, I like them."
   **Status (28 Nov):** the four are built behind `SHAKE_PROTO` (off), D1074; listening page `public/dev/shake-slur/` (A today,
   B slurred, per instrument) waits for the owner's ear. Nothing flips until he has listened.
+  **Status (28 Nov, later):** the rest is built behind the same switch, D1076: winds (oboe, flute, bassoon), sung voices (SOLO VOICES,
+  VOCAL SYNTH), the strings' one-bow trill, and, onto the sway, PIPE ORGAN's tremulant and BACH BRASS's lip vibrato (instead of
+  today's swell). Listening page `public/dev/shake-slur2/` (six trills, two sways; A today, B proposed). Nothing skipped. Waits
+  for the owner's ear; defaults stay off.
 - **Crab canon morph, option A ("the turn"), APPROVED.** The Canons prototype on `claude/crab-proto` (D977,
   `play.html?fm=crab`): each forward segment appears as a contour over its landing and turns back to front as it
   drops, colour in step. The owner: "I like the crab canon suggestion, build A."
