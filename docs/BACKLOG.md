@@ -74,8 +74,8 @@ FILM, SYNTH_LAYERS_SOUND, five skins); index.html is a redirect and the counterp
 The play page's first download went from 1.67 to 1.41 MB compressed, the whole site's code from 10.6 to about 5.3 MB.
 Also done (WTC 3.34, D1054): `pieces.json` split into stubs plus one chunk of notes per piece (play page first download 1.41 → 0.93 MB compressed).
 Still open, by payoff: split the giant files (stage-bg, sound, chip, BenchApp); frame rate on a real
-phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) and `public/sheet` (11 MB) still ship, probably the
-old app's. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
+phone; rename bench to game; Prettier and ESLint; `public/scans` (3 MB) deleted (D1075; the old app's only);
+`public/sheet` (11 MB) stays: the game's SHEET display reads it. Owner to do: run `tools/delete-merged-branches.sh` (see docs/audits/MERGED-BRANCHES.md); set GitHub's default
 branch to the dev branch.
 
 ## Paused on 23 November 2026 (the owner: "I don't want to spend any tokens right now on these things, so add them to backlog")
