@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tempo and Repeat Sketch</title>
+<style>
+  :root { --bg:#0b0d18; --card:#141833; --fg:#ece6cf; --muted:#9aa1c8; --line:#2a3160; --gold:#f4e9a8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; }
+  main { max-width:980px; margin:0 auto; padding:20px 16px 56px; }
+  h1 { font-size:21px; margin:0 0 4px; color:var(--gold); }
+  .warn { background:#3a2a10; border:1px solid #8a6a2a; color:#ffe2a8; border-radius:8px; padding:8px 12px; font-size:14px; margin:8px 0 14px; }
+  .muted { color:var(--muted); font-size:14px; }
+  .ctl { display:flex; flex-wrap:wrap; gap:12px 20px; margin:12px 0; align-items:center; }
+  .ctl label { font-size:14px; color:var(--muted); display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  select, button.go { background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:15px; min-height:40px; }
+  button.go { border-color:var(--gold); cursor:pointer; min-width:110px; }
+  #stage { position:relative; width:100%; height:calc(var(--h) * var(--k) * 1px); overflow:hidden; }
+  #frame { position:absolute; left:0; top:0; width:calc(var(--w) * 1px); height:calc(var(--h) * 1px); transform:scale(var(--k)); transform-origin:0 0; background:#05060d; border:2px solid #3a4380; overflow:hidden; touch-action:none; user-select:none; }
+  canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .bar { position:absolute; top:0; bottom:0; width:22%; background:rgba(108,182,255,.10); }
+  .bar.r { right:0; background:rgba(255,138,108,.10); } .bar.l { left:0; }
+  .bar.hit { filter:brightness(2.2); }
+  .strip { position:absolute; bottom:2px; width:calc(22% - 12px); display:grid; grid-template-columns:repeat(3,1fr); gap:4px; pointer-events:none; }
+  .strip.l { left:6px; } .strip.r { right:6px; }
+  .pist { height:28px; border:1px solid #556; border-radius:5px; background:rgba(11,13,24,.55); color:var(--muted); font:8px/26px monospace; text-align:center; }
+  .rep { position:absolute; display:none; align-items:center; justify-content:center; background:#2a2410; border:2px solid var(--gold); border-radius:6px; color:var(--gold); font:700 10px monospace; letter-spacing:.06em; cursor:pointer; z-index:5; }
+  .rep.show { display:flex; } .rep.on { background:var(--gold); color:#111; }
+  .rep svg { width:70%; height:70%; }
+  .read { font:13px/1.5 ui-monospace,monospace; color:var(--muted); margin:8px 0; white-space:pre-wrap; }
+  .hud { position:absolute; left:50%; top:6px; transform:translateX(-50%); font:10px monospace; color:#8d95c4; pointer-events:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tempo changes and the REPEAT button: a sketch</h1>
+  <div class="warn"><b>Developer-only throwaway.</b> Not part of the game and not wired to it. The tune is an <b>invented stand-in, not Bach</b>. It only shows how the clock, the music box, the timing window and the REPEAT button could behave. Needs sound. Companion to docs/research/TEMPO-AND-REPEAT-DESIGN.md.</div>
+  <p class="muted">The stand-in has an ADAGIO (bars 1 to 4), an ALLEGRO (bars 5 to 12, a section with a repeat), a coda (bars 13 to 16) and a slowing into the last bar. In bars 11 and 12 the REPEAT button appears, and goes one beat before the section ends. Tap the left and right bars (or press F and J) along with the notes; SPACE also presses REPEAT. The pale band at the play line is your timing window: it is always 200 ms, so it looks wider in the Adagio and narrower in the Allegro.</p>
+  <div class="ctl">
+    <label>Screen <select id="size"><option value="932x430">932 x 430</option><option value="667x375">667 x 375</option></select></label>
+    <label>Player's tempo <select id="step"><option value="0.75">SLOW (0.75)</option><option value="1" selected>DEFAULT (1)</option><option value="1.4">FAST (1.4)</option></select></label>
+    <label>How it scales <select id="mode"><option value="prop">proportional: every section by the same share</option><option value="anchor">anchored: only the Allegro scales, the Adagio stays put</option><option value="flat">none: one tempo all through (today)</option></select></label>
+    <label>REPEAT place <select id="place"><option value="A">A: in the innermost piston's slot, both bars</option><option value="B">B: centre of the foot</option><option value="C">C: above the pistons, inner edge, both bars</option></select></label>
+    <label>REPEAT face <select id="face"><option value="sign">the printed repeat sign</option><option value="arrow">a circular arrow</option><option value="word">the word</option><option value="blank">a plain lit key</option></select></label>
+    <button class="go" id="go">PLAY</button>
+  </div>
+  <div id="stage"><div id="frame">
+    <canvas id="cv"></canvas>
+    <div class="bar l" id="bl"></div><div class="bar r" id="br"></div>
+    <div class="strip l"><div class="pist">1</div><div class="pist">2</div><div class="pist">3</div></div>
+    <div class="strip r"><div class="pist">1</div><div class="pist">2</div><div class="pist">3</div></div>
+    <div class="rep" id="repL"></div><div class="rep" id="repR"></div><div class="rep" id="repC"></div>
+    <div class="hud" id="hud"></div>
+  </div></div>
+  <div class="read" id="read"></div>
+</main>
+<script>
+"use strict";
+// The stand-in piece: 16 bars of 4 beats. Bars 1-4 Adagio, 5-12 Allegro (the repeat section), 13-16 coda, slowing in 15-16.
+const BASE = 100;                       // the Allegro's quarter-note tempo at DEFAULT
+const ROOT = [60,57,62,55, 60,57,62,55, 60,57,62,55, 65,62,67,60];
+const barNotes = (b) => { const r = ROOT[b-1], out = [];
+  if (b <= 4) for (let j = 0; j < 4; j++) out.push({ at:j, dur:1, midi:r + [0,4,7,4][j] });
+  else for (let j = 0; j < 8; j++) out.push({ at:j/2, dur:.5, midi:r + 12 + [0,4,7,12,7,4,2,5][j] });
+  return out; };
+// The tempo map: a factor on the base tempo, by bar and beat (ramps are straight lines).
+const factor = (b, j) => b <= 4 ? 0.5 : b < 15 ? 1 : b === 15 ? 1 - 0.15*j/4 : 0.85 - 0.2*j/4;
+const SECTION_FROM = 5, SECTION_TO = 12, WINDOW_FROM = 11;
+let m = 1, mode = "prop", plan = [], repeated = false, pressed = false;
+const mult = (b) => mode === "flat" ? 1 : mode === "anchor" ? (b <= 4 ? 1 : m) : m;
+const spb = (b, j) => 60 / (BASE * (mode === "flat" ? 1 : factor(b, j)) * mult(b));   // seconds per beat
+function mkPlan(rep) { const bars = []; for (let b = 1; b <= SECTION_TO; b++) bars.push(b);
+  if (rep) for (let b = SECTION_FROM; b <= SECTION_TO; b++) bars.push(b);
+  for (let b = SECTION_TO + 1; b <= 16; b++) bars.push(b);
+  const p = []; let t = 0; for (const b of bars) for (let j = 0; j < 4; j++) { const s = spb(b, j); p.push({ b, j, t, s }); t += s; }
+  return p; }
+let ac = null;
+const tone = (midi, at, len, vol, type) => { const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || "triangle"; o.frequency.value = 440 * Math.pow(2, (midi - 69)/12); g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + .01);
+  g.gain.exponentialRampToValueAtTime(.0008, at + Math.max(.08, len)); o.connect(g); g.connect(ac.destination); o.start(at); o.stop(at + Math.max(.1, len) + .05); };
+let t0 = 0, running = false, next = 0, count = 0, lead = 0, last = "", okN = 0, tapN = 0;
+const $ = (id) => document.getElementById(id);
+const REPS = ["repL", "repR", "repC"];
+function noteTimes() { const out = []; for (const e of plan) for (const n of barNotes(e.b)) if (n.at >= e.j && n.at < e.j + 1) out.push(e.t + (n.at - e.j) * e.s); return out; }
+function start() {
+  if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+  ac.resume(); m = +$("step").value; mode = $("mode").value; repeated = false; pressed = false; plan = mkPlan(false); okN = tapN = 0; last = "";
+  lead = 4 * spb(1, 0); t0 = ac.currentTime + 0.2 + lead; next = 0; count = 0; running = true; setRep(false);
+  for (let i = 0; i < 4; i++) tone(84, t0 - lead + i * spb(1, 0), .05, .06, "square");
+}
+const posAt = (el) => { let k = 0; while (k + 1 < plan.length && plan[k+1].t <= el) k++; const e = plan[k]; return Math.min(plan.length, k + Math.max(0, (el - e.t) / e.s)); };
+const deadlineK = () => plan.findIndex((e) => e.b === SECTION_TO && e.j === 3);        // one beat before the section's end
+const windowK = () => plan.findIndex((e) => e.b === WINDOW_FROM && e.j === 0);
+function press() { if (!running || pressed) return; const k = posAt(ac.currentTime - t0);
+  if (k < windowK() || k >= deadlineK()) return; pressed = true; repeated = true; plan = mkPlan(true); setRep(true); }
+// The REPEAT button's faces and places.
+const SIGN = '<svg viewBox="0 0 40 40"><rect x="9" y="4" width="5" height="32" fill="currentColor"/><rect x="17" y="4" width="2" height="32" fill="currentColor"/><circle cx="25" cy="14" r="2.6" fill="currentColor"/><circle cx="25" cy="26" r="2.6" fill="currentColor"/></svg>';
+const ARROW = '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M31 14a12 12 0 1 0 3 9"/><path d="M33 6v9h-9"/></svg>';
+const face = () => { const f = $("face").value; return f === "sign" ? SIGN : f === "arrow" ? ARROW : f === "word" ? "REPEAT" : ""; };
+function layout() {
+  const [W, H] = $("size").value.split("x").map(Number), stage = $("stage");
+  const k = Math.min(1, stage.parentElement.clientWidth / (W + 4)); stage.style.setProperty("--w", W); stage.style.setProperty("--h", H); stage.style.setProperty("--k", k);
+  const cv = $("cv"); cv.width = W; cv.height = H;
+  const bw = W * .22, pw = (bw - 12 - 8) / 3, p = $("place").value;
+  const at = (el, x, y, w, h) => Object.assign(el.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", right: "auto" });
+  const y28 = H - 2 - 28, yC = y28 - 36;
+  const A = (el, left) => at(el, left ? 6 + 2 * (pw + 4) : W - 6 - pw, y28, pw, 28);
+  const C = (el, left) => at(el, left ? 6 + (bw - 12) / 2 : W - 6 - (bw - 12) / 2, yC, (bw - 12) / 2, 32);
+  if (p === "B") at($("repC"), W * .5 - 70, H - 38, 140, 34); else { (p === "A" ? A : C)($("repL"), true); (p === "A" ? A : C)($("repR"), false); }
+  for (const id of REPS) { $(id).innerHTML = face(); $(id).style.fontSize = pw < 50 ? "8px" : "10px"; }
+}
+const setRep = (on) => REPS.forEach((id) => $(id).classList.toggle("on", on));
+const showRep = (vis) => { const p = $("place").value; REPS.forEach((id) => $(id).classList.toggle("show", vis && ((p === "B") === (id === "repC")))); };
+REPS.forEach((id) => $(id).addEventListener("pointerdown", (e) => { e.stopPropagation(); e.preventDefault(); press(); }));
+// Taps are judged in milliseconds, whatever the tempo.
+function tap(side) { if (!running) return; const el = ac.currentTime - t0 - 0.02; tapN++;
+  let best = 9999; for (const t of noteTimes()) { const d = (el - t) * 1000; if (Math.abs(d) < Math.abs(best)) best = d; }
+  const ok = Math.abs(best) <= 200; if (ok) okN++; last = (best >= 0 ? "+" : "") + Math.round(best) + " ms, " + (ok ? "in the window" : "outside");
+  tone(side === "l" ? 72 : 76, ac.currentTime, .15, .05, "square"); const bar = $(side === "l" ? "bl" : "br"); bar.classList.add("hit"); setTimeout(() => bar.classList.remove("hit"), 90); }
+[["bl", "l"], ["br", "r"]].forEach(([id, s]) => $(id).addEventListener("pointerdown", (e) => { e.preventDefault(); tap(s); }));
+addEventListener("keydown", (e) => { if (e.key === "f") tap("l"); if (e.key === "j") tap("r"); if (e.key === " ") { e.preventDefault(); press(); } });
+// The music box: x is the place in beats along the plan (every beat the same width), so a tempo change shows as scroll speed.
+function draw() {
+  const cv = $("cv"), g = cv.getContext("2d"), W = cv.width, H = cv.height;
+  g.fillStyle = "#05060d"; g.fillRect(0, 0, W, H);
+  const el = running ? ac.currentTime - t0 : -4 * spb(1, 0);
+  const pos = el < 0 ? el / spb(1, 0) : posAt(el), ppb = W * .6 / 8, px = W * .38;
+  const xOf = (beat) => px + (beat - pos) * ppb;
+  g.font = "10px monospace"; g.textBaseline = "top";
+  plan.forEach((e, k) => { const x = xOf(k); if (x < -40 || x > W + 40) return;
+    g.strokeStyle = e.j === 0 ? "#3a4380" : "#1c2144"; g.lineWidth = e.j === 0 ? 2 : 1; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H - 36); g.stroke();
+    if (e.j === 0) { g.fillStyle = "#6a73ad"; g.fillText(String(e.b), x + 3, 3); }
+    for (const n of barNotes(e.b)) if (n.at >= e.j && n.at < e.j + 1) { const nx = xOf(k + (n.at - e.j)), y = H - 70 - (n.midi - 55) * (H - 140) / 30;
+      g.fillStyle = e.b < 5 ? "#6cb6ff" : "#ff8a6c"; g.fillRect(nx, y, Math.max(6, n.dur * ppb - 3), 9); } });
+  // The end of the section: a thick and a thin barline after bar 12 (and, when the face is the printed sign, its two dots).
+  const endK = plan.findIndex((e) => e.b === SECTION_TO && e.j === 3) + 1;
+  if (endK > 0) { const x = xOf(endK); g.fillStyle = "#c9cfee"; g.fillRect(x - 6, 0, 4, H - 36); g.fillRect(x - 12, 0, 1.5, H - 36);
+    if ($("face").value === "sign") { g.beginPath(); g.arc(x - 18, H * .4, 2.5, 0, 7); g.fill(); g.beginPath(); g.arc(x - 18, H * .4 + 12, 2.5, 0, 7); g.fill(); } }
+  // The play line and the 200 ms window, drawn as wide as 200 ms is at the speed here.
+  const e = plan[Math.max(0, Math.min(plan.length - 1, Math.floor(Math.max(0, pos))))], wpx = (0.2 / e.s) * ppb;
+  g.fillStyle = "rgba(244,233,168,.13)"; g.fillRect(px - wpx, 0, 2 * wpx, H - 36); g.fillStyle = "#f4e9a8"; g.fillRect(px - 1, 0, 2, H - 36);
+  if (running) {
+    // Sound is scheduled a little ahead; the bars after the section are held back until the decision is final (one beat before its end).
+    const horizon = el + 0.35, dk = deadlineK(), final = plan[dk].t;
+    while (next < plan.length && plan[next].t < horizon) { const e2 = plan[next];
+      if (!repeated && e2.b > SECTION_TO && el < final) break;
+      for (const n of barNotes(e2.b)) if (n.at >= e2.j && n.at < e2.j + 1) tone(n.midi, t0 + e2.t + (n.at - e2.j) * e2.s, n.dur * e2.s * .9, e2.b < 5 ? .1 : .07);
+      if (e2.j === 0) tone(ROOT[e2.b - 1] - 24, t0 + e2.t, e2.s * 1.6, .1, "sine");
+      next++; }
+    count = Math.max(0, Math.min(plan.length - 1, Math.floor(pos)));
+    showRep(pos >= windowK() && pos < dk && !(repeated && !pressed));
+    if (el > plan[plan.length - 1].t + plan[plan.length - 1].s + .5) { running = false; showRep(false); }
+  }
+  const e3 = plan[Math.max(0, Math.min(plan.length - 1, count))];
+  $("hud").textContent = running ? "bar " + e3.b + "   quarter = " + Math.round(60 / e3.s) + (repeated ? "   (section repeated)" : "") : "";
+  const q = (b, j) => Math.round(60 / spb(b, j));
+  $("read").textContent = "Quarter-note tempi: Adagio " + q(1, 0) + ", Allegro " + q(5, 0) + " (the Adagio is " + (spb(5, 0) / spb(1, 0)).toFixed(2) + " of the Allegro), end of bar 16 " + q(16, 3) + ".\n" +
+    "Taps in the 200 ms window: " + okN + " of " + tapN + ". Last tap: " + (last || "-") + ".\n" +
+    "REPEAT: " + (pressed ? "pressed, bars 5 to 12 play again" : "not pressed, play goes on to bar 13") + ".";
+  requestAnimationFrame(draw);
+}
+$("go").onclick = start; ["size", "place", "face"].forEach((id) => { $(id).onchange = layout; }); addEventListener("resize", layout);
+plan = mkPlan(false); layout(); requestAnimationFrame(draw);
+</script>
+</body>
+</html>
